@@ -75,6 +75,14 @@ export const PinataService = Context.GenericTag<PinataService>(
 
 export interface StellarService {
   readonly createTransaction: (code: string, cid: string, projectAccountId: string) => Effect.Effect<string, StellarError | EnvironmentError, EnvironmentService>
+  readonly listProjects: () => Effect.Effect<ProjectInfo[], StellarError | EnvironmentError, EnvironmentService>
+}
+
+export interface ProjectInfo {
+  readonly name: string
+  readonly code: string
+  readonly ipfsUrl: string
+  readonly status: "claimed" | "claimable"
 }
 
 export const StellarService = Context.GenericTag<StellarService>(
@@ -133,55 +141,150 @@ const PinataServiceLive = Layer.succeed(
   })
 )
 
-const StellarServiceLive = Layer.succeed(
+// Shared Stellar utilities
+const getStellarConfig = () => pipe(
+  Effect.all([
+    pipe(EnvironmentService, Effect.flatMap(env => env.getRequired("STELLAR_SEED"))),
+    pipe(EnvironmentService, Effect.flatMap(env => env.getOptional("STELLAR_NETWORK", "testnet")))
+  ]),
+  Effect.map(([seed, network]) => ({
+    seed,
+    network,
+    keypair: Keypair.fromSecret(seed),
+    server: new Horizon.Server(
+      network === "mainnet" 
+        ? "https://horizon.stellar.org"
+        : "https://horizon-testnet.stellar.org"
+    ),
+    networkPassphrase: network === "mainnet" ? Networks.PUBLIC : Networks.TESTNET
+  }))
+)
+
+const fetchProjectDataFromIPFS = (cid: string): Effect.Effect<{ name?: string; [key: string]: any }, StellarError> =>
+  pipe(
+    Effect.tryPromise({
+      try: async () => {
+        const ipfsUrl = `https://ipfs.io/ipfs/${cid}`
+        const response = await fetch(ipfsUrl)
+        return await response.json() as { name?: string; [key: string]: any }
+      },
+      catch: (error) => new StellarError({ 
+        cause: error, 
+        operation: "fetch_ipfs_data" 
+      })
+    })
+  )
+
+const checkClaimableBalanceStatus = (server: Horizon.Server, sponsorKey: string, assetCode: string): Effect.Effect<"claimed" | "claimable", StellarError> =>
+  pipe(
+    Effect.tryPromise({
+      try: async () => {
+        const claimableBalances = await server.claimableBalances()
+          .sponsor(sponsorKey)
+          .call()
+        
+        for (const balance of claimableBalances.records) {
+          const asset = balance.asset
+          if (asset !== "native" && asset.split(':')[0] === assetCode) {
+            return "claimable" as const
+          }
+        }
+        return "claimed" as const
+      },
+      catch: (error) => new StellarError({ 
+        cause: error, 
+        operation: "check_claimable_balance" 
+      })
+    })
+  )
+
+const StellarServiceLive = Layer.effect(
   StellarService,
-  StellarService.of({
-    createTransaction: (code: string, cid: string, projectAccountId: string) => pipe(
-      Effect.all([
-        pipe(EnvironmentService, Effect.flatMap(env => env.getRequired("STELLAR_SEED"))),
-        pipe(EnvironmentService, Effect.flatMap(env => env.getOptional("STELLAR_NETWORK", "testnet")))
-      ]),
-      Effect.flatMap(([seed, network]) =>
-        Effect.tryPromise({
-          try: async () => {
-            const server = new Horizon.Server(
-              network === "mainnet" 
-                ? "https://horizon.stellar.org"
-                : "https://horizon-testnet.stellar.org"
-            )
+  Effect.gen(function* () {
+    return StellarService.of({
+      createTransaction: (code: string, cid: string, projectAccountId: string) => pipe(
+        getStellarConfig(),
+        Effect.flatMap(({ keypair, server, networkPassphrase }) =>
+          Effect.tryPromise({
+            try: async () => {
+              const sourceAccount = await server.loadAccount(keypair.publicKey())
 
-            const sourceKeypair = Keypair.fromSecret(seed)
-            const sourceAccount = await server.loadAccount(sourceKeypair.publicKey())
+              const transaction = new TransactionBuilder(sourceAccount, {
+                fee: "100",
+                networkPassphrase,
+              })
+                .addOperation(Operation.manageData({
+                  name: `ipfshash-${code}`,
+                  value: cid,
+                }))
+                .addOperation(Operation.createClaimableBalance({
+                  asset: new Asset(code, keypair.publicKey()),
+                  amount: "0.0000001",
+                  claimants: [
+                    new Claimant(keypair.publicKey()),
+                    new Claimant(projectAccountId)
+                  ]
+                }))
+                .setTimeout(TimeoutInfinite)
+                .build()
 
-            const transaction = new TransactionBuilder(sourceAccount, {
-              fee: "100",
-              networkPassphrase: network === "mainnet" ? Networks.PUBLIC : Networks.TESTNET,
+              transaction.sign(keypair)
+              return transaction.toXDR()
+            },
+            catch: (error) => new StellarError({ 
+              cause: error, 
+              operation: "create_transaction" 
             })
-              .addOperation(Operation.manageData({
-                name: `ipfshash-${code}`,
-                value: cid,
-              }))
-              .addOperation(Operation.createClaimableBalance({
-                asset: new Asset(code, sourceKeypair.publicKey()),
-                amount: "0.0000001",
-                claimants: [
-                  new Claimant(sourceKeypair.publicKey()),
-                  new Claimant(projectAccountId)
-                ]
-              }))
-              .setTimeout(TimeoutInfinite)
-              .build()
-
-            transaction.sign(sourceKeypair)
-            return transaction.toXDR()
-          },
-          catch: (error) => new StellarError({ 
-            cause: error, 
-            operation: "create_transaction" 
           })
-        })
+        )
+      ),
+
+      listProjects: () => pipe(
+        getStellarConfig(),
+        Effect.flatMap(({ keypair, server }) =>
+          Effect.tryPromise({
+            try: async () => {
+              const account = await server.loadAccount(keypair.publicKey())
+              return account.data_attr
+            },
+            catch: (error) => new StellarError({ 
+              cause: error, 
+              operation: "load_account" 
+            })
+          })
+        ),
+        Effect.flatMap(dataEntries =>
+          Effect.all(
+            Object.entries(dataEntries)
+              .filter(([key]) => key.startsWith('ipfshash-'))
+              .map(([key, value]) => {
+                const code = key.replace('ipfshash-', '')
+                const cid = Buffer.from(value, 'base64').toString()
+                const ipfsUrl = `https://ipfs.io/ipfs/${cid}`
+
+                return pipe(
+                  Effect.all([
+                    fetchProjectDataFromIPFS(cid),
+                    pipe(
+                      getStellarConfig(),
+                      Effect.flatMap(({ server, keypair }) =>
+                        checkClaimableBalanceStatus(server, keypair.publicKey(), code)
+                      )
+                    )
+                  ]),
+                  Effect.map(([projectData, status]) => ({
+                    name: projectData.name || code,
+                    code,
+                    ipfsUrl,
+                    status
+                  }))
+                )
+              }),
+            { concurrency: "unbounded" }
+          )
+        )
       )
-    )
+    })
   })
 )
 
@@ -262,18 +365,33 @@ const askQuestions = (): Effect.Effect<ProjectData, ValidationError> =>
     )
   )
 
+// Shared environment validation
+const checkEnvironmentVariables = (requiredVars: string[]): Effect.Effect<void, EnvironmentError, EnvironmentService> =>
+  pipe(
+    Effect.sync(() => console.log(chalk.blue("🔍 Checking environment variables..."))),
+    Effect.flatMap(() => EnvironmentService),
+    Effect.flatMap(env => 
+      Effect.all(
+        requiredVars.map(varName => env.getRequired(varName)),
+        { concurrency: "unbounded" }
+      )
+    ),
+    Effect.flatMap(() => Effect.sync(() => console.log(chalk.green("✅ Environment variables OK\n"))))
+  )
+
+// Shared error handling
+const handleCliError = (error: CliError): Effect.Effect<void, never> =>
+  Effect.sync(() => {
+    console.error(chalk.red("❌ Error:"), error)
+    process.exit(1)
+  })
+
 const createProject = (): Effect.Effect<void, CliError, EnvironmentService | PinataService | StellarService> =>
   pipe(
     Effect.gen(function* () {
       yield* Effect.sync(() => console.log(chalk.blue("🚀 Creating new project...\n")))
 
-      // Check required environment variables first
-      yield* Effect.sync(() => console.log(chalk.blue("🔍 Checking environment variables...")))
-      const env = yield* EnvironmentService
-      yield* env.getRequired("STELLAR_SEED")
-      yield* env.getRequired("PINATA_TOKEN")
-      yield* env.getRequired("PINATA_GROUP_ID")
-      yield* Effect.sync(() => console.log(chalk.green("✅ Environment variables OK\n")))
+      yield* checkEnvironmentVariables(["STELLAR_SEED", "PINATA_TOKEN", "PINATA_GROUP_ID"])
 
       const projectData = yield* askQuestions()
       
@@ -301,12 +419,42 @@ const createProject = (): Effect.Effect<void, CliError, EnvironmentService | Pin
         console.log(chalk.white(transactionXDR))
       })
     }),
-    Effect.catchAll((error: CliError) =>
-      Effect.sync(() => {
-        console.error(chalk.red("❌ Error:"), error)
-        process.exit(1)
+    Effect.catchAll(handleCliError)
+  )
+
+const listProjects = (): Effect.Effect<void, CliError, EnvironmentService | StellarService> =>
+  pipe(
+    Effect.gen(function* () {
+      yield* Effect.sync(() => console.log(chalk.blue("📋 Listing projects...\n")))
+
+      yield* checkEnvironmentVariables(["STELLAR_SEED"])
+
+      yield* Effect.sync(() => console.log(chalk.blue("🔍 Fetching projects from Stellar...")))
+      const projects = yield* pipe(
+        StellarService,
+        Effect.flatMap(service => service.listProjects())
+      )
+
+      if (projects.length === 0) {
+        yield* Effect.sync(() => console.log(chalk.yellow("No projects found.")))
+        return
+      }
+
+      yield* Effect.sync(() => {
+        console.log(chalk.green(`\n✅ Found ${projects.length} projects:\n`))
+        
+        // Transform projects for console.table
+        const tableData = projects.map(project => ({
+          "Project Name": project.name,
+          "Code": project.code,
+          "Status": project.status,
+          "IPFS URL": project.ipfsUrl
+        }))
+        
+        console.table(tableData)
       })
-    )
+    }),
+    Effect.catchAll(handleCliError)
   )
 
 const AppLayer = Layer.mergeAll(
@@ -323,12 +471,28 @@ program
   .description("CLI for Montelibero Crowdsourcing Platform")
   .version("1.0.0")
 
-program
-  .command("new-project")
+const projectCommand = program
+  .command("project")
+  .description("Project management commands")
+
+projectCommand
+  .command("new")
   .description("Create a new project")
   .action(() => {
     const program = pipe(
       createProject(),
+      Effect.provide(AppLayer)
+    )
+    
+    BunRuntime.runMain(program)
+  })
+
+projectCommand
+  .command("list")
+  .description("List all projects")
+  .action(() => {
+    const program = pipe(
+      listProjects(),
       Effect.provide(AppLayer)
     )
     
