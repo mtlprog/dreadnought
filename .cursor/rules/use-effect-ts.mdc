@@ -1,0 +1,515 @@
+---
+description: Always use Effect-TS for all code with pipe-based functional programming
+globs: "*.ts, *.tsx, package.json, *.mjs, *.mts"
+alwaysApply: true
+---
+
+# Effect-TS Usage Rules
+
+Effect-TS is **MANDATORY** for all new code in this monorepo. It provides type-safe error handling, dependency injection, and composable effects management.
+
+## Core Principles
+
+1. **Always use Effect-TS** - No exceptions. All async operations, error handling, and side effects must use Effect.
+2. **Pipe-based composition** - Use pipe() for all Effect compositions, not generators.
+3. **Type-safe errors** - All errors must be typed in the Effect signature.
+4. **Fail fast** - Don't try to recover from unexpected errors.
+5. **Modular architecture** - Each package should contain its own layers and services.
+
+## Required Packages
+
+Always install these Effect packages:
+
+```json
+{
+  "dependencies": {
+    "@effect/platform": "latest",
+    "@effect/platform-bun": "latest",
+    "@effect/schema": "latest",
+    "@effect/sql": "latest",
+    "@effect/sql-pg": "latest", // if using PostgreSQL
+    "effect": "latest"
+  }
+}
+```
+
+## Import Conventions
+
+```typescript
+// Core imports - always use named imports
+import { Effect, pipe, Layer, Runtime, Context, Option, Either, Exit } from "effect"
+import * as S from "@effect/schema/Schema"
+import { BunContext, BunRuntime } from "@effect/platform-bun"
+import * as Http from "@effect/platform/HttpServer"
+import * as SqlClient from "@effect/sql/Client"
+```
+
+## Project Structure
+
+```
+packages/
+├── core/
+│   ├── src/
+│   │   ├── services/     # Shared services
+│   │   ├── errors/       # Common error definitions
+│   │   └── utils/        # Effect utilities
+├── auth/
+│   ├── src/
+│   │   ├── layers/       # Auth-specific layers
+│   │   ├── services/     # Auth services
+│   │   └── errors/       # Auth errors
+└── api/
+    ├── src/
+    │   ├── layers/       # API layers
+    │   ├── routes/       # HTTP routes as Effects
+    │   └── middleware/   # Effect-based middleware
+```
+
+## Service Pattern
+
+Always define services as Effect Tags with interfaces:
+
+```typescript
+// Define service interface
+export interface DatabaseService {
+  readonly query: <T>(sql: string) => Effect.Effect<T[], DatabaseError>
+  readonly transaction: <T>(
+    effect: Effect.Effect<T, DatabaseError>
+  ) => Effect.Effect<T, DatabaseError>
+}
+
+// Create service tag
+export const DatabaseService = Context.GenericTag<DatabaseService>("@app/DatabaseService")
+
+// Implement service as Layer
+export const DatabaseServiceLive = Layer.succeed(
+  DatabaseService,
+  DatabaseService.of({
+    query: (sql) => pipe(
+      Effect.tryPromise({
+        try: () => db.query(sql),
+        catch: (error) => new DatabaseError({ cause: error })
+      })
+    ),
+    transaction: (effect) => pipe(
+      Effect.acquireUseRelease(
+        Effect.tryPromise({
+          try: () => db.beginTransaction(),
+          catch: (error) => new DatabaseError({ cause: error })
+        }),
+        () => effect,
+        (tx) => Effect.tryPromise({
+          try: () => tx.commit(),
+          catch: (error) => new DatabaseError({ cause: error })
+        })
+      )
+    )
+  })
+)
+```
+
+## Error Handling
+
+Define typed errors using tagged unions:
+
+```typescript
+// Use @effect/schema for error definitions
+export class ValidationError extends S.TaggedError<ValidationError>()(
+  "ValidationError",
+  {
+    field: S.String,
+    message: S.String,
+  }
+) {}
+
+export class DatabaseError extends S.TaggedError<DatabaseError>()(
+  "DatabaseError", 
+  {
+    cause: S.Unknown,
+    query: S.optional(S.String),
+  }
+) {}
+
+export class ApiError extends S.TaggedError<ApiError>()(
+  "ApiError",
+  {
+    status: S.Number,
+    message: S.String,
+  }
+) {}
+
+// Union type for function signatures
+export type AppError = ValidationError | DatabaseError | ApiError
+```
+
+## HTTP Server with Platform-Bun
+
+```typescript
+import * as Http from "@effect/platform/HttpServer"
+import * as Router from "@effect/platform/HttpRouter"
+import { BunContext } from "@effect/platform-bun"
+
+// Define routes as Effects
+const getUserRoute = Router.get(
+  "/users/:id",
+  Effect.gen(function* () {
+    const params = yield* Http.request.RouteParams
+    const id = params.id
+    
+    return yield* pipe(
+      UserService,
+      Effect.flatMap(service => service.findById(id)),
+      Effect.map(user => Http.response.json(user)),
+      Effect.catchTag("UserNotFound", () =>
+        Effect.succeed(Http.response.text("User not found", { status: 404 }))
+      )
+    )
+  })
+)
+
+// Compose routes
+const appRouter = Router.empty.pipe(
+  Router.mount("/api", apiRoutes)
+)
+
+// Run server
+const server = pipe(
+  Http.server.serve(appRouter),
+  Http.server.withLogAddress,
+  Layer.provide(UserServiceLive),
+  Layer.provide(DatabaseServiceLive),
+  Layer.provide(BunContext.layer)
+)
+
+BunRuntime.runMain(Layer.launch(server))
+```
+
+## Database with @effect/sql
+
+```typescript
+import * as Sql from "@effect/sql"
+import * as Pg from "@effect/sql-pg"
+
+// Define models with Schema
+export const User = S.Struct({
+  id: S.Number,
+  email: S.String.pipe(S.pattern(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/)),
+  name: S.String,
+  createdAt: S.Date,
+})
+export type User = S.Schema.Type<typeof User>
+
+// Create repository service
+export class UserRepository extends Context.Tag("UserRepository")<
+  UserRepository,
+  {
+    readonly findById: (id: number) => Effect.Effect<User, DatabaseError | UserNotFound>
+    readonly create: (data: UserCreate) => Effect.Effect<User, DatabaseError | ValidationError>
+    readonly update: (id: number, data: UserUpdate) => Effect.Effect<User, DatabaseError | UserNotFound>
+  }
+>() {}
+
+// Implementation
+export const UserRepositoryLive = Layer.effect(
+  UserRepository,
+  Effect.gen(function* () {
+    const sql = yield* Sql.client.Client
+    
+    return {
+      findById: (id) => pipe(
+        sql`SELECT * FROM users WHERE id = ${id}`,
+        Effect.map(rows => rows[0]),
+        Effect.flatMap(row =>
+          row 
+            ? S.decodeUnknown(User)(row)
+            : Effect.fail(new UserNotFound({ id }))
+        ),
+        Effect.mapError(error => 
+          error._tag === "UserNotFound" 
+            ? error 
+            : new DatabaseError({ cause: error })
+        )
+      ),
+      
+      create: (data) => pipe(
+        S.decodeUnknown(UserCreate)(data),
+        Effect.flatMap(validated =>
+          sql`INSERT INTO users ${sql.insert(validated)} RETURNING *`
+        ),
+        Effect.map(rows => rows[0]),
+        Effect.flatMap(S.decodeUnknown(User)),
+        Effect.mapError(error =>
+          error._tag === "ParseError"
+            ? new ValidationError({ field: "data", message: "Invalid user data" })
+            : new DatabaseError({ cause: error })
+        )
+      ),
+      
+      update: (id, data) => pipe(
+        S.decodeUnknown(UserUpdate)(data),
+        Effect.flatMap(validated =>
+          sql`UPDATE users SET ${sql.update(validated)} WHERE id = ${id} RETURNING *`
+        ),
+        Effect.map(rows => rows[0]),
+        Effect.flatMap(row =>
+          row
+            ? S.decodeUnknown(User)(row)
+            : Effect.fail(new UserNotFound({ id }))
+        ),
+        Effect.mapError(error =>
+          error._tag === "UserNotFound"
+            ? error
+            : error._tag === "ParseError"
+            ? new ValidationError({ field: "data", message: "Invalid update data" })
+            : new DatabaseError({ cause: error })
+        )
+      )
+    }
+  })
+)
+```
+
+## Testing
+
+```typescript
+import { Effect, TestContext, TestClock } from "effect"
+import { describe, test, expect } from "bun:test"
+import { testRuntime } from "./test-utils"
+
+describe("UserService", () => {
+  test("should create user", async () => {
+    const result = await pipe(
+      UserService.create({ email: "test@test.com", name: "Test" }),
+      Effect.provide(UserServiceTest), // Test implementation
+      Effect.provide(TestContext.TestContext),
+      testRuntime.runPromise
+    )
+    
+    expect(result.email).toBe("test@test.com")
+  })
+  
+  test("should handle database errors", async () => {
+    const result = await pipe(
+      UserService.create({ email: "invalid", name: "Test" }),
+      Effect.flip, // Convert failure to success for testing
+      Effect.provide(UserServiceTest),
+      testRuntime.runPromise
+    )
+    
+    expect(result._tag).toBe("ValidationError")
+  })
+})
+```
+
+## Common Patterns
+
+### Retry with exponential backoff
+```typescript
+const retryPolicy = pipe(
+  Effect.retry({
+    schedule: Schedule.exponential(Duration.millis(100)),
+    times: 3,
+    while: (error) => error._tag === "NetworkError"
+  })
+)
+```
+
+### Parallel execution
+```typescript
+const results = yield* Effect.all(
+  [fetchUser(1), fetchUser(2), fetchUser(3)],
+  { concurrency: "unbounded" }
+)
+```
+
+### Resource management
+```typescript
+const program = Effect.acquireUseRelease(
+  acquire: openDatabase(),
+  use: (db) => performOperations(db),
+  release: (db) => closeDatabase(db)
+)
+```
+
+### Timeout handling
+```typescript
+const withTimeout = pipe(
+  longRunningOperation,
+  Effect.timeout(Duration.seconds(30)),
+  Effect.map(Option.getOrElse(() => defaultValue))
+)
+```
+
+## Branded Types
+
+Use branded types for domain primitives:
+
+```typescript
+import { Brand } from "effect"
+
+export type UserId = number & Brand.Brand<"UserId">
+export const UserId = Brand.nominal<UserId>()
+
+export type Email = string & Brand.Brand<"Email">
+export const Email = Brand.refined<Email>(
+  (s) => /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(s),
+  (s) => Brand.error(`Invalid email: ${s}`)
+)
+
+// Usage
+const userId = UserId(123)
+const email = Email("user@example.com") // Returns Either<BrandError, Email>
+```
+
+## ESLint Configuration
+
+Add these rules to `.eslintrc.json`:
+
+```json
+{
+  "rules": {
+    "no-async-await": "error",
+    "no-promise": "error",
+    "prefer-const": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "custom-rules/effect-pipe-style": "error",
+    "custom-rules/effect-error-handling": "error",
+    "custom-rules/no-direct-throw": "error"
+  }
+}
+```
+
+## Code Snippets
+
+### Effect function (eff)
+```typescript
+export const $1 = ($2: $3): Effect.Effect<$4, $5, $6> =>
+  pipe(
+    $7
+  )
+```
+
+### Service definition (eservice)
+```typescript
+export class $1 extends Context.Tag("$1")<
+  $1,
+  {
+    readonly $2: ($3) => Effect.Effect<$4, $5>
+  }
+>() {}
+
+export const $1Live = Layer.succeed(
+  $1,
+  {
+    $2: ($3) => pipe(
+      $6
+    )
+  }
+)
+```
+
+### Error definition (eerror)
+```typescript
+export class $1Error extends S.TaggedError<$1Error>()(
+  "$1Error",
+  {
+    $2: S.$3
+  }
+) {}
+```
+
+### HTTP route (eroute)
+```typescript
+Router.$1(
+  "$2",
+  Effect.gen(function* () {
+    const $3 = yield* $4
+    return yield* pipe(
+      $5,
+      Effect.map(result => Http.response.json(result)),
+      Effect.catchTag("$6", () =>
+        Effect.succeed(Http.response.text("$7", { status: $8 }))
+      )
+    )
+  })
+)
+```
+
+## Migration Strategy
+
+When migrating existing code:
+
+1. Start with leaf functions (no dependencies)
+2. Convert async/await to Effect
+3. Type all errors
+4. Create service layers
+5. Compose into main program
+
+Example migration:
+
+```typescript
+// Before
+async function fetchUser(id: number): Promise<User> {
+  try {
+    const user = await db.query(`SELECT * FROM users WHERE id = ${id}`)
+    if (!user) throw new Error("User not found")
+    return user
+  } catch (error) {
+    console.error(error)
+    throw error
+  }
+}
+
+// After
+const fetchUser = (id: number): Effect.Effect<User, UserNotFound | DatabaseError> =>
+  pipe(
+    sql`SELECT * FROM users WHERE id = ${id}`,
+    Effect.map(rows => rows[0]),
+    Effect.flatMap(row =>
+      row 
+        ? Effect.succeed(row)
+        : Effect.fail(new UserNotFound({ id }))
+    ),
+    Effect.catchTag("SqlError", (error) =>
+      Effect.fail(new DatabaseError({ cause: error }))
+    ),
+    Effect.tap(Effect.logDebug(`Fetched user ${id}`))
+  )
+```
+
+## Performance Optimizations
+
+1. **Use Effect.all with concurrency limits** for batch operations
+2. **Cache frequently accessed data** using Effect.cachedWithTTL
+3. **Use streaming for large datasets** with Stream module
+4. **Batch database operations** using sql.transaction
+5. **Implement circuit breakers** for external services
+
+```typescript
+// Caching example
+const cachedFetchUser = Effect.cachedWithTTL(
+  fetchUser,
+  Duration.minutes(5)
+)
+
+// Batching example
+const batchInsertUsers = (users: User[]) =>
+  sql.transaction(
+    Effect.forEach(
+      users,
+      (user) => sql`INSERT INTO users ${sql.insert(user)}`,
+      { concurrency: 10 }
+    )
+  )
+```
+
+## DO NOT
+
+- ❌ Use async/await - always use Effect
+- ❌ Use try/catch - use Effect.tryPromise or Effect.tryCatch
+- ❌ Use Promises directly - wrap in Effect.promise
+- ❌ Throw errors - use Effect.fail
+- ❌ Use callbacks - convert to Effects
+- ❌ Mix Effect with non-Effect code - keep boundaries clean
+- ❌ Use console.log - use Effect.log variants
+- ❌ Ignore error types - all errors must be in type signature

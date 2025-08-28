@@ -1,0 +1,61 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint",
+    "functional"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "project": "./tsconfig.json"
+  },
+  "rules": {
+    // Forbid async/await in favor of Effect
+    "no-async-promise-executor": "error",
+    "no-return-await": "error",
+    "require-await": "error",
+    "@typescript-eslint/no-floating-promises": "error",
+    "@typescript-eslint/no-misused-promises": "error",
+    "@typescript-eslint/promise-function-async": "off",
+    
+    // Forbid direct throw statements
+    "no-throw-literal": "error",
+    "@typescript-eslint/no-throw-literal": "error",
+    
+    // Functional programming rules
+    "functional/no-let": "warn",
+    "functional/immutable-data": "warn",
+    "functional/no-promise-reject": "error",
+    
+    // Prefer const and immutability
+    "prefer-const": "error",
+    "@typescript-eslint/prefer-readonly": "error",
+    "@typescript-eslint/prefer-readonly-parameter-types": "off",
+    
+    // Effect-specific patterns
+    "no-console": ["error", { "allow": ["warn", "error"] }],
+    
+    // TypeScript strict rules
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/strict-boolean-expressions": "off",
+    
+    // Import rules
+    "@typescript-eslint/consistent-type-imports": ["error", { "prefer": "type-imports" }]
+  },
+  "overrides": [
+    {
+      "files": ["*.test.ts", "*.test.tsx"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}
