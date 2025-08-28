@@ -1,0 +1,39 @@
+{
+  "name": "@dreadnought/crowd.mtla.me",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "cli": "bun run src/cli/index.ts"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "next": "15.5.2",
+    "effect": "^3.11.0",
+    "@effect/platform": "latest",
+    "@effect/platform-bun": "latest",
+    "@effect/schema": "latest",
+    "@stellar/stellar-sdk": "^12.3.0",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "prompts": "^2.4.2",
+    "pinata": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/prompts": "^2.4.9",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "@eslint/eslintrc": "^3"
+  }
+}
