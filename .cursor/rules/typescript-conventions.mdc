@@ -1,0 +1,210 @@
+---
+description: TypeScript strict configuration and essential type patterns
+globs: "*.ts, *.tsx, *.d.ts, tsconfig.json"
+---
+
+# TypeScript Conventions
+
+Strict TypeScript configuration based on [Habr: TypeScript строгость](https://habr.com/ru/articles/557738/).
+
+## Strict Configuration
+
+Maximum strictness TypeScript setup:
+
+```json
+{
+  "compilerOptions": {
+    // Strict Type Checking (максимальная строгость)
+    "strict": true,                                    // Включает все строгие проверки
+    "noImplicitAny": true,                             // Запрещает неявный any
+    "strictNullChecks": true,                          // Строгие проверки null/undefined  
+    "strictFunctionTypes": true,                       // Строгая проверка типов функций
+    "strictBindCallApply": true,                       // Строгие bind/call/apply
+    "strictPropertyInitialization": true,             // Строгая инициализация свойств
+    "noImplicitThis": true,                           // Запрещает неявный this
+    "useUnknownInCatchVariables": true,               // unknown вместо any в catch
+    "alwaysStrict": true,                             // Всегда строгий режим
+
+    // Code Quality Checks (проверки качества кода)
+    "noUnusedLocals": true,                           // Неиспользуемые локальные переменные
+    "noUnusedParameters": true,                       // Неиспользуемые параметры
+    "exactOptionalPropertyTypes": true,               // Точная типизация опциональных свойств
+    "noImplicitReturns": true,                        // Все пути должны возвращать значение
+    "noFallthroughCasesInSwitch": true,              // Проверка fallthrough в switch
+    "noUncheckedIndexedAccess": true,                // Проверка индексированного доступа
+    "noImplicitOverride": true,                      // Явное указание override
+    "noPropertyAccessFromIndexSignature": true,      // Доступ к свойствам через точку
+
+    // Other essentials
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
+```
+
+## Critical Strict Flags
+
+### `exactOptionalPropertyTypes`
+Prevents assigning `undefined` to optional properties:
+```typescript
+interface User {
+  name?: string // Note: not string | undefined
+}
+
+// ❌ Error
+const user: User = { name: undefined }
+
+// ✅ Correct  
+const user: User = {} // Omit property
+const user2: User = { name: "John" } // Provide value
+```
+
+### `noImplicitReturns`
+All code paths must return a value:
+```typescript
+// ❌ Error
+function getStatus(success: boolean): string {
+  if (success) return "ok"
+  // Missing return
+}
+
+// ✅ Correct
+function getStatus(success: boolean): string {
+  if (success) return "ok"
+  return "error"
+}
+```
+
+### `noPropertyAccessFromIndexSignature`
+Use bracket notation for dynamic properties:
+```typescript
+interface Config {
+  [key: string]: string
+  knownProp: string
+}
+
+declare const config: Config
+
+// ❌ Error
+const value = config.dynamicProp
+
+// ✅ Correct
+const value = config["dynamicProp"] // Bracket for dynamic
+const known = config.knownProp // Dot for known
+```
+
+### `useUnknownInCatchVariables`
+Catch variables are `unknown`:
+```typescript
+try {
+  riskyOperation()
+} catch (error) {
+  // error is 'unknown'
+  if (error instanceof Error) {
+    console.log(error.message) // Safe after type guard
+  }
+}
+```
+
+## Essential Type Patterns
+
+### Branded Types & Schema
+```typescript
+import { Brand } from "effect"
+import * as S from "@effect/schema/Schema"
+
+// Branded types for domain primitives
+export type UserId = string & Brand.Brand<"UserId">
+export const UserId = Brand.nominal<UserId>()
+
+export type PublicKey = string & Brand.Brand<"PublicKey">
+export const PublicKey = Brand.refined<PublicKey>(
+  (s): s is PublicKey => /^G[A-Z2-7]{55}$/.test(s),
+  (s) => Brand.error(`Invalid public key: ${s}`)
+)
+
+// Schema-based domain models
+export const User = S.Struct({
+  id: S.String.pipe(S.brand("UserId")),
+  email: S.String.pipe(S.pattern(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/)),
+  publicKey: S.optional(S.String.pipe(S.brand("PublicKey"))),
+  createdAt: S.Date,
+  metadata: S.Record(S.String, S.Unknown)
+})
+export type User = S.Schema.Type<typeof User>
+
+// Discriminated unions
+export type TransactionStatus = 
+  | { _tag: "pending"; submittedAt: Date }
+  | { _tag: "success"; confirmedAt: Date; hash: string }
+  | { _tag: "failed"; failedAt: Date; reason: string }
+
+// Error types with Schema
+export class ValidationError extends S.TaggedError<ValidationError>()(
+  "ValidationError",
+  { field: S.String, message: S.String, value: S.optional(S.Unknown) }
+) {}
+```
+
+### Utility Types & Generics
+```typescript
+// Utility types for common transformations
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
+export type NonEmptyArray<T> = [T, ...T[]]
+
+// Extract Effect types
+export type EffectSuccess<T> = T extends Effect.Effect<infer A, any, any> ? A : never
+export type EffectError<T> = T extends Effect.Effect<any, infer E, any> ? E : never
+
+// Constrained generics (✅ Good vs ❌ Bad)
+export function processItems<T extends { id: string }>(items: ReadonlyArray<T>): Effect.Effect<T[], ProcessError>
+export function process<T>(item: T): T // ❌ Too generic
+
+// Type guards
+export const isPublicKey = (value: unknown): value is PublicKey =>
+  typeof value === "string" && /^G[A-Z2-7]{55}$/.test(value)
+```
+
+### React Component Types
+```typescript
+import { type VariantProps, cva } from "class-variance-authority"
+import { type ComponentPropsWithoutRef, forwardRef } from "react"
+
+// Component with variants
+export interface ButtonProps 
+  extends ComponentPropsWithoutRef<"button">,
+    VariantProps<typeof buttonVariants> {
+  readonly isLoading?: boolean
+  readonly leftIcon?: React.ReactNode
+}
+
+// Hook return interfaces
+export interface UseWalletReturn {
+  readonly isConnected: boolean
+  readonly publicKey: PublicKey | null
+  readonly connect: () => Effect.Effect<void, WalletError>
+}
+```
+
+## Strict Mode Rules
+
+### Type Safety
+- ❌ Use `any` - use `unknown` instead
+- ❌ Use `@ts-ignore` - fix the issue
+- ❌ Use `!` without type guards
+- ❌ Use `Function` - be specific
+- ❌ Use `object` - use `Record<string, unknown>`
+
+### Code Quality
+- ❌ Leave unused variables/parameters
+- ❌ Missing return statements in all paths
+- ❌ Dot notation for dynamic properties  
+- ❌ Assign `undefined` to optional properties
+- ❌ Implicit `any` in catch blocks
+
+### Best Practices
+- ❌ Mix `interface` and `type` inconsistently
+- ❌ Use `enum` - use `as const` instead
+- ❌ Export types and values with same name
+- ❌ Use mutable arrays when immutable needed

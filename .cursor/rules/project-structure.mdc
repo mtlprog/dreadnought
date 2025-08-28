@@ -1,0 +1,282 @@
+---
+description: Monorepo structure and organization for blockchain dApps
+globs: "*.ts, *.tsx, *.json, *.md"
+alwaysApply: true
+---
+
+# Project Structure Rules
+
+This monorepo is organized for building blockchain dApps with maximum code reuse across projects.
+
+## Core Principles
+
+1. **Thin Apps** - Apps in `apps/` should be as thin as possible, primarily composing components from `packages/`
+2. **Self-contained Packages** - Each package must be fully self-sufficient with its own dependencies
+3. **Effect-TS Layers** - Layers are composed in apps from packages, not centralized
+4. **Blockchain-First** - Structure optimized for blockchain/Web3 development, particularly Stellar
+
+## Directory Structure
+
+```
+dreadnought/
+├── apps/                       # NextJS dApps (thin layer)
+│   └── [app-name]/            # Individual dApp
+│       ├── app/               # Next.js 13+ app directory
+│       ├── public/            # Static assets
+│       └── package.json       # App-specific deps
+│
+├── packages/                   # Reusable components
+│   ├── ui/                   # @dreadnought/ui - Shared UI components
+│   │   ├── src/
+│   │   │   ├── components/   # React components
+│   │   │   ├── hooks/        # React hooks with Effect-TS
+│   │   │   └── styles/       # Shared styles
+│   │   └── package.json
+│   │
+│   ├── stellar-auth/          # @dreadnought/stellar-auth
+│   │   ├── src/
+│   │   │   ├── services/     # Auth services
+│   │   │   ├── layers/       # Effect layers
+│   │   │   └── types/        # Type definitions
+│   │   └── package.json
+│   │
+│   ├── stellar-nft/           # @dreadnought/stellar-nft
+│   │   ├── src/
+│   │   │   ├── services/     # NFT operations
+│   │   │   ├── contracts/    # Smart contracts
+│   │   │   └── layers/       # Effect layers
+│   │   └── package.json
+│   │
+│   ├── stellar-wallet-kit/    # @dreadnought/stellar-wallet-kit
+│   │   ├── src/
+│   │   │   ├── providers/    # Next.js providers
+│   │   │   ├── hooks/        # Wallet hooks
+│   │   │   └── services/     # Wallet services with Effect
+│   │   └── package.json
+│   │
+│   ├── bsn/                   # @dreadnought/bsn
+│   │   ├── src/
+│   │   │   ├── protocol/     # BSN protocol implementation
+│   │   │   ├── services/     # BSN services
+│   │   │   └── types/        # BSN types
+│   │   └── package.json
+│   │
+│   ├── mmwb/                  # @dreadnought/mmwb
+│   │   ├── src/
+│   │   │   ├── sdk/          # MMWB wallet SDK
+│   │   │   ├── services/     # Wallet integration
+│   │   │   └── layers/       # Effect layers
+│   │   └── package.json
+│   │
+│   ├── config/                # @dreadnought/config
+│   │   ├── src/
+│   │   │   ├── env/          # Environment configs
+│   │   │   ├── chains/       # Blockchain configs
+│   │   │   └── constants/    # Shared constants
+│   │   └── package.json
+│   │
+│   └── utils/                 # @dreadnought/utils
+│       ├── src/
+│       │   ├── effect/       # Effect-TS utilities
+│       │   ├── crypto/       # Crypto helpers
+│       │   └── format/       # Formatters
+│       └── package.json
+```
+
+## Package Conventions
+
+### Naming Convention
+- Package scope: `@dreadnought/[package-name]`
+- Use kebab-case for package names
+- Be specific: `stellar-auth` not just `auth`
+
+### Package Structure
+Each package should have:
+```
+package-name/
+├── src/
+│   ├── index.ts           # Main exports
+│   ├── services/          # Effect services (if applicable)
+│   ├── layers/            # Effect layers (if applicable)
+│   ├── types/             # TypeScript types
+│   └── [feature]/         # Feature-specific folders
+├── package.json
+├── tsconfig.json          # Extends root tsconfig
+└── README.md              # Package documentation
+```
+
+### Package.json Template
+```json
+{
+  "name": "@dreadnought/[package-name]",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./services": "./src/services/index.ts",
+    "./layers": "./src/layers/index.ts"
+  },
+  "dependencies": {
+    "effect": "^3.11.0",
+    // package-specific deps
+  },
+  "peerDependencies": {
+    // deps that should be provided by the app
+  }
+}
+```
+
+## App Structure
+
+### NextJS App Template
+```
+app-name/
+├── app/
+│   ├── layout.tsx         # Root layout with providers
+│   ├── page.tsx           # Home page
+│   ├── api/               # API routes (if needed)
+│   └── [feature]/         # Feature pages
+├── components/            # App-specific components (minimal)
+├── lib/
+│   ├── layers.ts          # Compose Effect layers from packages
+│   └── runtime.ts         # Effect runtime configuration
+├── public/
+├── package.json
+└── next.config.js
+```
+
+### Layer Composition Example
+```typescript
+// apps/[app-name]/lib/layers.ts
+import { Layer } from "effect"
+import { StellarAuthLayer } from "@dreadnought/stellar-auth/layers"
+import { StellarWalletLayer } from "@dreadnought/stellar-wallet-kit/layers"
+import { ConfigLayer } from "@dreadnought/config/layers"
+
+export const AppLayers = Layer.mergeAll(
+  ConfigLayer,
+  StellarAuthLayer,
+  StellarWalletLayer
+)
+```
+
+## Import Rules
+
+### Cross-package imports
+- ✅ `import { Button } from "@dreadnought/ui"`
+- ✅ `import { AuthService } from "@dreadnought/stellar-auth/services"`
+- ❌ `import { something } from "../../packages/ui/src/components"`
+
+### Internal package imports
+- Use relative imports within the same package
+- Export everything needed through index files
+
+### App imports
+- Apps should primarily import from packages
+- Minimize app-specific code
+
+## Development Workflow
+
+### Creating a new package
+1. Create folder in `packages/`
+2. Initialize with package.json following the template
+3. Add to root package.json workspaces if needed
+4. Implement with Effect-TS patterns
+5. Export through index.ts
+
+### Creating a new app
+1. Create folder in `apps/`
+2. Initialize NextJS with `bunx create-next-app`
+3. Install required packages from workspace
+4. Compose layers in `lib/layers.ts`
+5. Build thin UI layer using package components
+
+### Adding blockchain features
+1. Check if feature exists in packages
+2. If not, create new package or extend existing
+3. Follow Stellar/blockchain best practices
+4. Wrap all async operations in Effect
+5. Export as services and layers
+
+## Testing Strategy
+
+- Unit tests in packages (close to the code)
+- Integration tests in packages (testing layers)
+- E2E tests in apps (user flows)
+- Use Effect test utilities for Effect code
+
+## Build & Deploy
+
+- Each package should be buildable independently
+- Apps compose and build with all dependencies
+- Use Bun workspaces for dependency management
+- Deploy apps independently
+
+## Common Patterns
+
+### Blockchain Service Pattern
+```typescript
+// packages/stellar-[feature]/src/services/[feature].service.ts
+import { Effect, Context } from "effect"
+import { NetworkError } from "@dreadnought/utils/errors"
+
+export interface StellarFeatureService {
+  readonly operation: (params: Params) => Effect.Effect<Result, NetworkError>
+}
+
+export const StellarFeatureService = Context.GenericTag<StellarFeatureService>(
+  "@dreadnought/stellar-feature/StellarFeatureService"
+)
+```
+
+### UI Component Pattern
+```typescript
+// packages/ui/src/components/[Component].tsx
+"use client"
+
+import { Effect } from "effect"
+import { useEffect } from "@dreadnought/ui/hooks"
+
+export interface ComponentProps {
+  // props
+}
+
+export function Component({ ...props }: ComponentProps) {
+  // Effect-based hooks
+  const result = useEffect(effect)
+  
+  return <div>...</div>
+}
+```
+
+### Provider Pattern for NextJS
+```typescript
+// packages/[package]/src/providers/[Provider].tsx
+"use client"
+
+import { ReactNode } from "react"
+import { Runtime } from "effect"
+
+export function Provider({ 
+  children,
+  runtime 
+}: { 
+  children: ReactNode
+  runtime: Runtime.Runtime<Requirements> 
+}) {
+  // Provider logic with Effect runtime
+  return <>{children}</>
+}
+```
+
+## DO NOT
+
+- ❌ Create circular dependencies between packages
+- ❌ Put business logic in apps (should be in packages)
+- ❌ Use different Effect patterns in different packages
+- ❌ Import from src folders directly (use package exports)
+- ❌ Mix async/await with Effect (use Effect everywhere)
+- ❌ Create monolithic packages (keep them focused)
+- ❌ Duplicate code across packages (extract to utils)
+- ❌ Hardcode blockchain configs (use config package)

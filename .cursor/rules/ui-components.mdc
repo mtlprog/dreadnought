@@ -1,0 +1,185 @@
+---
+description: UI component patterns with Tailwind CSS, Shadcn/ui, and minimalistic cathode display aesthetic
+globs: "*.tsx, *.css, globals.css, tailwind.config.ts"
+---
+
+# UI Components & Styling Rules
+
+Minimalistic, cathode display aesthetic with Tailwind CSS and Shadcn/ui components.
+
+## Design Philosophy
+
+1. **Brutalist Minimalism** - Simple, rough, brick-like aesthetic
+2. **No Curves** - Zero border radius on all elements (except loaders)
+3. **Cathode Display** - Terminal-like appearance, monospace fonts
+4. **High Contrast** - Clear visual hierarchy
+5. **Mobile-First** - Responsive design
+
+## Color Palette
+
+Use ONLY colors defined in `globals.css`:
+
+- `--background: 0 0% 0%` (Pure black)
+- `--foreground: 0 0% 100%` (Pure white) 
+- `--primary: 120 100% 50%` (Green terminal)
+- `--secondary: 180 100% 40%` (Cyan)
+- `--destructive: 0 100% 50%` (Red error)
+- `--border: 0 0% 20%` (Border gray)
+- `--muted: 0 0% 15%` (Dark gray)
+
+## Essential Classes
+
+### Layout
+```tsx
+// Container: container mx-auto px-4
+// Grid: grid grid-cols-1 md:grid-cols-2 gap-4
+// Flex: flex flex-col md:flex-row items-center justify-between
+```
+
+### Borders & Spacing
+```tsx
+// NO ROUNDED CORNERS
+<div className="border border-border"> // ✅ Correct
+<div className="rounded-lg"> // ❌ Wrong
+// Use 4-unit spacing: p-4 space-y-4
+```
+
+### Typography
+```tsx
+// Headings: text-4xl font-bold, text-2xl font-semibold, text-lg font-medium
+// Body: text-base text-muted-foreground
+// Code: font-mono text-primary
+```
+
+## Component Patterns
+
+### Button Variants
+```tsx
+const buttonVariants = cva(
+  "inline-flex items-center justify-center font-medium transition-colors",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline: "border-2 border-border bg-background hover:bg-muted",
+        ghost: "hover:bg-muted hover:text-foreground",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-8 px-3",
+        lg: "h-12 px-8",
+        icon: "h-10 w-10",
+      },
+    }
+  }
+)
+```
+
+### Card Component
+```tsx
+<Card className="border-2 border-border bg-card p-0">
+  <CardHeader className="border-b-2 border-border bg-muted p-4">
+    <CardTitle className="font-mono text-primary">SYSTEM STATUS</CardTitle>
+  </CardHeader>
+  <CardContent className="p-4 font-mono">
+    <pre className="text-green-400">System operational</pre>
+  </CardContent>
+</Card>
+```
+
+### Form Components
+```tsx
+// Input
+<Input className="border-2 border-border bg-input font-mono text-foreground focus:border-primary" />
+
+// Select
+<Select>
+  <SelectTrigger className="border-2 border-border bg-input">
+    <SelectValue placeholder="SELECT_OPTION" />
+  </SelectTrigger>
+  <SelectContent className="border-2 border-border bg-card">
+    <SelectItem value="1">OPTION_1</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+## Terminal UI Elements
+
+### Status Indicators
+```tsx
+<div className="flex items-center gap-2 font-mono">
+  <div className="h-2 w-2 bg-green-500" />
+  <span className="text-xs uppercase">ONLINE</span>
+</div>
+```
+
+### Data Tables
+```tsx
+<table className="w-full border-2 border-border">
+  <thead className="border-b-2 border-border bg-muted">
+    <tr>
+      <th className="p-2 text-left font-mono text-primary">ID</th>
+      <th className="p-2 text-left font-mono text-primary">STATUS</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr className="border-b border-border">
+      <td className="p-2 font-mono">001</td>
+      <td className="p-2 font-mono">ACTIVE</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+### Command Interface
+```tsx
+<div className="border-2 border-primary bg-black p-4 font-mono">
+  <div className="text-primary">
+    <span className="text-green-400">$</span>
+    <input className="ml-2 bg-transparent outline-none text-green-400" />
+  </div>
+</div>
+```
+
+## Responsive Patterns
+
+```tsx
+// Mobile-first grid
+<div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+
+// Responsive flex
+<div className="flex flex-col md:flex-row items-center justify-between">
+```
+
+## Accessibility
+
+- Always include ARIA labels: `aria-label="Execute command"`
+- Keyboard navigation: `tabIndex={0}` with `onKeyDown` handlers
+- Screen reader support: `<span className="sr-only">Loading...</span>`
+
+## Icon Usage
+
+Prefer text indicators over icons:
+```tsx
+// Prefer
+<span className="font-mono text-green-400">[OK]</span>
+<span className="font-mono text-red-400">[ERROR]</span>
+<span className="font-mono text-yellow-400">[WARN]</span>
+```
+
+## Animation Rules
+
+Keep minimal:
+- Terminal typing: `initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}`
+- Blinking cursor: `<span className="animate-pulse">_</span>`
+- Loading (only element with border-radius): `rounded-full border-4 border-primary border-t-transparent animate-spin`
+
+## DO NOT
+
+- ❌ Use border-radius (except loaders)
+- ❌ Use gradients or shadows  
+- ❌ Use custom colors outside globals.css
+- ❌ Use decorative elements
+- ❌ Mix font families (only system and mono)
+- ❌ Use opacity for disabled states

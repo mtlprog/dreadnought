@@ -1,0 +1,154 @@
+---
+description: Trunk-based development with Conventional Commits
+globs: ".gitignore, .github/*"
+---
+
+# Git Workflow Rules
+
+Trunk-based development workflow with direct commits to master and semantic versioning through tags.
+
+## Commit Message Convention
+
+Follow Conventional Commits specification for clear history and semantic versioning:
+
+### Format
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+### Types
+- **feat**: New feature (bumps MINOR version)
+- **fix**: Bug fix (bumps PATCH version)
+- **docs**: Documentation changes
+- **style**: Code style changes (formatting, semicolons, etc.)
+- **refactor**: Code refactoring without feature changes
+- **perf**: Performance improvements
+- **test**: Adding or updating tests
+- **chore**: Maintenance tasks, dependency updates
+- **ci**: CI/CD configuration changes
+- **build**: Build system or dependency changes
+- **revert**: Reverting previous commits
+
+### Breaking Changes
+Add `!` after type or `BREAKING CHANGE:` in footer for MAJOR version bumps:
+```bash
+feat(api)!: change user authentication method
+# or
+feat(api): change user authentication
+
+BREAKING CHANGE: API now requires OAuth2 instead of API keys
+```
+
+### Scopes
+Use package names or app names:
+- `ui`: UI package changes
+- `stellar-auth`: Stellar auth package  
+- `stellar-nft`: NFT package
+- `bsn`: BSN protocol package
+- `config`: Configuration package
+- `utils`: Utilities package
+- `app-[name]`: Specific app changes
+
+### Examples
+
+```bash
+# Feature addition
+feat(stellar-auth): add multi-signature account support
+
+# Bug fix
+fix(ui): correct button disabled state styling
+
+# Breaking change
+feat(api)!: update wallet provider interface
+
+BREAKING CHANGE: WalletProvider constructor now requires config parameter
+
+# Multiple scopes
+refactor(ui,utils): migrate to Effect-TS patterns
+
+# Documentation
+docs(stellar): add integration examples
+
+# Chore
+chore(deps): update stellar-sdk to v11.2.0
+```
+
+## Trunk-based Development Workflow
+
+Direct commits to master/main branch with tags for releases:
+
+```bash
+# Work directly on master
+git checkout master
+git pull origin master
+
+# Make changes and commit
+git add .
+git commit -m "feat(stellar-auth): add wallet integration"
+
+# Push directly to master
+git push origin master
+
+# When ready for release, create tag
+git tag -a v1.2.0 -m "Release 1.2.0"
+git push origin v1.2.0
+```
+
+## Version Tagging
+
+Use semantic versioning with git tags:
+
+```bash
+# Format: v[MAJOR].[MINOR].[PATCH]
+v1.0.0   # Initial release
+v1.1.0   # New features (feat commits)
+v1.1.1   # Bug fixes (fix commits)  
+v2.0.0   # Breaking changes (feat! or BREAKING CHANGE)
+
+# Create and push release tag
+git tag -a v1.2.0 -m "Release version 1.2.0
+
+Features:
+- Add Stellar wallet integration
+- Implement NFT minting support
+
+Fixes:  
+- Resolve payment validation issue
+- Fix memory leak in auth service"
+
+git push origin v1.2.0
+```
+
+## Pre-commit Validation
+
+Optional pre-commit hook for quality checks:
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit
+bun run lint
+bun run type-check
+bun test
+```
+
+## Best Practices
+
+- Commit small, focused changes frequently
+- Use descriptive commit messages following Conventional Commits
+- Run tests before pushing to master
+- Tag releases regularly for deployment
+- Keep commit history clean and readable
+- Use `git rebase -i` to clean up commits before pushing
+- Never commit secrets or sensitive data
+
+## DO NOT
+
+- ❌ Use generic commit messages like "fix bug" or "update code"
+- ❌ Commit large, unfocused changes
+- ❌ Push breaking commits without proper BREAKING CHANGE notation
+- ❌ Commit secrets, API keys, or sensitive data
+- ❌ Ignore test failures before pushing

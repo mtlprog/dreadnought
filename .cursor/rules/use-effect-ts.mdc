@@ -14,7 +14,7 @@ Effect-TS is **MANDATORY** for all new code in this monorepo. It provides type-s
 2. **Pipe-based composition** - Use pipe() for all Effect compositions, not generators.
 3. **Type-safe errors** - All errors must be typed in the Effect signature.
 4. **Fail fast** - Don't try to recover from unexpected errors.
-5. **Modular architecture** - Each package should contain its own layers and services.
+5. **Effect everywhere** - Use Effect in all packages and apps consistently.
 
 ## Required Packages
 
@@ -42,27 +42,6 @@ import * as S from "@effect/schema/Schema"
 import { BunContext, BunRuntime } from "@effect/platform-bun"
 import * as Http from "@effect/platform/HttpServer"
 import * as SqlClient from "@effect/sql/Client"
-```
-
-## Project Structure
-
-```
-packages/
-├── core/
-│   ├── src/
-│   │   ├── services/     # Shared services
-│   │   ├── errors/       # Common error definitions
-│   │   └── utils/        # Effect utilities
-├── auth/
-│   ├── src/
-│   │   ├── layers/       # Auth-specific layers
-│   │   ├── services/     # Auth services
-│   │   └── errors/       # Auth errors
-└── api/
-    ├── src/
-    │   ├── layers/       # API layers
-    │   ├── routes/       # HTTP routes as Effects
-    │   └── middleware/   # Effect-based middleware
 ```
 
 ## Service Pattern
