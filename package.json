@@ -1,11 +1,24 @@
 {
   "name": "@dreadnought",
+  "type": "module",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:packages": "eslint packages/",
+    "lint:apps": "eslint apps/",
+    "type-check": "tsc --noEmit",
+    "check": "bun run type-check && bun run lint"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@effect/eslint-plugin": "latest",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0"
   },
   "peerDependencies": {
     "typescript": "^5"
