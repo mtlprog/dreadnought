@@ -18,8 +18,7 @@ export function HeroSection() {
                 MTL CROWD TOKENS ARE DONATION CREDITS TO MONTELIBERO ASSOCIATION
               </p>
               <p className="text-xl text-muted-foreground font-mono leading-relaxed">
-                GOVERN HOW YOUR DONATIONS ARE USED THROUGH DECENTRALIZED PROJECT
-                FUNDING
+                GOVERN HOW YOUR DONATIONS ARE USED THROUGH DECENTRALIZED PROJECT FUNDING
               </p>
             </div>
           </div>
@@ -68,8 +67,7 @@ export function HeroSection() {
                 size="lg"
                 className="text-2xl px-12 py-6"
                 onClick={() => {
-                  const projectsSection =
-                    document.getElementById("projects-section");
+                  const projectsSection = document.getElementById("projects-section");
                   projectsSection?.scrollIntoView({ behavior: "smooth" });
                 }}
               >

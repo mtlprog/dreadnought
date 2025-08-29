@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "lint:fix": "eslint --fix",
+    "fix": "eslint --fix",
     "cli": "bun run src/cli/index.ts"
   },
   "dependencies": {

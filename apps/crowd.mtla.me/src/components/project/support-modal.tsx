@@ -1,6 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,37 +10,37 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Project } from "@/types/project"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import type { Project } from "@/types/project";
 
 interface SupportModalProps {
-  project: Project | null
-  open: boolean
-  onClose: () => void
+  project: Project | null;
+  open: boolean;
+  onClose: () => void;
 }
 
 export function SupportModal({ project, open, onClose }: SupportModalProps) {
-  const [amount, setAmount] = useState("100")
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [amount, setAmount] = useState("100");
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  if (!project) return null
+  if (project === null) return null;
 
   const progressPercentage = Math.min(
-    (parseFloat(project.current_amount) / parseFloat(project.target_amount)) * 100,
-    100
-  )
+    (parseFloat(project.current_amount) / parseFloat(project.target_amount))
+      * 100,
+    100,
+  );
 
   const handleGenerateTransaction = async () => {
-    setIsGenerating(true)
+    setIsGenerating(true);
     // TODO: Implement transaction generation
     setTimeout(() => {
-      setIsGenerating(false)
+      setIsGenerating(false);
       // For now, do nothing after generation
-    }, 2000)
-  }
+    }, 2000);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -64,13 +66,17 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
                   </p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">CONTACT ACCOUNT:</span>
+                  <span className="text-muted-foreground">
+                    CONTACT ACCOUNT:
+                  </span>
                   <p className="text-foreground mt-1 break-all text-sm">
                     {project.contact_account_id}
                   </p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">PROJECT ACCOUNT:</span>
+                  <span className="text-muted-foreground">
+                    PROJECT ACCOUNT:
+                  </span>
                   <p className="text-foreground mt-1 break-all text-sm">
                     {project.project_account_id}
                   </p>
@@ -85,29 +91,37 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-bold text-foreground">PROGRESS</span>
+                    <span className="text-lg font-bold text-foreground">
+                      PROGRESS
+                    </span>
                     <span className="text-lg font-mono text-primary">
                       {Math.round(progressPercentage)}%
                     </span>
                   </div>
                   <Progress value={progressPercentage} className="h-6" />
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="border-2 border-border bg-muted p-4 text-center">
-                    <div className="text-sm font-mono text-muted-foreground mb-1">RAISED</div>
+                    <div className="text-sm font-mono text-muted-foreground mb-1">
+                      RAISED
+                    </div>
                     <div className="text-2xl font-black text-primary">
                       {parseInt(project.current_amount).toLocaleString()}
                     </div>
                   </div>
                   <div className="border-2 border-border bg-muted p-4 text-center">
-                    <div className="text-sm font-mono text-muted-foreground mb-1">TARGET</div>
+                    <div className="text-sm font-mono text-muted-foreground mb-1">
+                      TARGET
+                    </div>
                     <div className="text-2xl font-black text-foreground">
                       {parseInt(project.target_amount).toLocaleString()}
                     </div>
                   </div>
                   <div className="border-2 border-border bg-muted p-4 text-center">
-                    <div className="text-sm font-mono text-muted-foreground mb-1">SUPPORTERS</div>
+                    <div className="text-sm font-mono text-muted-foreground mb-1">
+                      SUPPORTERS
+                    </div>
                     <div className="text-2xl font-black text-secondary">
                       {project.supporters_count}
                     </div>
@@ -122,7 +136,7 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
               <h3 className="text-xl font-bold text-primary uppercase mb-6">
                 SUPPORT PROJECT
               </h3>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="block text-lg font-bold text-foreground mb-3 uppercase">
@@ -158,15 +172,17 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
                       <span className="text-foreground">{project.code}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">NETWORK FEE:</span>
+                      <span className="text-muted-foreground">
+                        NETWORK FEE:
+                      </span>
                       <span className="text-foreground">~0.00001 XLM</span>
                     </div>
                   </div>
                 </div>
 
-                <Button 
-                  onClick={handleGenerateTransaction}
-                  disabled={isGenerating || !amount || parseFloat(amount) < 1}
+                <Button
+                  onClick={() => void handleGenerateTransaction()}
+                  disabled={isGenerating || amount === "" || parseFloat(amount) < 1}
                   className="w-full text-xl py-6"
                   size="lg"
                 >
@@ -215,5 +231,5 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

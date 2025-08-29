@@ -2,26 +2,26 @@
 
 :root {
   /* Retrofuturistic color palette - updated with stylish colors */
-  --background: 217 21% 8%;        /* #0f1419 - Dark blue-gray */
-  --foreground: 186 100% 60%;      /* #4dd0e1 - Bright cyan */
-  --primary: 152 100% 71%;         /* #69f0ae - Bright green accent */
+  --background: 217 21% 8%; /* #0f1419 - Dark blue-gray */
+  --foreground: 186 100% 60%; /* #4dd0e1 - Bright cyan */
+  --primary: 152 100% 71%; /* #69f0ae - Bright green accent */
   --primary-foreground: 217 21% 8%; /* Dark on bright green */
-  --secondary: 261 53% 72%;        /* #b39ddb - Light purple */
+  --secondary: 261 53% 72%; /* #b39ddb - Light purple */
   --secondary-foreground: 217 21% 8%; /* Dark on purple */
-  --destructive: 340 82% 70%;      /* #ff6b9d - Pink hover/error */
+  --destructive: 340 82% 70%; /* #ff6b9d - Pink hover/error */
   --destructive-foreground: 0 0% 100%; /* White on pink */
-  --border: 217 21% 20%;           /* Lighter version of background */
-  --input: 217 21% 12%;            /* Slightly lighter than background */
-  --ring: 152 100% 71%;            /* Bright green ring */
-  --muted: 217 21% 15%;            /* Muted background variant */
+  --border: 217 21% 20%; /* Lighter version of background */
+  --input: 217 21% 12%; /* Slightly lighter than background */
+  --ring: 152 100% 71%; /* Bright green ring */
+  --muted: 217 21% 15%; /* Muted background variant */
   --muted-foreground: 186 50% 45%; /* Muted cyan */
-  --accent: 152 100% 71%;          /* #69f0ae - Bright green */
+  --accent: 152 100% 71%; /* #69f0ae - Bright green */
   --accent-foreground: 217 21% 8%; /* Dark on accent */
-  --card: 217 21% 12%;             /* Card background */
+  --card: 217 21% 12%; /* Card background */
   --card-foreground: 186 100% 60%; /* Cyan on cards */
-  --popover: 217 21% 10%;          /* Popover background */
+  --popover: 217 21% 10%; /* Popover background */
   --popover-foreground: 186 100% 60%; /* Cyan on popover */
-  --hover: 340 82% 70%;            /* #ff6b9d - Pink hover state */
+  --hover: 340 82% 70%; /* #ff6b9d - Pink hover state */
 }
 
 @theme inline {
@@ -45,7 +45,7 @@
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
   --color-hover: hsl(var(--hover));
-  
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
