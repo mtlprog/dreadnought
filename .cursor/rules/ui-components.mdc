@@ -7,6 +7,8 @@ globs: "*.tsx, *.css, globals.css, tailwind.config.ts"
 
 Minimalistic, cathode display aesthetic with Tailwind CSS and Shadcn/ui components.
 
+> **Note**: For large-scale retrofuturistic designs with oversized elements, see `retrofuturistic-design.mdc`. This rule covers standard component patterns, while the retrofuturistic rule handles hero sections, landing pages, and command center interfaces.
+
 ## Design Philosophy
 
 1. **Brutalist Minimalism** - Simple, rough, brick-like aesthetic

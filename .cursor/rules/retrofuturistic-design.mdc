@@ -1,0 +1,348 @@
+---
+description: Retrofuturistic design system with large elements, angular aesthetics, and deliberate roughness
+globs: "*.tsx, *.css, globals.css, tailwind.config.ts, layout.tsx"
+---
+
+# Retrofuturistic Design System
+
+A design system inspired by cypherpunk aesthetics, combining vintage computing with futuristic elements. Based on analysis of sites like cypherpunk.camp and guide.logos.co that demonstrate excellent UI/UX with character.
+
+## Core Design Philosophy
+
+1. **Large & Bold** - Oversized elements that command attention
+2. **Angular & Sharp** - No rounded corners, embrace geometric harshness
+3. **High Contrast** - Stark color relationships for maximum clarity
+4. **Deliberate Roughness** - Intentional imperfections that add character
+5. **Functional Brutalism** - Every element serves a clear purpose
+6. **Retrofuturistic** - Vintage computing meets advanced technology
+
+## Visual Hierarchy Principles
+
+### Scale & Proportion
+```tsx
+// Oversized headers - go bigger than conventional
+<h1 className="text-6xl md:text-8xl font-black uppercase tracking-tight">
+  SYSTEM ONLINE
+</h1>
+
+// Large interactive elements
+<button className="text-2xl px-12 py-6 font-bold uppercase">
+  EXECUTE
+</button>
+
+// Substantial content blocks
+<section className="min-h-screen py-24">
+  <div className="max-w-4xl"> // Generous content width
+```
+
+### Typography Scale
+```tsx
+// Massive hero text
+text-8xl md:text-9xl    // 128px-144px
+text-6xl md:text-7xl    // 96px-112px  
+text-4xl md:text-5xl    // 48px-60px
+text-2xl md:text-3xl    // 24px-30px
+text-lg md:text-xl      // 18px-20px
+text-base               // 16px
+```
+
+## Color System
+
+### Primary Palette
+```css
+/* Retrofuturistic colors extending existing palette */
+--cyber-green: 120 100% 50%     /* #00FF00 - Classic terminal */
+--electric-cyan: 180 100% 50%   /* #00FFFF - Neon accent */
+--warning-amber: 45 100% 50%    /* #FFAA00 - Alert state */
+--deep-black: 0 0% 0%           /* #000000 - Pure void */
+--stark-white: 0 0% 100%        /* #FFFFFF - Maximum contrast */
+--steel-gray: 0 0% 25%          /* #404040 - Structural elements */
+--void-gray: 0 0% 8%            /* #141414 - Background variation */
+```
+
+### Color Usage Rules
+```tsx
+// High contrast combinations only
+bg-deep-black text-stark-white       // Primary combo
+bg-cyber-green text-deep-black       // Action elements  
+bg-electric-cyan text-deep-black     // Secondary actions
+bg-warning-amber text-deep-black     // Alerts
+bg-steel-gray text-stark-white       // Neutral elements
+```
+
+## Component Patterns
+
+### Oversized Buttons
+```tsx
+const ButtonVariants = {
+  // Extra large primary actions
+  hero: "text-3xl px-16 py-8 font-black uppercase tracking-wider border-4",
+  
+  // Large standard buttons  
+  primary: "text-xl px-12 py-6 font-bold uppercase border-2",
+  
+  // Medium interactive elements
+  secondary: "text-lg px-8 py-4 font-semibold uppercase border-2",
+  
+  // Compact but still substantial
+  compact: "text-base px-6 py-3 font-medium uppercase border"
+}
+
+// Usage
+<button className="bg-cyber-green text-deep-black hover:bg-electric-cyan transition-colors text-3xl px-16 py-8 font-black uppercase tracking-wider border-4 border-stark-white">
+  LAUNCH SEQUENCE
+</button>
+```
+
+### Geometric Cards & Panels
+```tsx
+// Large content blocks with harsh edges
+<div className="border-4 border-steel-gray bg-void-gray p-12">
+  <h2 className="text-4xl font-black text-cyber-green uppercase mb-8">
+    MISSION BRIEFING
+  </h2>
+  <div className="space-y-6 text-lg font-mono">
+    {content}
+  </div>
+</div>
+
+// Sectioned panels
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div className="border-2 border-electric-cyan bg-deep-black p-8 min-h-[400px]">
+    <div className="border-b-2 border-electric-cyan pb-4 mb-6">
+      <h3 className="text-2xl font-bold text-electric-cyan">STATUS</h3>
+    </div>
+    {statusContent}
+  </div>
+</div>
+```
+
+### Data Display Elements
+```tsx
+// Terminal-style data tables
+<table className="w-full border-4 border-cyber-green bg-deep-black">
+  <thead>
+    <tr className="border-b-4 border-cyber-green bg-steel-gray">
+      <th className="text-left p-6 text-xl font-black text-stark-white">
+        ID
+      </th>
+      <th className="text-left p-6 text-xl font-black text-stark-white">
+        STATUS
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr className="border-b-2 border-steel-gray hover:bg-void-gray">
+      <td className="p-6 text-lg font-mono text-cyber-green">001</td>
+      <td className="p-6 text-lg font-mono text-stark-white">ACTIVE</td>
+    </tr>
+  </tbody>
+</table>
+
+// Status indicators
+<div className="flex items-center gap-4">
+  <div className="w-6 h-6 bg-cyber-green border-2 border-stark-white" />
+  <span className="text-xl font-bold text-cyber-green uppercase">
+    SYSTEM OPERATIONAL
+  </span>
+</div>
+```
+
+### Form Elements
+```tsx
+// Oversized inputs
+<input className="w-full text-xl p-6 bg-void-gray border-4 border-steel-gray text-stark-white font-mono focus:border-cyber-green focus:outline-none" />
+
+// Large select elements
+<select className="text-xl p-6 bg-void-gray border-4 border-steel-gray text-stark-white font-mono">
+  <option>SELECT_PROTOCOL</option>
+</select>
+
+// Checkbox/Radio with character
+<label className="flex items-center gap-4 text-lg font-bold">
+  <div className="w-8 h-8 border-4 border-cyber-green bg-deep-black flex items-center justify-center">
+    {checked && <div className="w-4 h-4 bg-cyber-green" />}
+  </div>
+  ENABLE_FEATURE
+</label>
+```
+
+## Layout Patterns
+
+### Full-Screen Sections
+```tsx
+// Hero sections that command the screen
+<section className="min-h-screen flex items-center justify-center bg-deep-black border-b-4 border-cyber-green">
+  <div className="text-center space-y-12">
+    <h1 className="text-9xl font-black text-stark-white uppercase tracking-tighter">
+      DREADNOUGHT
+    </h1>
+    <p className="text-2xl text-steel-gray font-mono max-w-2xl">
+      NEXT_GENERATION_BLOCKCHAIN_INFRASTRUCTURE
+    </p>
+  </div>
+</section>
+
+// Content sections with generous spacing
+<section className="py-24 px-8">
+  <div className="max-w-6xl mx-auto space-y-16">
+    {content}
+  </div>
+</section>
+```
+
+### Grid Systems
+```tsx
+// Large grid cells
+<div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+  <div className="min-h-[500px] border-4 border-electric-cyan p-12">
+    {content}
+  </div>
+</div>
+
+// Feature grids
+<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+  {features.map(feature => (
+    <div key={feature.id} className="border-2 border-steel-gray bg-void-gray p-8 hover:border-cyber-green transition-colors">
+      <h3 className="text-2xl font-black text-cyber-green uppercase mb-6">
+        {feature.title}
+      </h3>
+      <p className="text-lg text-stark-white font-mono">
+        {feature.description}
+      </p>
+    </div>
+  ))}
+</div>
+```
+
+## Deliberate Imperfections
+
+### Glitch Effects
+```tsx
+// Subtle glitch animation for character
+<h1 className="relative">
+  <span className="absolute inset-0 text-red-500 animate-pulse opacity-20 translate-x-1">
+    GLITCH_TEXT
+  </span>
+  <span className="relative z-10">MAIN_TEXT</span>
+</h1>
+
+// Scan line effect
+<div className="relative overflow-hidden">
+  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyber-green to-transparent opacity-10 h-1 animate-bounce" />
+  {content}
+</div>
+```
+
+### Rough Edges
+```tsx
+// Intentionally uneven borders (using custom CSS)
+.rough-border {
+  clip-path: polygon(
+    0% 2px, 2px 0%, 
+    calc(100% - 2px) 0%, 100% 2px,
+    100% calc(100% - 2px), calc(100% - 2px) 100%,
+    2px 100%, 0% calc(100% - 2px)
+  );
+}
+
+// ASCII-style decorations
+<div className="font-mono text-cyber-green text-xs">
+  ┌─────────────────────────────────────┐
+  │ SYSTEM_STATUS: OPERATIONAL          │
+  └─────────────────────────────────────┘
+</div>
+```
+
+## Animation Guidelines
+
+### Subtle System Animations
+```tsx
+// Terminal-style typing effect
+<span className="after:content-['_'] after:animate-pulse after:text-cyber-green">
+  {typedText}
+</span>
+
+// Loading states
+<div className="flex items-center gap-4">
+  <div className="w-4 h-4 bg-cyber-green animate-pulse" />
+  <div className="w-4 h-4 bg-cyber-green animate-pulse delay-100" />
+  <div className="w-4 h-4 bg-cyber-green animate-pulse delay-200" />
+  <span className="text-lg font-mono">PROCESSING...</span>
+</div>
+
+// Hover effects
+hover:bg-cyber-green hover:text-deep-black hover:scale-105 transition-all duration-200
+```
+
+## Responsive Behavior
+
+### Mobile-First Approach
+```tsx
+// Stack large elements on mobile, side-by-side on desktop
+<div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
+  
+// Adjust typography scale for mobile
+<h1 className="text-4xl md:text-6xl lg:text-8xl font-black">
+  
+// Maintain substantial sizing even on small screens
+<button className="text-lg md:text-xl px-8 md:px-12 py-4 md:py-6">
+```
+
+## Integration with Existing Rules
+
+### Extends ui-components.mdc
+- Maintains **zero border-radius** rule (except loaders)
+- Builds upon **brutalist minimalism** philosophy  
+- Expands **cathode display** aesthetic
+- Adds **retrofuturistic** elements and scale
+
+### Color Compatibility
+```tsx
+// Use existing color variables where possible
+bg-background text-foreground     // Maps to deep-black/stark-white
+text-primary                      // Maps to cyber-green
+border-border                     // Maps to steel-gray
+```
+
+## Implementation Checklist
+
+### Essential Elements
+- [ ] Oversized interactive elements (buttons, inputs)
+- [ ] Large typography scale (text-6xl+ for headers)
+- [ ] High contrast color combinations
+- [ ] Angular, geometric layouts
+- [ ] Monospace fonts for data/code
+- [ ] Generous spacing and padding
+- [ ] Sharp borders and edges
+- [ ] Terminal/console aesthetic touches
+
+### Character Details  
+- [ ] ASCII decorations where appropriate
+- [ ] Subtle glitch/scan effects
+- [ ] Status indicators with personality
+- [ ] Rough/imperfect edge treatments
+- [ ] System-style messaging (UPPERCASE, underscores)
+
+## DO NOT
+
+- ❌ Use small, delicate elements
+- ❌ Add rounded corners or soft edges
+- ❌ Use low contrast color combinations  
+- ❌ Over-animate or add distracting effects
+- ❌ Make interactive elements too small to use comfortably
+- ❌ Use decorative fonts (stick to system/mono)
+- ❌ Crowd the interface - maintain generous spacing
+- ❌ Ignore mobile usability for the sake of style
+
+## Examples from Reference Sites
+
+### cypherpunk.camp Style Elements
+- Large section headers with generous spacing
+- High-contrast white-on-black text
+- Substantial button sizes
+- Clear information hierarchy
+- Technical/system aesthetic
+
+### Implementation Goal
+Create interfaces that feel like advanced command centers - functional, powerful, and characterful without sacrificing usability. Every element should feel substantial and purposeful.
