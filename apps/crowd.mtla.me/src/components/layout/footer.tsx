@@ -83,11 +83,7 @@ export function Footer() {
             <p className="text-base font-mono text-muted-foreground">
               © 2025 MONTELIBERO ASSOCIATION. DECENTRALIZED BY DESIGN.
             </p>
-            <div className="flex items-center gap-2 font-mono text-primary">
-              <span className="text-sm">NETWORK STATUS:</span>
-              <div className="w-3 h-3 bg-primary" />
-              <span className="text-sm">OPERATIONAL</span>
-            </div>
+
           </div>
         </div>
       </div>

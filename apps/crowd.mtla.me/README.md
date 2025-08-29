@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MTL Crowd - Crowdfunding Platform
 
-## Getting Started
+Децентрализованная краудфандинговая платформа на базе блокчейна Stellar.
 
-First, run the development server:
+## Environment Variables
+
+Для работы приложения необходимо настроить следующие переменные окружения:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Stellar Configuration
+STELLAR_ACCOUNT_ID=GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # Публичный ключ Stellar аккаунта
+STELLAR_NETWORK=testnet  # testnet или mainnet
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Описание переменных:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **STELLAR_ACCOUNT_ID**: Публичный ключ Stellar аккаунта, который содержит данные проектов в manageData записях
+- **STELLAR_NETWORK**: Сеть Stellar (testnet для разработки, mainnet для продакшена)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Архитектура данных
 
-## Learn More
+### Проекты в Stellar
 
-To learn more about Next.js, take a look at the following resources:
+1. **Метаданные проекта**: Хранятся в IPFS, ссылка в manageData аккаунта с ключом `ipfshash-{CODE}`
+2. **Токены проекта**: Создаются с кодом `{CODE}`, должны существовать в claimable balance или на аккаунте проекта
+3. **Собранные средства**: Токены с кодом `C-{CODE}` в claimable balance основного аккаунта
+4. **Поддержавшие**: Уникальные создатели claimable balance с токенами `C-{CODE}`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Статусы проектов
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **active**: Дедлайн не истек, проект активен
+- **completed**: Дедлайн истек, показывается как "FUNDING ENDED"
 
-## Deploy on Vercel
+## Кэширование
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Данные проектов кэшируются на 5 минут для оптимизации производительности.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## CLI
+
+Для управления проектами через CLI используйте:
+
+```bash
+bun run cli project new    # Создать новый проект
+bun run cli project list   # Показать список проектов
+```
+
+**Примечание**: CLI требует дополнительную переменную `STELLAR_SEED` для подписи транзакций.

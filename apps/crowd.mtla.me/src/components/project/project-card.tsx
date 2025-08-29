@@ -17,18 +17,13 @@ export function ProjectCard({ project, onSupport }: ProjectCardProps) {
   )
   
   const isCompleted = project.status === "completed"
-  const isExpired = project.status === "expired"
   
   const statusColor = isCompleted 
-    ? "text-primary" 
-    : isExpired 
-    ? "text-destructive" 
-    : "text-secondary"
+    ? "text-secondary" 
+    : "text-primary"
   
   const statusText = isCompleted 
-    ? "COMPLETED" 
-    : isExpired 
-    ? "EXPIRED" 
+    ? "ENDED" 
     : "ACTIVE"
 
   return (
@@ -93,9 +88,9 @@ export function ProjectCard({ project, onSupport }: ProjectCardProps) {
         <Button 
           className="w-full" 
           onClick={() => onSupport(project)}
-          disabled={isCompleted || isExpired}
+          disabled={isCompleted}
         >
-          {isCompleted ? "COMPLETED" : isExpired ? "EXPIRED" : "SUPPORT PROJECT"}
+          {isCompleted ? "FUNDING ENDED" : "SUPPORT PROJECT"}
         </Button>
       </CardFooter>
     </Card>

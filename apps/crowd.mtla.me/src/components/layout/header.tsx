@@ -22,22 +22,15 @@ export function Header() {
           </Link>
           
           <nav className="flex items-center gap-8">
-            <Link 
-              href="/projects" 
+            <button 
+              onClick={() => {
+                const projectsSection = document.getElementById('projects-section');
+                projectsSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
               className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
             >
               PROJECTS
-            </Link>
-            <Link 
-              href="/about" 
-              className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
-            >
-              ABOUT
-            </Link>
-            <div className="flex items-center gap-2 font-mono text-primary">
-              <div className="w-3 h-3 bg-primary animate-pulse" />
-              <span className="text-sm uppercase">ONLINE</span>
-            </div>
+            </button>
           </nav>
         </div>
       </div>

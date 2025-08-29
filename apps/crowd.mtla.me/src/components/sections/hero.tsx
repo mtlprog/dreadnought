@@ -1,4 +1,6 @@
-import { Button } from "@/components/ui/button"
+"use client";
+
+import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   return (
@@ -9,14 +11,15 @@ export function HeroSection() {
             <h1 className="text-6xl md:text-8xl font-black text-foreground uppercase tracking-tighter leading-none">
               FUND THE
               <br />
-              <span className="text-primary">REVOLUTION</span>
+              <span className="text-primary">NETWORK STATE</span>
             </h1>
             <div className="max-w-4xl mx-auto space-y-4">
               <p className="text-2xl text-muted-foreground font-mono leading-relaxed">
                 MTL CROWD TOKENS ARE DONATION CREDITS TO MONTELIBERO ASSOCIATION
               </p>
               <p className="text-xl text-muted-foreground font-mono leading-relaxed">
-                GOVERN HOW YOUR DONATIONS ARE USED THROUGH DECENTRALIZED PROJECT FUNDING
+                GOVERN HOW YOUR DONATIONS ARE USED THROUGH DECENTRALIZED PROJECT
+                FUNDING
               </p>
             </div>
           </div>
@@ -32,7 +35,7 @@ export function HeroSection() {
                   PURCHASE MTL CROWD TOKENS AS DONATION CREDITS
                 </p>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="text-4xl font-black text-secondary">02</div>
                 <h3 className="text-xl font-bold text-foreground uppercase">
@@ -42,7 +45,7 @@ export function HeroSection() {
                   ALLOCATE YOUR TOKENS TO PRIVACY FOCUSED INITIATIVES
                 </p>
               </div>
-              
+
               <div className="space-y-4">
                 <div className="text-4xl font-black text-secondary">03</div>
                 <h3 className="text-xl font-bold text-foreground uppercase">
@@ -60,23 +63,22 @@ export function HeroSection() {
               <Button size="lg" className="text-2xl px-12 py-6">
                 BUY MTL CROWD TOKENS
               </Button>
-              <Button variant="outline" size="lg" className="text-2xl px-12 py-6">
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-2xl px-12 py-6"
+                onClick={() => {
+                  const projectsSection =
+                    document.getElementById("projects-section");
+                  projectsSection?.scrollIntoView({ behavior: "smooth" });
+                }}
+              >
                 VIEW PROJECTS
               </Button>
-            </div>
-            
-            <div className="border-2 border-destructive bg-background p-6">
-              <div className="flex items-center justify-center gap-4">
-                <div className="w-4 h-4 bg-destructive animate-pulse" />
-                <p className="text-lg font-mono text-destructive uppercase">
-                  WARNING: EXPERIMENTAL TECHNOLOGY FOR PRIVACY ADVOCATES
-                </p>
-                <div className="w-4 h-4 bg-destructive animate-pulse" />
-              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

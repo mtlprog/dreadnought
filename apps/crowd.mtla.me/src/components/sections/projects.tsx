@@ -1,14 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ProjectCard } from "@/components/project/project-card"
 import { SupportModal } from "@/components/project/support-modal"
-import { mockProjects } from "@/data/mock-projects"
 import { Project } from "@/types/project"
 
 export function ProjectsSection() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [projects, setProjects] = useState<Project[]>([])
+  const [loading, setLoading] = useState(true)
 
   const handleSupport = (project: Project) => {
     setSelectedProject(project)
@@ -20,11 +21,35 @@ export function ProjectsSection() {
     setSelectedProject(null)
   }
 
-  const activeProjects = mockProjects.filter(p => p.status === "active")
-  const completedProjects = mockProjects.filter(p => p.status === "completed")
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/projects')
+        const result = await response.json()
+        
+        if (result.success) {
+          setProjects(result.data)
+        } else {
+          console.error('Failed to fetch projects:', result.error)
+          setProjects([])
+        }
+      } catch (error) {
+        console.error('Error fetching projects:', error)
+        setProjects([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProjects()
+  }, [])
+
+  const activeProjects = projects.filter(p => p.status === "active")
+  const completedProjects = projects.filter(p => p.status === "completed")
 
   return (
-    <section className="py-24 bg-background">
+    <section id="projects-section" className="py-24 bg-background">
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -38,9 +63,17 @@ export function ProjectsSection() {
             </p>
           </div>
 
-          <div className="space-y-16">
-            {/* Active Projects */}
-            <div>
+          {loading ? (
+            <div className="text-center py-16">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
+              <p className="text-xl font-mono text-muted-foreground uppercase">
+                LOADING PROJECTS...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-16">
+              {/* Active Projects */}
+              <div>
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-6 h-6 bg-primary animate-pulse" />
                 <h3 className="text-3xl font-black text-primary uppercase">
@@ -64,9 +97,9 @@ export function ProjectsSection() {
               <div>
                 <div className="flex items-center gap-4 mb-8">
                   <div className="w-6 h-6 bg-secondary" />
-                  <h3 className="text-3xl font-black text-secondary uppercase">
-                    FUNDING COMPLETE ({completedProjects.length})
-                  </h3>
+                                  <h3 className="text-3xl font-black text-secondary uppercase">
+                  FUNDING ENDED ({completedProjects.length})
+                </h3>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -81,51 +114,8 @@ export function ProjectsSection() {
               </div>
             )}
           </div>
+          )}
 
-          {/* Stats Section */}
-          <div className="border-4 border-primary bg-card p-12 mt-16">
-            <h3 className="text-3xl font-black text-primary uppercase text-center mb-8">
-              PLATFORM STATISTICS
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-              <div className="text-center">
-                <div className="text-4xl font-black text-primary mb-2">
-                  {mockProjects.length}
-                </div>
-                <div className="text-lg font-mono text-muted-foreground uppercase">
-                  TOTAL PROJECTS
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-4xl font-black text-secondary mb-2">
-                  {mockProjects.reduce((sum, p) => sum + parseInt(p.current_amount), 0).toLocaleString()}
-                </div>
-                <div className="text-lg font-mono text-muted-foreground uppercase">
-                  TOKENS ALLOCATED
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-4xl font-black text-destructive mb-2">
-                  {mockProjects.reduce((sum, p) => sum + p.supporters_count, 0)}
-                </div>
-                <div className="text-lg font-mono text-muted-foreground uppercase">
-                  TOTAL SUPPORTERS
-                </div>
-              </div>
-              
-              <div className="text-center">
-                <div className="text-4xl font-black text-foreground mb-2">
-                  {activeProjects.length}
-                </div>
-                <div className="text-lg font-mono text-muted-foreground uppercase">
-                  ACTIVE FUNDING
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
