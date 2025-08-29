@@ -24,13 +24,13 @@ export function Header() {
           <nav className="flex items-center gap-8">
             <Link 
               href="/projects" 
-              className="text-lg font-bold text-foreground hover:text-primary transition-colors uppercase tracking-wide"
+              className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
             >
               PROJECTS
             </Link>
             <Link 
               href="/about" 
-              className="text-lg font-bold text-foreground hover:text-primary transition-colors uppercase tracking-wide"
+              className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
             >
               ABOUT
             </Link>

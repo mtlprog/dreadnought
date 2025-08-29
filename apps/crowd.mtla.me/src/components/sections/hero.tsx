@@ -65,13 +65,13 @@ export function HeroSection() {
               </Button>
             </div>
             
-            <div className="border-2 border-accent bg-background p-6">
+            <div className="border-2 border-destructive bg-background p-6">
               <div className="flex items-center justify-center gap-4">
-                <div className="w-4 h-4 bg-accent animate-pulse" />
-                <p className="text-lg font-mono text-accent uppercase">
+                <div className="w-4 h-4 bg-destructive animate-pulse" />
+                <p className="text-lg font-mono text-destructive uppercase">
                   WARNING: EXPERIMENTAL TECHNOLOGY FOR PRIVACY ADVOCATES
                 </p>
-                <div className="w-4 h-4 bg-accent animate-pulse" />
+                <div className="w-4 h-4 bg-destructive animate-pulse" />
               </div>
             </div>
           </div>

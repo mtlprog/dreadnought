@@ -23,19 +23,19 @@ export function Footer() {
             <div className="space-y-4">
               <Link 
                 href="/docs" 
-                className="block text-lg font-mono text-muted-foreground hover:text-primary transition-colors"
+                className="block text-lg font-mono text-muted-foreground hover:text-destructive transition-colors"
               >
                 → DOCUMENTATION
               </Link>
               <Link 
                 href="/api" 
-                className="block text-lg font-mono text-muted-foreground hover:text-primary transition-colors"
+                className="block text-lg font-mono text-muted-foreground hover:text-destructive transition-colors"
               >
                 → API REFERENCE
               </Link>
               <Link 
                 href="/support" 
-                className="block text-lg font-mono text-muted-foreground hover:text-primary transition-colors"
+                className="block text-lg font-mono text-muted-foreground hover:text-destructive transition-colors"
               >
                 → TECHNICAL SUPPORT
               </Link>
@@ -49,7 +49,7 @@ export function Footer() {
             <div className="space-y-4">
               <Link 
                 href="https://github.com/montelibero-org" 
-                className="flex items-center gap-3 text-lg font-mono text-muted-foreground hover:text-primary transition-colors"
+                className="flex items-center gap-3 text-lg font-mono text-muted-foreground hover:text-destructive transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -58,7 +58,7 @@ export function Footer() {
               </Link>
               <Link 
                 href="https://t.me/montelibero" 
-                className="flex items-center gap-3 text-lg font-mono text-muted-foreground hover:text-primary transition-colors"
+                className="flex items-center gap-3 text-lg font-mono text-muted-foreground hover:text-destructive transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -67,7 +67,7 @@ export function Footer() {
               </Link>
               <Link 
                 href="https://t.me/mtlcrowd" 
-                className="flex items-center gap-3 text-lg font-mono text-muted-foreground hover:text-primary transition-colors"
+                className="flex items-center gap-3 text-lg font-mono text-muted-foreground hover:text-destructive transition-colors"
                 target="_blank"
                 rel="noopener noreferrer"
               >

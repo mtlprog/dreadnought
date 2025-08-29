@@ -108,7 +108,7 @@ export function ProjectsSection() {
               </div>
               
               <div className="text-center">
-                <div className="text-4xl font-black text-accent mb-2">
+                <div className="text-4xl font-black text-destructive mb-2">
                   {mockProjects.reduce((sum, p) => sum + p.supporters_count, 0)}
                 </div>
                 <div className="text-lg font-mono text-muted-foreground uppercase">
