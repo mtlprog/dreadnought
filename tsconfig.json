@@ -15,34 +15,31 @@
     "noEmit": true,
 
     // Strict Type Checking (максимальная строгость)
-    "strict": true,                                    // Включает все строгие проверки
-    "noImplicitAny": true,                             // Запрещает неявный any
-    "strictNullChecks": true,                          // Строгие проверки null/undefined
-    "strictFunctionTypes": true,                       // Строгая проверка типов функций
-    "strictBindCallApply": true,                       // Строгие bind/call/apply
-    "strictPropertyInitialization": true,             // Строгая инициализация свойств
-    "noImplicitThis": true,                           // Запрещает неявный this
-    "useUnknownInCatchVariables": true,               // unknown вместо any в catch
-    "alwaysStrict": true,                             // Всегда строгий режим
+    "strict": true, // Включает все строгие проверки
+    "noImplicitAny": true, // Запрещает неявный any
+    "strictNullChecks": true, // Строгие проверки null/undefined
+    "strictFunctionTypes": true, // Строгая проверка типов функций
+    "strictBindCallApply": true, // Строгие bind/call/apply
+    "strictPropertyInitialization": true, // Строгая инициализация свойств
+    "noImplicitThis": true, // Запрещает неявный this
+    "useUnknownInCatchVariables": true, // unknown вместо any в catch
+    "alwaysStrict": true, // Всегда строгий режим
 
     // Code Quality Checks (проверки качества кода)
-    "noUnusedLocals": true,                           // Неиспользуемые локальные переменные
-    "noUnusedParameters": true,                       // Неиспользуемые параметры
-    "exactOptionalPropertyTypes": true,               // Точная типизация опциональных свойств
-    "noImplicitReturns": true,                        // Все пути должны возвращать значение
-    "noFallthroughCasesInSwitch": true,              // Проверка fallthrough в switch
-    "noUncheckedIndexedAccess": true,                // Проверка индексированного доступа
-    "noImplicitOverride": true,                      // Явное указание override
-    "noPropertyAccessFromIndexSignature": true,      // Доступ к свойствам через точку
+    "noUnusedLocals": true, // Неиспользуемые локальные переменные
+    "noUnusedParameters": true, // Неиспользуемые параметры
+    "exactOptionalPropertyTypes": true, // Точная типизация опциональных свойств
+    "noImplicitReturns": true, // Все пути должны возвращать значение
+    "noFallthroughCasesInSwitch": true, // Проверка fallthrough в switch
+    "noUncheckedIndexedAccess": true, // Проверка индексированного доступа
+    "noImplicitOverride": true, // Явное указание override
+    "noPropertyAccessFromIndexSignature": true, // Доступ к свойствам через точку
 
     // Additional Quality Checks
-    "skipLibCheck": true,                            // Пропускать проверку библиотек
-    "forceConsistentCasingInFileNames": true         // Консистентный регистр имен файлов
+    "skipLibCheck": true, // Пропускать проверку библиотек
+    "forceConsistentCasingInFileNames": true // Консистентный регистр имен файлов
   },
-  "include": [
-    "apps/**/*",
-    "packages/**/*"
-  ],
+  "include": ["apps/**/*", "packages/**/*"],
   "exclude": [
     "node_modules",
     "dist",
