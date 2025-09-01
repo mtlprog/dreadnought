@@ -10,8 +10,10 @@ export const getProjectsWithCache = (): Effect.Effect<ProjectInfo[], never> =>
     withCache(
       "projects",
       pipe(
-        StellarServiceTag,
-        Effect.flatMap(service => service.getProjects()),
+        Effect.gen(function* () {
+          const stellarService = yield* StellarServiceTag;
+          return yield* stellarService.getProjects();
+        }),
         Effect.provide(StellarServiceLive),
       ),
       5 * 60 * 1000, // 5 minutes cache

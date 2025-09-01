@@ -86,7 +86,7 @@ export function ProjectsSection() {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {activeProjects.map((project) => (
                       <ProjectCard
-                        key={project.id}
+                        key={project.code}
                         project={project}
                         onSupport={handleSupport}
                       />
@@ -107,7 +107,7 @@ export function ProjectsSection() {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                       {completedProjects.map((project) => (
                         <ProjectCard
-                          key={project.id}
+                          key={project.code}
                           project={project}
                           onSupport={handleSupport}
                         />

@@ -1,6 +1,6 @@
 import type { Horizon } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
-import type { getStellarConfig, StellarConfig } from "./config";
+import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 import type { ProjectData, ProjectInfo } from "./types";
 import { calculateRaisedAmount, countUniqueSupporters, fetchProjectDataFromIPFS, isProjectExpired } from "./utils";
@@ -39,6 +39,9 @@ const checkTokenExists = (
           for (const balance of account.balances) {
             if (
               balance.asset_type !== "native"
+              && balance.asset_type !== "liquidity_pool_shares"
+              && 'asset_code' in balance
+              && 'asset_issuer' in balance
               && balance.asset_code === assetCode
               && balance.asset_issuer === publicKey
             ) {
