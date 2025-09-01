@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 
 export function Header() {
   return (
@@ -20,12 +20,12 @@ export function Header() {
               </p>
             </div>
           </Link>
-          
+
           <nav className="flex items-center gap-8">
-            <button 
+            <button
               onClick={() => {
-                const projectsSection = document.getElementById('projects-section');
-                projectsSection?.scrollIntoView({ behavior: 'smooth' });
+                const projectsSection = document.getElementById("projects-section");
+                projectsSection?.scrollIntoView({ behavior: "smooth" });
               }}
               className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
             >
@@ -35,5 +35,5 @@ export function Header() {
         </div>
       </div>
     </header>
-  )
+  );
 }

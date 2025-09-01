@@ -1,79 +1,95 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>((
+  { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
+  ref: Readonly<React.Ref<HTMLDivElement>>,
+) => (
   <div
     ref={ref}
     className={cn(
       "border-2 border-border bg-card text-card-foreground p-0",
-      className
+      className,
     )}
     {...props}
   />
-))
-Card.displayName = "Card"
+));
+Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>((
+  { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
+  ref: Readonly<React.Ref<HTMLDivElement>>,
+) => (
   <div
     ref={ref}
     className={cn("border-b-2 border-border bg-muted p-6", className)}
     {...props}
   />
-))
-CardHeader.displayName = "CardHeader"
+));
+CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
->(({ className, ...props }, ref) => (
+>((
+  { className, ...props }: Readonly<React.HTMLAttributes<HTMLHeadingElement>>,
+  ref: Readonly<React.Ref<HTMLParagraphElement>>,
+) => (
   <h3
     ref={ref}
     className={cn(
       "text-2xl font-black text-primary uppercase tracking-wide leading-none",
-      className
+      className,
     )}
     {...props}
   />
-))
-CardTitle.displayName = "CardTitle"
+));
+CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
+>((
+  { className, ...props }: Readonly<React.HTMLAttributes<HTMLParagraphElement>>,
+  ref: Readonly<React.Ref<HTMLParagraphElement>>,
+) => (
   <p
     ref={ref}
     className={cn("text-lg text-muted-foreground font-mono", className)}
     {...props}
   />
-))
-CardDescription.displayName = "CardDescription"
+));
+CardDescription.displayName = "CardDescription";
 
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6", className)} {...props} />
-))
-CardContent.displayName = "CardContent"
+>((
+  { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
+  ref: Readonly<React.Ref<HTMLDivElement>>,
+) => <div ref={ref} className={cn("p-6", className)} {...props} />);
+CardContent.displayName = "CardContent";
 
 const CardFooter = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>((
+  { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
+  ref: Readonly<React.Ref<HTMLDivElement>>,
+) => (
   <div
     ref={ref}
     className={cn("border-t-2 border-border bg-muted p-6", className)}
     {...props}
   />
-))
-CardFooter.displayName = "CardFooter"
+));
+CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };

@@ -1,7 +1,7 @@
-import * as S from "@effect/schema/Schema"
+import * as S from "@effect/schema/Schema";
 
-// Project data schema (from CLI)
-export const ProjectData = S.Struct({
+// Base project data schema - single source of truth
+export const ProjectDataSchema = S.Struct({
   name: S.String,
   code: S.String,
   description: S.String,
@@ -9,20 +9,19 @@ export const ProjectData = S.Struct({
   project_account_id: S.String,
   target_amount: S.String,
   deadline: S.String,
-})
-export type ProjectData = S.Schema.Type<typeof ProjectData>
+});
+export type ProjectData = S.Schema.Type<typeof ProjectDataSchema>;
 
-// Enhanced project info for frontend
-export interface ProjectInfo {
-  readonly name: string
-  readonly code: string
-  readonly description: string
-  readonly contact_account_id: string
-  readonly project_account_id: string
-  readonly target_amount: string
-  readonly deadline: string
-  readonly current_amount: string
-  readonly supporters_count: number
-  readonly ipfsUrl: string
-  readonly status: "active" | "completed" | "expired"
+// Extended project info for frontend (wraps base + additional fields)
+export interface ProjectInfo extends ProjectData {
+  readonly current_amount: string;
+  readonly supporters_count: number;
+  readonly ipfsUrl: string;
+  readonly status: "active" | "completed" | "expired";
+}
+
+// CLI-specific project info (wraps base + CLI-specific fields)
+export interface CliProjectInfo extends ProjectData {
+  readonly ipfsUrl: string;
+  readonly status: "claimed" | "claimable";
 }

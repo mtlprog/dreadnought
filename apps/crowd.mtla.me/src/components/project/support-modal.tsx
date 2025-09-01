@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,37 +8,37 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
-import { Project } from "@/types/project"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import type { Project } from "@/types/project";
+import { useState } from "react";
 
 interface SupportModalProps {
-  project: Project | null
-  open: boolean
-  onClose: () => void
+  project: Project | null;
+  open: boolean;
+  onClose: () => void;
 }
 
-export function SupportModal({ project, open, onClose }: SupportModalProps) {
-  const [amount, setAmount] = useState("100")
-  const [isGenerating, setIsGenerating] = useState(false)
+export function SupportModal({ project, open, onClose }: Readonly<SupportModalProps>) {
+  const [amount, setAmount] = useState("100");
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  if (!project) return null
+  if (project === null) return null;
 
   const progressPercentage = Math.min(
     (parseFloat(project.current_amount) / parseFloat(project.target_amount)) * 100,
-    100
-  )
+    100,
+  );
 
   const handleGenerateTransaction = async () => {
-    setIsGenerating(true)
+    setIsGenerating(true);
     // TODO: Implement transaction generation
     setTimeout(() => {
-      setIsGenerating(false)
+      setIsGenerating(false);
       // For now, do nothing after generation
-    }, 2000)
-  }
+    }, 2000);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -92,7 +92,7 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
                   </div>
                   <Progress value={progressPercentage} className="h-6" />
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
                   <div className="border-2 border-border bg-muted p-4 text-center">
                     <div className="text-sm font-mono text-muted-foreground mb-1">RAISED</div>
@@ -122,7 +122,7 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
               <h3 className="text-xl font-bold text-primary uppercase mb-6">
                 SUPPORT PROJECT
               </h3>
-              
+
               <div className="space-y-6">
                 <div>
                   <label className="block text-lg font-bold text-foreground mb-3 uppercase">
@@ -164,9 +164,9 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
                   </div>
                 </div>
 
-                <Button 
+                <Button
                   onClick={handleGenerateTransaction}
-                  disabled={isGenerating || !amount || parseFloat(amount) < 1}
+                  disabled={isGenerating || amount === "" || parseFloat(amount) < 1}
                   className="w-full text-xl py-6"
                   size="lg"
                 >
@@ -215,5 +215,5 @@ export function SupportModal({ project, open, onClose }: SupportModalProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

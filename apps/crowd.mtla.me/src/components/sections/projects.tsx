@@ -1,52 +1,52 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { ProjectCard } from "@/components/project/project-card"
-import { SupportModal } from "@/components/project/support-modal"
-import { Project } from "@/types/project"
+import { ProjectCard } from "@/components/project/project-card";
+import { SupportModal } from "@/components/project/support-modal";
+import type { Project } from "@/types/project";
+import { useEffect, useState } from "react";
 
 export function ProjectsSection() {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleSupport = (project: Project) => {
-    setSelectedProject(project)
-    setModalOpen(true)
-  }
+    setSelectedProject(project);
+    setModalOpen(true);
+  };
 
   const handleCloseModal = () => {
-    setModalOpen(false)
-    setSelectedProject(null)
-  }
+    setModalOpen(false);
+    setSelectedProject(null);
+  };
 
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        setLoading(true)
-        const response = await fetch('/api/projects')
-        const result = await response.json()
-        
-        if (result.success) {
-          setProjects(result.data)
+        setLoading(true);
+        const response = await fetch("/api/projects");
+        const result = await response.json();
+
+        if (result.success === true) {
+          setProjects(result.data);
         } else {
-          console.error('Failed to fetch projects:', result.error)
-          setProjects([])
+          console.error("Failed to fetch projects:", result.error);
+          setProjects([]);
         }
       } catch (error) {
-        console.error('Error fetching projects:', error)
-        setProjects([])
+        console.error("Error fetching projects:", error);
+        setProjects([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProjects()
-  }, [])
+    void fetchProjects();
+  }, []);
 
-  const activeProjects = projects.filter(p => p.status === "active")
-  const completedProjects = projects.filter(p => p.status === "completed")
+  const activeProjects = projects.filter(p => p.status === "active");
+  const completedProjects = projects.filter(p => p.status === "completed");
 
   return (
     <section id="projects-section" className="py-24 bg-background">
@@ -63,59 +63,60 @@ export function ProjectsSection() {
             </p>
           </div>
 
-          {loading ? (
-            <div className="text-center py-16">
-              <div className="w-8 h-8 border-4 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
-              <p className="text-xl font-mono text-muted-foreground uppercase">
-                LOADING PROJECTS...
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-16">
-              {/* Active Projects */}
-              <div>
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-6 h-6 bg-primary animate-pulse" />
-                <h3 className="text-3xl font-black text-primary uppercase">
-                  FUNDING ACTIVE ({activeProjects.length})
-                </h3>
+          {loading
+            ? (
+              <div className="text-center py-16">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
+                <p className="text-xl font-mono text-muted-foreground uppercase">
+                  LOADING PROJECTS...
+                </p>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {activeProjects.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    onSupport={handleSupport}
-                  />
-                ))}
-              </div>
-            </div>
+            )
+            : (
+              <div className="space-y-16">
+                {/* Active Projects */}
+                <div>
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="w-6 h-6 bg-primary animate-pulse" />
+                    <h3 className="text-3xl font-black text-primary uppercase">
+                      FUNDING ACTIVE ({activeProjects.length})
+                    </h3>
+                  </div>
 
-            {/* Completed Projects */}
-            {completedProjects.length > 0 && (
-              <div>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-6 h-6 bg-secondary" />
-                                  <h3 className="text-3xl font-black text-secondary uppercase">
-                  FUNDING ENDED ({completedProjects.length})
-                </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {activeProjects.map((project) => (
+                      <ProjectCard
+                        key={project.id}
+                        project={project}
+                        onSupport={handleSupport}
+                      />
+                    ))}
+                  </div>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {completedProjects.map((project) => (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      onSupport={handleSupport}
-                    />
-                  ))}
-                </div>
+
+                {/* Completed Projects */}
+                {completedProjects.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-6 h-6 bg-secondary" />
+                      <h3 className="text-3xl font-black text-secondary uppercase">
+                        FUNDING ENDED ({completedProjects.length})
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                      {completedProjects.map((project) => (
+                        <ProjectCard
+                          key={project.id}
+                          project={project}
+                          onSupport={handleSupport}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-          )}
-
         </div>
       </div>
 
@@ -125,5 +126,5 @@ export function ProjectsSection() {
         onClose={handleCloseModal}
       />
     </section>
-  )
+  );
 }
