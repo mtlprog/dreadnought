@@ -5,6 +5,7 @@ import { BunRuntime } from "@effect/platform-bun";
 import * as S from "@effect/schema/Schema";
 import {
   Asset,
+  BASE_FEE,
   Claimant,
   Horizon,
   Networks,
@@ -77,6 +78,7 @@ export interface StellarService {
     code: Readonly<string>,
     cid: Readonly<string>,
     projectAccountId: Readonly<string>,
+    targetAmount: Readonly<string>,
   ) => Effect.Effect<string, StellarError | EnvironmentError, EnvironmentService>;
   readonly listProjects: () => Effect.Effect<
     CliProjectInfo[],
@@ -204,9 +206,11 @@ const checkClaimableBalanceStatus = (
           .sponsor(sponsorAccountId)
           .call();
 
+        // Check for P-token (project token) claimable balance
+        const projectTokenCode = `P${assetCode}`;
         for (const balance of claimableBalances.records) {
           const asset = balance.asset;
-          if (asset !== "native" && asset.split(":")[0] === assetCode) {
+          if (asset !== "native" && asset.split(":")[0] === projectTokenCode) {
             return "claimable" as const;
           }
         }
@@ -223,29 +227,48 @@ const checkClaimableBalanceStatus = (
 const StellarServiceLive = Layer.succeed(
   StellarServiceCli,
   StellarServiceCli.of({
-    createTransaction: (code: Readonly<string>, cid: Readonly<string>, projectAccountId: Readonly<string>) =>
+    createTransaction: (code: Readonly<string>, cid: Readonly<string>, projectAccountId: Readonly<string>, targetAmount: Readonly<string>) =>
       pipe(
         getStellarConfig(),
         Effect.flatMap(({ accountId, server, networkPassphrase }) =>
           Effect.tryPromise({
             try: async () => {
               const sourceAccount = await server.loadAccount(accountId);
+              
+              // Create P-token (project token) and C-token (crowdfunding token) codes
+              const projectTokenCode = `P${code}`;
+              const crowdfundingTokenCode = `C${code}`;
+              
+              // MTLCrowd token (assuming it's issued by the same account for now)
+              const mtlCrowdAsset = new Asset("MTLCrowd", accountId);
+              const projectAsset = new Asset(projectTokenCode, accountId);
+              const crowdfundingAsset = new Asset(crowdfundingTokenCode, accountId);
 
               const transaction = new TransactionBuilder(sourceAccount, {
-                fee: "100",
+                fee: BASE_FEE,
                 networkPassphrase,
               })
+                // Store IPFS hash with project code
                 .addOperation(Operation.manageData({
-                  name: `ipfshash-${code}`,
+                  name: `ipfshash-P${code}`,
                   value: cid,
                 }))
+                // Create claimable balance for P-token (project token)
                 .addOperation(Operation.createClaimableBalance({
-                  asset: new Asset(code, accountId),
+                  asset: projectAsset,
                   amount: "0.0000001",
                   claimants: [
                     new Claimant(accountId),
                     new Claimant(projectAccountId),
                   ],
+                }))
+                // Create sell order: C-token for MTLCrowd at 1:1 rate
+                .addOperation(Operation.manageSellOffer({
+                  selling: crowdfundingAsset,
+                  buying: mtlCrowdAsset,
+                  amount: targetAmount,
+                  price: "1.0000000", // 1:1 exchange rate
+                  offerId: "0", // New offer
                 }))
                 .setTimeout(TimeoutInfinite)
                 .build();
@@ -334,11 +357,11 @@ const askQuestions = (): Effect.Effect<ProjectData, ValidationError> =>
           {
             type: "text",
             name: "code",
-            message: "Тикер:",
+            message: "Тикер (без префиксов P/C):",
             validate: (value: string) =>
-              /^[A-Z0-9]{1,12}$/.test(value)
+              /^[A-Z0-9]{1,10}$/.test(value)
                 ? true
-                : "Тикер должен содержать только заглавные буквы и цифры (макс. 12 символов)",
+                : "Тикер должен содержать только заглавные буквы и цифры (макс. 10 символов, т.к. будут добавлены префиксы P и C)",
           },
           {
             type: "text",
@@ -440,6 +463,7 @@ const createProject = (): Effect.Effect<void, CliError, EnvironmentService | Pin
             projectData.code,
             cid,
             projectData.project_account_id,
+            projectData.target_amount,
           )
         ),
       );
