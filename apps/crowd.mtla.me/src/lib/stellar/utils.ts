@@ -35,17 +35,29 @@ export const isProjectExpired = (deadline: string): boolean => {
 
 /**
  * Count unique supporters from claimable balances
+ * Supporters are unique sponsor addresses that created claimable balances for the crowdfunding token
+ * Only count balances where STELLAR_ACCOUNT_ID is a claimant
  */
 export const countUniqueSupporters = (
   claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
   assetCode: Readonly<string>,
+  stellarAccountId: Readonly<string>,
 ): number => {
   const uniqueSponsors = new Set<string>();
+  const crowdfundingTokenCode = `C${assetCode}`;
 
   for (const balance of claimableBalances) {
     const asset = balance.asset;
-    if (asset !== "native" && asset.split(":")[0] === `C-${assetCode}` && balance.sponsor !== undefined) {
-      uniqueSponsors.add(balance.sponsor);
+    const assetCode = asset !== "native" ? asset.split(":")[0] : "native";
+
+    // Check if this is a claimable balance for our crowdfunding token (C-prefix)
+    if (asset !== "native" && assetCode === crowdfundingTokenCode) {
+      // Check if STELLAR_ACCOUNT_ID is among the claimants
+      const isClaimableByAccount = balance.claimants?.some(claimant => claimant.destination === stellarAccountId);
+
+      if (isClaimableByAccount && balance.sponsor !== undefined) {
+        uniqueSponsors.add(balance.sponsor);
+      }
     }
   }
 
@@ -54,17 +66,28 @@ export const countUniqueSupporters = (
 
 /**
  * Calculate total amount raised from claimable balances
+ * Sum all token amounts in claimable balances for the crowdfunding token
+ * Only count balances where STELLAR_ACCOUNT_ID is a claimant
  */
 export const calculateRaisedAmount = (
   claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
   assetCode: Readonly<string>,
+  stellarAccountId: Readonly<string>,
 ): string => {
   let totalAmount = 0;
+  const crowdfundingTokenCode = `C${assetCode}`;
 
   for (const balance of claimableBalances) {
     const asset = balance.asset;
-    if (asset !== "native" && asset.split(":")[0] === `C-${assetCode}`) {
-      totalAmount += parseFloat(balance.amount);
+
+    // Check if this is a claimable balance for our crowdfunding token (C-prefix)
+    if (asset !== "native" && asset.split(":")[0] === crowdfundingTokenCode) {
+      // Check if STELLAR_ACCOUNT_ID is among the claimants
+      const isClaimableByAccount = balance.claimants?.some(claimant => claimant.destination === stellarAccountId);
+
+      if (isClaimableByAccount) {
+        totalAmount += parseFloat(balance.amount);
+      }
     }
   }
 

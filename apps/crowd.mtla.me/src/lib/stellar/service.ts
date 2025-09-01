@@ -70,7 +70,7 @@ const getClaimableBalances = (
     Effect.tryPromise({
       try: async () => {
         const claimableBalances = await server.claimableBalances()
-          .sponsor(publicKey)
+          .claimant(publicKey)
           .call();
         return claimableBalances.records;
       },
@@ -104,20 +104,26 @@ export const StellarServiceLive = Layer.succeed(
         Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
           const projectEntries = Object.entries(dataEntries)
             .filter(([key]: readonly [string, string]) => key.startsWith("ipfshash-"))
-            .map(([key, value]: readonly [string, string]) => ({
-              code: key.replace("ipfshash-", ""),
-              cid: Buffer.from(value, "base64").toString(),
-            }));
+            .map(([key, value]: readonly [string, string]) => {
+              const fullCode = key.replace("ipfshash-", "");
+              // Remove P prefix to get base project code (e.g., PRHODESIA -> RHODESIA)
+              const baseCode = fullCode.startsWith("P") ? fullCode.slice(1) : fullCode;
+              return {
+                code: baseCode,
+                fullCode, // Keep original P-token name for checkTokenExists
+                cid: Buffer.from(value, "base64").toString(),
+              };
+            });
 
           return Effect.all(
-            projectEntries.map((entry: Readonly<{ code: string; cid: string }>) =>
+            projectEntries.map((entry: Readonly<{ code: string; fullCode: string; cid: string }>) =>
               pipe(
                 Effect.all([
                   fetchProjectDataFromIPFS(entry.cid),
                   pipe(
                     getStellarConfig(),
                     Effect.flatMap((config: Readonly<StellarConfig>) =>
-                      checkTokenExists(config.server, config.publicKey, entry.code)
+                      checkTokenExists(config.server, config.publicKey, entry.fullCode)
                     ),
                   ),
                   pipe(
@@ -126,21 +132,24 @@ export const StellarServiceLive = Layer.succeed(
                       getClaimableBalances(config.server, config.publicKey)
                     ),
                   ),
+                  getStellarConfig(), // Add config to the Effect.all result
                 ]),
                 Effect.map(
                   (
-                    [projectData, tokenExists, claimableBalances]: readonly [
+                    [projectData, tokenExists, claimableBalances, config]: readonly [
                       ProjectData,
                       boolean,
                       readonly Horizon.ServerApi.ClaimableBalanceRecord[],
+                      StellarConfig,
                     ],
                   ) => {
                     if (!tokenExists) {
-                      return null; // Skip projects without tokens
+                      return null; // Skip projects without P-tokens (project doesn't exist)
                     }
 
-                    const supportersCount = countUniqueSupporters(claimableBalances, entry.code);
-                    const currentAmount = calculateRaisedAmount(claimableBalances, entry.code);
+                    // Calculate crowdfunding metrics (will be 0 if no C-tokens exist)
+                    const supportersCount = countUniqueSupporters(claimableBalances, entry.code, config.publicKey);
+                    const currentAmount = calculateRaisedAmount(claimableBalances, entry.code, config.publicKey);
                     const isExpired = isProjectExpired(projectData.deadline);
 
                     const projectInfo: ProjectInfo = {
