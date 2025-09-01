@@ -165,7 +165,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                 </div>
 
                 <Button
-                  onClick={handleGenerateTransaction}
+                  onClick={() => void handleGenerateTransaction()}
                   disabled={isGenerating || amount === "" || parseFloat(amount) < 1}
                   className="w-full text-xl py-6"
                   size="lg"

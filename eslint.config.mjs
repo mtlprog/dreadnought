@@ -7,16 +7,45 @@ export default [
   // Ignore patterns first
   {
     ignores: [
+      // Dependencies
       "node_modules/**",
+      "**/node_modules/**",
+      "bun.lock",
+      
+      // Build outputs
       "dist/**",
       "build/**",
       ".next/**",
-      "coverage/**",
-      "*.min.js",
-      "bun.lock",
-      "eslint.config.mjs",
       "**/.next/**",
-      "**/node_modules/**",
+      "out/**",
+      
+      // Coverage and testing
+      "coverage/**",
+      ".nyc_output/**",
+      
+      // IDE and system files
+      ".vscode/**",
+      ".idea/**",
+      ".DS_Store",
+      "Thumbs.db",
+      
+      // Configuration files
+      "*.config.js",
+      "*.config.mjs",
+      "eslint.config.mjs",
+      
+      // Logs
+      "*.log",
+      "logs/**",
+      
+      // Cache and temp files
+      ".cache/**",
+      "temp/**",
+      "tmp/**",
+      
+      // Minified files
+      "*.min.js",
+      "*.min.css",
     ],
   },
 
