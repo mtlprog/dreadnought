@@ -24,8 +24,10 @@ export function Header() {
           <nav className="flex items-center gap-8">
             <button
               onClick={() => {
-                const projectsSection = document.getElementById("projects-section");
-                projectsSection?.scrollIntoView({ behavior: "smooth" });
+                if (typeof document !== "undefined") {
+                  const projectsSection = document.getElementById("projects-section");
+                  projectsSection?.scrollIntoView({ behavior: "smooth" });
+                }
               }}
               className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
             >

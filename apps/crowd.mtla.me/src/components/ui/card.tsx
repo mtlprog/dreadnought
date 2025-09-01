@@ -7,7 +7,7 @@ const Card = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >((
   { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
-  ref: Readonly<React.Ref<HTMLDivElement>>,
+  ref,
 ) => (
   <div
     ref={ref}
@@ -25,7 +25,7 @@ const CardHeader = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >((
   { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
-  ref: Readonly<React.Ref<HTMLDivElement>>,
+  ref,
 ) => (
   <div
     ref={ref}
@@ -40,7 +40,7 @@ const CardTitle = React.forwardRef<
   React.HTMLAttributes<HTMLHeadingElement>
 >((
   { className, ...props }: Readonly<React.HTMLAttributes<HTMLHeadingElement>>,
-  ref: Readonly<React.Ref<HTMLParagraphElement>>,
+  ref,
 ) => (
   <h3
     ref={ref}
@@ -58,7 +58,7 @@ const CardDescription = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >((
   { className, ...props }: Readonly<React.HTMLAttributes<HTMLParagraphElement>>,
-  ref: Readonly<React.Ref<HTMLParagraphElement>>,
+  ref,
 ) => (
   <p
     ref={ref}
@@ -73,7 +73,7 @@ const CardContent = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >((
   { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
-  ref: Readonly<React.Ref<HTMLDivElement>>,
+  ref,
 ) => <div ref={ref} className={cn("p-6", className)} {...props} />);
 CardContent.displayName = "CardContent";
 
@@ -82,7 +82,7 @@ const CardFooter = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement>
 >((
   { className, ...props }: Readonly<React.HTMLAttributes<HTMLDivElement>>,
-  ref: Readonly<React.Ref<HTMLDivElement>>,
+  ref,
 ) => (
   <div
     ref={ref}

@@ -1,7 +1,7 @@
 import { FundingServiceLive, FundingServiceTag } from "@/lib/stellar";
 import * as S from "@effect/schema/Schema";
 import { Effect, Layer, pipe } from "effect";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 // Request schema
 const FundingRequestSchema = S.Struct({
@@ -9,27 +9,25 @@ const FundingRequestSchema = S.Struct({
   projectCode: S.String,
   amount: S.String,
 });
-type FundingRequest = S.Schema.Type<typeof FundingRequestSchema>;
 
 // Response schemas
-const FundingSuccessSchema = S.Struct({
-  success: S.Literal(true),
-  transactionXDR: S.String,
-});
+type FundingSuccess = {
+  success: true;
+  transactionXDR: string;
+};
 
-const FundingErrorSchema = S.Struct({
-  success: S.Literal(false),
-  error: S.String,
-});
+type FundingError = {
+  success: false;
+  error: string;
+};
 
-const FundingResponseSchema = S.Union(FundingSuccessSchema, FundingErrorSchema);
-type FundingResponse = S.Schema.Type<typeof FundingResponseSchema>;
+type FundingResponse = FundingSuccess | FundingError;
 
 const AppLayer = Layer.mergeAll(FundingServiceLive);
 
 export async function POST(request: NextRequest): Promise<NextResponse<FundingResponse>> {
   const program = pipe(
-    Effect.gen(function* () {
+    Effect.gen(function*() {
       // Parse request body
       const body = yield* Effect.tryPromise({
         try: () => request.json(),
@@ -66,8 +64,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<FundingRe
             success: false,
             error: error instanceof Error ? error.message : "Unknown error occurred",
           } as FundingResponse,
-          { status: 400 }
-        )
+          { status: 400 },
+        ),
       )
     ),
     Effect.provide(AppLayer),

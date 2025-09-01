@@ -40,8 +40,8 @@ const checkTokenExists = (
             if (
               balance.asset_type !== "native"
               && balance.asset_type !== "liquidity_pool_shares"
-              && 'asset_code' in balance
-              && 'asset_issuer' in balance
+              && "asset_code" in balance
+              && "asset_issuer" in balance
               && balance.asset_code === assetCode
               && balance.asset_issuer === publicKey
             ) {

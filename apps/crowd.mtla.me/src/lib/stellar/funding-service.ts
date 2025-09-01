@@ -1,14 +1,6 @@
-import {
-  Asset,
-  BASE_FEE,
-  Claimant,
-  Operation,
-  TimeoutInfinite,
-  TransactionBuilder,
-} from "@stellar/stellar-sdk";
+import { Asset, BASE_FEE, Claimant, Operation, TimeoutInfinite, TransactionBuilder } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
-import type { StellarConfig } from "./config";
-import { getStellarConfig } from "./config";
+import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 
 export interface FundingService {
@@ -34,11 +26,11 @@ const createFundingTransactionImpl = (
       try: async () => {
         // Load user account
         const userAccount = await config.server.loadAccount(userAccountId);
-        
+
         // Create asset definitions
         const mtlCrowdAsset = new Asset("MTLCrowd", config.publicKey);
         const crowdfundingAsset = new Asset(`C${projectCode}`, config.publicKey);
-        
+
         // Build transaction
         const transaction = new TransactionBuilder(userAccount, {
           fee: BASE_FEE,
@@ -61,10 +53,10 @@ const createFundingTransactionImpl = (
           // This allows user to reclaim their funds if needed
           .addOperation(Operation.createClaimableBalance({
             asset: crowdfundingAsset,
-            amount: amount,
+            amount,
             claimants: [
               new Claimant(config.publicKey), // Platform can claim
-              new Claimant(userAccountId),    // User can reclaim
+              new Claimant(userAccountId), // User can reclaim
             ],
           }))
           .setTimeout(TimeoutInfinite)
@@ -90,9 +82,7 @@ export const FundingServiceLive = Layer.succeed(
     ) =>
       pipe(
         getStellarConfig(),
-        Effect.flatMap((config) =>
-          createFundingTransactionImpl(config, userAccountId, projectCode, amount)
-        ),
+        Effect.flatMap((config) => createFundingTransactionImpl(config, userAccountId, projectCode, amount)),
       ),
   }),
 );

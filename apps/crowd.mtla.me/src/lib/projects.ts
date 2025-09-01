@@ -10,7 +10,7 @@ export const getProjectsWithCache = (): Effect.Effect<ProjectInfo[], never> =>
     withCache(
       "projects",
       pipe(
-        Effect.gen(function* () {
+        Effect.gen(function*() {
           const stellarService = yield* StellarServiceTag;
           return yield* stellarService.getProjects();
         }),

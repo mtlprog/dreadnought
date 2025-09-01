@@ -1,26 +1,26 @@
 "use client";
 
-import React, { forwardRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, ExternalLink, Loader2, Check } from "lucide-react";
+import { Check, Copy, ExternalLink, Loader2 } from "lucide-react";
+import React, { forwardRef } from "react";
 
 export interface TransactionResultProps {
   // Transaction data
   transactionXDR: string;
-  
+
   // Clipboard functionality
   isCopied?: boolean;
   onCopy?: (text: string) => void;
-  
+
   // Telegram integration
   telegramBotUrl?: string | null;
   isTelegramUrlLoading?: boolean;
   onTelegramOpen?: () => void;
-  
+
   // Styling
   className?: string;
-  
+
   // Configuration
   title?: string;
   showTelegramButton?: boolean;
@@ -41,31 +41,35 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
   showCopyButton = true,
   showSep7Button = true,
 }, ref) => {
-  if (!transactionXDR) {
+  if (transactionXDR === "" || transactionXDR === null || transactionXDR === undefined) {
     return null;
   }
 
   const handleCopy = () => {
-    if (onCopy) {
+    if (onCopy !== undefined) {
       onCopy(transactionXDR);
     }
   };
 
   const handleTelegramOpen = () => {
-    if (telegramBotUrl) {
-      window.open(telegramBotUrl, '_blank', 'noopener,noreferrer');
-    } else if (onTelegramOpen) {
+    if (telegramBotUrl !== null && telegramBotUrl !== undefined && telegramBotUrl !== "") {
+      if (typeof window !== "undefined") {
+        window.open(telegramBotUrl, "_blank", "noopener,noreferrer");
+      }
+    } else if (onTelegramOpen !== undefined) {
       onTelegramOpen();
     }
   };
 
   // Build SEP-0007 URI according to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0007.md
   const buildSep7TransactionUri = (xdr: string, options: { msg?: string; return_url?: string } = {}) => {
-    const params = new URLSearchParams();
-    params.set('xdr', xdr);
-    if (options.msg) params.set('msg', options.msg);
-    if (options.return_url) params.set('return_url', options.return_url);
-    
+    const params = new globalThis.URLSearchParams();
+    params.set("xdr", xdr);
+    if (options.msg !== undefined && options.msg !== null && options.msg !== "") params.set("msg", options.msg);
+    if (options.return_url !== undefined && options.return_url !== null && options.return_url !== "") {
+      params.set("return_url", options.return_url);
+    }
+
     return `web+stellar:tx?${params.toString()}`;
   };
 
@@ -77,7 +81,7 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
           {title}
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* XDR Display */}
         <div className="space-y-2">
@@ -103,17 +107,19 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
               onClick={handleCopy}
               className="w-full flex items-center justify-center gap-2"
             >
-              {isCopied ? (
-                <>
-                  <Check className="h-4 w-4 text-green-600" />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  <span>Copy XDR</span>
-                </>
-              )}
+              {isCopied
+                ? (
+                  <>
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Copied!</span>
+                  </>
+                )
+                : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    <span>Copy XDR</span>
+                  </>
+                )}
             </Button>
           )}
 
@@ -124,10 +130,10 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
               asChild
               className="w-full flex items-center justify-center gap-2"
             >
-              <a 
+              <a
                 href={buildSep7TransactionUri(transactionXDR, {
                   msg: "Please sign this transaction",
-                  return_url: typeof window !== 'undefined' ? window.location.href : ''
+                  return_url: typeof window !== "undefined" ? window.location.href : "",
                 })}
                 target="_blank"
                 rel="noreferrer"
@@ -146,26 +152,30 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
               disabled={isTelegramUrlLoading}
               className="w-full flex items-center justify-center gap-2"
             >
-              {telegramBotUrl ? (
-                <>
-                  <span>Open in MMWB</span>
-                  <ExternalLink className="h-4 w-4" />
-                </>
-              ) : (
-                <>
-                  {isTelegramUrlLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Loading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Sign with MMWB</span>
-                      <ExternalLink className="h-4 w-4" />
-                    </>
-                  )}
-                </>
-              )}
+              {telegramBotUrl !== null && telegramBotUrl !== undefined && telegramBotUrl !== ""
+                ? (
+                  <>
+                    <span>Open in MMWB</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </>
+                )
+                : (
+                  <>
+                    {isTelegramUrlLoading === true
+                      ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Loading...</span>
+                        </>
+                      )
+                      : (
+                        <>
+                          <span>Sign with MMWB</span>
+                          <ExternalLink className="h-4 w-4" />
+                        </>
+                      )}
+                  </>
+                )}
             </Button>
           )}
         </div>

@@ -44,7 +44,7 @@ export const countUniqueSupporters = (
 
   for (const balance of claimableBalances) {
     const asset = balance.asset;
-    if (asset !== "native" && asset.split(":")[0] === `C-${assetCode}`) {
+    if (asset !== "native" && asset.split(":")[0] === `C-${assetCode}` && balance.sponsor !== undefined) {
       uniqueSponsors.add(balance.sponsor);
     }
   }

@@ -227,18 +227,23 @@ const checkClaimableBalanceStatus = (
 const StellarServiceLive = Layer.succeed(
   StellarServiceCli,
   StellarServiceCli.of({
-    createTransaction: (code: Readonly<string>, cid: Readonly<string>, projectAccountId: Readonly<string>, targetAmount: Readonly<string>) =>
+    createTransaction: (
+      code: Readonly<string>,
+      cid: Readonly<string>,
+      projectAccountId: Readonly<string>,
+      targetAmount: Readonly<string>,
+    ) =>
       pipe(
         getStellarConfig(),
         Effect.flatMap(({ accountId, server, networkPassphrase }) =>
           Effect.tryPromise({
             try: async () => {
               const sourceAccount = await server.loadAccount(accountId);
-              
+
               // Create P-token (project token) and C-token (crowdfunding token) codes
               const projectTokenCode = `P${code}`;
               const crowdfundingTokenCode = `C${code}`;
-              
+
               // MTLCrowd token (assuming it's issued by the same account for now)
               const mtlCrowdAsset = new Asset("MTLCrowd", accountId);
               const projectAsset = new Asset(projectTokenCode, accountId);

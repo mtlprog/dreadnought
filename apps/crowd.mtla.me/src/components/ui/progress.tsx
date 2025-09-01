@@ -8,7 +8,7 @@ const Progress = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
 >((
   { className, value, ...props }: Readonly<React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>>,
-  ref: Readonly<React.Ref<React.ElementRef<typeof ProgressPrimitive.Root>>>,
+  ref,
 ) => (
   <ProgressPrimitive.Root
     ref={ref}

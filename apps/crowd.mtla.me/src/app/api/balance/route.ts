@@ -1,33 +1,31 @@
 import { BalanceServiceLive, BalanceServiceTag } from "@/lib/stellar";
 import * as S from "@effect/schema/Schema";
 import { Effect, Layer, pipe } from "effect";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 // Request schema
 const BalanceRequestSchema = S.Struct({
   accountId: S.String,
 });
-type BalanceRequest = S.Schema.Type<typeof BalanceRequestSchema>;
 
 // Response schemas
-const BalanceSuccessSchema = S.Struct({
-  success: S.Literal(true),
-  balance: S.String,
-});
+type BalanceSuccess = {
+  success: true;
+  balance: string;
+};
 
-const BalanceErrorSchema = S.Struct({
-  success: S.Literal(false),
-  error: S.String,
-});
+type BalanceError = {
+  success: false;
+  error: string;
+};
 
-const BalanceResponseSchema = S.Union(BalanceSuccessSchema, BalanceErrorSchema);
-type BalanceResponse = S.Schema.Type<typeof BalanceResponseSchema>;
+type BalanceResponse = BalanceSuccess | BalanceError;
 
 const AppLayer = Layer.mergeAll(BalanceServiceLive);
 
 export async function POST(request: NextRequest): Promise<NextResponse<BalanceResponse>> {
   const program = pipe(
-    Effect.gen(function* () {
+    Effect.gen(function*() {
       // Parse request body
       const body = yield* Effect.tryPromise({
         try: () => request.json(),
@@ -43,9 +41,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<BalanceRe
       // Get MTLCrowd balance
       const balance = yield* pipe(
         BalanceServiceTag,
-        Effect.flatMap((service) =>
-          service.getMTLCrowdBalance(validatedRequest.accountId)
-        ),
+        Effect.flatMap((service) => service.getMTLCrowdBalance(validatedRequest.accountId)),
       );
 
       return NextResponse.json({
@@ -60,8 +56,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<BalanceRe
             success: false,
             error: error instanceof Error ? error.message : "Unknown error occurred",
           } as BalanceResponse,
-          { status: 400 }
-        )
+          { status: 400 },
+        ),
       )
     ),
     Effect.provide(AppLayer),

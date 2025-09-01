@@ -18,21 +18,21 @@ const getMTLCrowdBalanceImpl = (
     Effect.tryPromise({
       try: async () => {
         const account = await config.server.loadAccount(accountId);
-        
+
         // Ищем баланс MTLCrowd токена
         for (const balance of account.balances) {
           if (
-            balance.asset_type !== "native" 
+            balance.asset_type !== "native"
             && balance.asset_type !== "liquidity_pool_shares"
-            && 'asset_code' in balance
-            && 'asset_issuer' in balance
+            && "asset_code" in balance
+            && "asset_issuer" in balance
             && balance.asset_code === "MTLCrowd"
             && balance.asset_issuer === config.publicKey
           ) {
             return balance.balance;
           }
         }
-        
+
         // Если токен не найден, баланс = 0
         return "0";
       },
@@ -50,9 +50,7 @@ export const BalanceServiceLive = Layer.succeed(
     getMTLCrowdBalance: (accountId: string) =>
       pipe(
         getStellarConfig(),
-        Effect.flatMap((config) =>
-          getMTLCrowdBalanceImpl(config, accountId)
-        ),
+        Effect.flatMap((config) => getMTLCrowdBalanceImpl(config, accountId)),
       ),
   }),
 );

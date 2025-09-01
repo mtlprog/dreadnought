@@ -17,7 +17,7 @@ const DialogOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
 >((
   { className, ...props }: Readonly<React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>>,
-  ref: Readonly<React.Ref<React.ElementRef<typeof DialogPrimitive.Overlay>>>,
+  ref,
 ) => (
   <DialogPrimitive.Overlay
     ref={ref}
@@ -37,7 +37,7 @@ const DialogContent = React.forwardRef<
   { className, children, ...props }: Readonly<
     React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { children?: React.ReactNode }
   >,
-  ref: Readonly<React.Ref<React.ElementRef<typeof DialogPrimitive.Content>>>,
+  ref,
 ) => (
   <DialogPortal>
     <DialogOverlay />
@@ -92,7 +92,7 @@ const DialogTitle = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >((
   { className, ...props }: Readonly<React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>>,
-  ref: Readonly<React.Ref<React.ElementRef<typeof DialogPrimitive.Title>>>,
+  ref,
 ) => (
   <DialogPrimitive.Title
     ref={ref}
@@ -110,7 +110,7 @@ const DialogDescription = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >((
   { className, ...props }: Readonly<React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>>,
-  ref: Readonly<React.Ref<React.ElementRef<typeof DialogPrimitive.Description>>>,
+  ref,
 ) => (
   <DialogPrimitive.Description
     ref={ref}
