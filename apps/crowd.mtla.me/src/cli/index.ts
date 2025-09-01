@@ -7,7 +7,6 @@ import {
   Asset,
   Claimant,
   Horizon,
-  Keypair,
   Networks,
   Operation,
   TimeoutInfinite,
@@ -149,13 +148,12 @@ const PinataServiceLive = Layer.succeed(
 const getStellarConfig = () =>
   pipe(
     Effect.all([
-      pipe(EnvironmentServiceCli, Effect.flatMap(env => env.getRequired("STELLAR_SEED"))),
+      pipe(EnvironmentServiceCli, Effect.flatMap(env => env.getRequired("STELLAR_ACCOUNT_ID"))),
       pipe(EnvironmentServiceCli, Effect.flatMap(env => env.getOptional("STELLAR_NETWORK", "testnet"))),
     ]),
-    Effect.map(([seed, network]) => ({
-      seed,
+    Effect.map(([accountId, network]) => ({
+      accountId,
       network,
-      keypair: Keypair.fromSecret(seed),
       server: new Horizon.Server(
         network === "mainnet"
           ? "https://horizon.stellar.org"
@@ -196,14 +194,14 @@ const fetchProjectDataFromIPFS = (
 
 const checkClaimableBalanceStatus = (
   server: Readonly<Horizon.Server>,
-  sponsorKey: Readonly<string>,
+  sponsorAccountId: Readonly<string>,
   assetCode: Readonly<string>,
 ): Effect.Effect<"claimed" | "claimable", StellarError> =>
   pipe(
     Effect.tryPromise({
       try: async () => {
         const claimableBalances = await server.claimableBalances()
-          .sponsor(sponsorKey)
+          .sponsor(sponsorAccountId)
           .call();
 
         for (const balance of claimableBalances.records) {
@@ -228,10 +226,10 @@ const StellarServiceLive = Layer.succeed(
     createTransaction: (code: Readonly<string>, cid: Readonly<string>, projectAccountId: Readonly<string>) =>
       pipe(
         getStellarConfig(),
-        Effect.flatMap(({ keypair, server, networkPassphrase }) =>
+        Effect.flatMap(({ accountId, server, networkPassphrase }) =>
           Effect.tryPromise({
             try: async () => {
-              const sourceAccount = await server.loadAccount(keypair.publicKey());
+              const sourceAccount = await server.loadAccount(accountId);
 
               const transaction = new TransactionBuilder(sourceAccount, {
                 fee: "100",
@@ -242,17 +240,16 @@ const StellarServiceLive = Layer.succeed(
                   value: cid,
                 }))
                 .addOperation(Operation.createClaimableBalance({
-                  asset: new Asset(code, keypair.publicKey()),
+                  asset: new Asset(code, accountId),
                   amount: "0.0000001",
                   claimants: [
-                    new Claimant(keypair.publicKey()),
+                    new Claimant(accountId),
                     new Claimant(projectAccountId),
                   ],
                 }))
                 .setTimeout(TimeoutInfinite)
                 .build();
 
-              transaction.sign(keypair);
               return transaction.toXDR();
             },
             catch: (error) =>
@@ -267,10 +264,10 @@ const StellarServiceLive = Layer.succeed(
     listProjects: () =>
       pipe(
         getStellarConfig(),
-        Effect.flatMap(({ keypair, server }) =>
+        Effect.flatMap(({ accountId, server }) =>
           Effect.tryPromise({
             try: async () => {
-              const account = await server.loadAccount(keypair.publicKey());
+              const account = await server.loadAccount(accountId);
               return account.data_attr;
             },
             catch: (error) =>
@@ -294,9 +291,7 @@ const StellarServiceLive = Layer.succeed(
                     fetchProjectDataFromIPFS(cid),
                     pipe(
                       getStellarConfig(),
-                      Effect.flatMap(({ server, keypair }) =>
-                        checkClaimableBalanceStatus(server, keypair.publicKey(), code)
-                      ),
+                      Effect.flatMap(({ server, accountId }) => checkClaimableBalanceStatus(server, accountId, code)),
                     ),
                   ]),
                   Effect.map(([projectData, status]: readonly [ProjectData, "claimed" | "claimable"]) => ({
@@ -426,7 +421,7 @@ const createProject = (): Effect.Effect<void, CliError, EnvironmentService | Pin
     Effect.gen(function*() {
       yield* Effect.logInfo(chalk.blue("🚀 Creating new project...\n"));
 
-      yield* checkEnvironmentVariables(["STELLAR_SEED", "PINATA_TOKEN", "PINATA_GROUP_ID"]);
+      yield* checkEnvironmentVariables(["STELLAR_ACCOUNT_ID", "PINATA_TOKEN", "PINATA_GROUP_ID"]);
 
       const projectData = yield* askQuestions();
 
@@ -464,7 +459,7 @@ const listProjects = (): Effect.Effect<void, CliError, EnvironmentService | Stel
     Effect.gen(function*() {
       yield* Effect.logInfo(chalk.blue("📋 Listing projects...\n"));
 
-      yield* checkEnvironmentVariables(["STELLAR_SEED"]);
+      yield* checkEnvironmentVariables(["STELLAR_ACCOUNT_ID"]);
 
       yield* Effect.logInfo(chalk.blue("🔍 Fetching projects from Stellar..."));
       const projects = yield* pipe(
