@@ -9,6 +9,7 @@ export interface StellarConfig {
   readonly server: Horizon.Server;
   readonly networkPassphrase: string;
   readonly mtlCrowdAsset: Asset;
+  readonly commissionAccountId: string;
 }
 
 export const getStellarConfig = (): Effect.Effect<StellarConfig, EnvironmentError> =>
@@ -28,8 +29,18 @@ export const getStellarConfig = (): Effect.Effect<StellarConfig, EnvironmentErro
       pipe(
         Effect.sync(() => process.env["STELLAR_CROWD_TOKEN"]),
       ),
+      pipe(
+        Effect.sync(() => process.env["STELLAR_COMM_ACCOUNT_ID"]),
+        Effect.flatMap(value =>
+          value !== undefined && value !== ""
+            ? Effect.succeed(value)
+            : Effect.fail(new EnvironmentError({ variable: "STELLAR_COMM_ACCOUNT_ID" }))
+        ),
+      ),
     ]),
-    Effect.flatMap(([publicKey, network, crowdToken]: readonly [string, string, string | undefined]) =>
+    Effect.flatMap((
+      [publicKey, network, crowdToken, commissionAccountId]: readonly [string, string, string | undefined, string],
+    ) =>
       pipe(
         parseCrowdToken(crowdToken, publicKey),
         Effect.map((crowdTokenConfig) => ({
@@ -42,6 +53,7 @@ export const getStellarConfig = (): Effect.Effect<StellarConfig, EnvironmentErro
           ),
           networkPassphrase: network === "mainnet" ? Networks.PUBLIC : Networks.TESTNET,
           mtlCrowdAsset: crowdTokenConfig.asset,
+          commissionAccountId,
         })),
       )
     ),

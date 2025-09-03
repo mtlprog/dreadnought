@@ -56,13 +56,13 @@ export const checkProjects = () =>
       for (const result of projectsNeedingAction) {
         const actionEmoji = result.action === "fund_project" ? "💰" : "🔄";
         const actionText = result.action === "fund_project" ? "Fund Project" : "Refund Supporters";
-        const statusColor = result.isGoalReached ? chalk.green : chalk.red;
+        const statusColor = result.isGoalReached === true ? chalk.green : chalk.red;
 
         yield* Effect.logInfo(chalk.cyan(`${actionEmoji} ${result.name} (${result.code})`));
         yield* Effect.logInfo(chalk.white(`  Deadline: ${result.deadline}`));
         yield* Effect.logInfo(chalk.white(`  Target: ${result.targetAmount} MTLCrowd`));
         yield* Effect.logInfo(chalk.white(`  Current: ${result.currentAmount} MTLCrowd`));
-        yield* Effect.logInfo(statusColor(`  Goal reached: ${result.isGoalReached ? "Yes" : "No"}`));
+        yield* Effect.logInfo(statusColor(`  Goal reached: ${result.isGoalReached === true ? "Yes" : "No"}`));
         yield* Effect.logInfo(chalk.white(`  Claimable balances: ${result.claimableBalancesCount}`));
         yield* Effect.logInfo(chalk.white(`  Token holders: ${result.tokenHoldersCount}`));
         yield* Effect.logInfo(chalk.yellow(`  Action: ${actionText}`));

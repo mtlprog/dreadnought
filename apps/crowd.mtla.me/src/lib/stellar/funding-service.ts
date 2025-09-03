@@ -49,6 +49,12 @@ const createFundingTransactionImpl = (
             price: "1.0000000", // 1:1 exchange rate
             offerId: "0", // New offer
           }))
+          // Send 2 XLM commission to the commission account
+          .addOperation(Operation.payment({
+            destination: config.commissionAccountId,
+            asset: Asset.native(),
+            amount: "2.0000000",
+          }))
           // Create claimable balance with the C-tokens
           // This allows user to reclaim their funds if needed
           .addOperation(Operation.createClaimableBalance({
