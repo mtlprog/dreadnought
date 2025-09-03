@@ -26,8 +26,8 @@ const getMTLCrowdBalanceImpl = (
             && balance.asset_type !== "liquidity_pool_shares"
             && "asset_code" in balance
             && "asset_issuer" in balance
-            && balance.asset_code === "MTLCrowd"
-            && balance.asset_issuer === config.publicKey
+            && balance.asset_code === config.mtlCrowdAsset.code
+            && balance.asset_issuer === config.mtlCrowdAsset.issuer
           ) {
             return balance.balance;
           }

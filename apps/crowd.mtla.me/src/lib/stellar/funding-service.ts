@@ -28,7 +28,7 @@ const createFundingTransactionImpl = (
         const userAccount = await config.server.loadAccount(userAccountId);
 
         // Create asset definitions
-        const mtlCrowdAsset = new Asset("MTLCrowd", config.publicKey);
+        const mtlCrowdAsset = config.mtlCrowdAsset;
         const crowdfundingAsset = new Asset(`C${projectCode}`, config.publicKey);
 
         // Build transaction

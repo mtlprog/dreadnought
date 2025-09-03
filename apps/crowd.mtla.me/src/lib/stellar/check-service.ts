@@ -68,8 +68,7 @@ const getClaimableBalancesForProject = (
   );
 
 const getTokenHolders = (
-  server: Horizon.Server,
-  issuerAccountId: string,
+  config: StellarConfig,
   assetCode: string,
 ): Effect.Effect<readonly TokenHolder[], StellarError> =>
   pipe(
@@ -80,8 +79,8 @@ const getTokenHolders = (
 
         try {
           // Get accounts holding this asset
-          const accounts = await server.accounts()
-            .forAsset(new Asset(crowdfundingTokenCode, issuerAccountId))
+          const accounts = await config.server.accounts()
+            .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
             .call();
 
           for (const account of accounts.records) {
@@ -92,7 +91,7 @@ const getTokenHolders = (
                 && "asset_code" in balance
                 && "asset_issuer" in balance
                 && balance.asset_code === crowdfundingTokenCode
-                && balance.asset_issuer === issuerAccountId
+                && balance.asset_issuer === config.publicKey
                 && parseFloat(balance.balance) > 0
               ) {
                 holders.push({
@@ -137,14 +136,13 @@ const calculateCurrentAmount = (
 };
 
 const checkProjectTrustline = (
-  server: Horizon.Server,
+  config: StellarConfig,
   projectAccountId: string,
-  issuerAccountId: string,
 ): Effect.Effect<boolean, StellarError> =>
   pipe(
     Effect.tryPromise({
       try: async () => {
-        const account = await server.loadAccount(projectAccountId);
+        const account = await config.server.loadAccount(projectAccountId);
 
         // Check if project account has trustline to MTLCrowd token
         for (const balance of account.balances) {
@@ -153,8 +151,8 @@ const checkProjectTrustline = (
             && balance.asset_type !== "liquidity_pool_shares"
             && "asset_code" in balance
             && "asset_issuer" in balance
-            && balance.asset_code === "MTLCrowd"
-            && balance.asset_issuer === issuerAccountId
+            && balance.asset_code === config.mtlCrowdAsset.code
+            && balance.asset_issuer === config.mtlCrowdAsset.issuer
           ) {
             return true;
           }
@@ -178,7 +176,7 @@ const createOfferCancellationTransaction = (
     Effect.tryPromise({
       try: async () => {
         const sourceAccount = await config.server.loadAccount(config.publicKey);
-        const mtlCrowdAsset = new Asset("MTLCrowd", config.publicKey);
+        const mtlCrowdAsset = config.mtlCrowdAsset;
         const crowdfundingAsset = new Asset(`C${assetCode}`, config.publicKey);
 
         const transactionBuilder = new TransactionBuilder(sourceAccount, {
@@ -235,7 +233,7 @@ const createRefundTransaction = (
     Effect.tryPromise({
       try: async () => {
         const sourceAccount = await config.server.loadAccount(config.publicKey);
-        const mtlCrowdAsset = new Asset("MTLCrowd", config.publicKey);
+        const mtlCrowdAsset = config.mtlCrowdAsset;
         const crowdfundingAsset = new Asset(`C${assetCode}`, config.publicKey);
 
         const transactionBuilder = new TransactionBuilder(sourceAccount, {
@@ -333,7 +331,7 @@ const createFundingTransaction = (
     Effect.tryPromise({
       try: async () => {
         const sourceAccount = await config.server.loadAccount(config.publicKey);
-        const mtlCrowdAsset = new Asset("MTLCrowd", config.publicKey);
+        const mtlCrowdAsset = config.mtlCrowdAsset;
         const crowdfundingAsset = new Asset(`C${assetCode}`, config.publicKey);
 
         const transactionBuilder = new TransactionBuilder(sourceAccount, {
@@ -414,7 +412,7 @@ const checkSingleProject = (
       const now = new Date().toISOString().split("T")[0];
       yield* Effect.logInfo(`🔍 Checking project ${project.code} (${project.name})`);
       yield* Effect.logInfo(`  Today: ${now}, Deadline: ${project.deadline}, Expired: ${isExpired}`);
-      yield* Effect.logInfo(`  Target: ${project.target_amount} MTLCrowd`);
+      yield* Effect.logInfo(`  Target: ${project.target_amount} ${config.mtlCrowdAsset.code}`);
 
       // Always check claimable balances and token holders first
       const claimableBalances = yield* pipe(
@@ -428,8 +426,7 @@ const checkSingleProject = (
 
       const tokenHolders = yield* pipe(
         getTokenHolders(
-          config.server,
-          config.publicKey,
+          config,
           project.code,
         ),
         Effect.catchAll(() => Effect.succeed([] as readonly TokenHolder[])),
@@ -440,7 +437,7 @@ const checkSingleProject = (
       const targetAmountNum = parseFloat(project.target_amount);
       const isGoalReached = currentAmountNum >= targetAmountNum;
 
-      yield* Effect.logInfo(`  Current: ${currentAmount} MTLCrowd, Goal reached: ${isGoalReached}`);
+      yield* Effect.logInfo(`  Current: ${currentAmount} ${config.mtlCrowdAsset.code}, Goal reached: ${isGoalReached}`);
       yield* Effect.logInfo(`  Claimable balances: ${claimableBalances.length}, Token holders: ${tokenHolders.length}`);
 
       // If goal is reached, process immediately regardless of deadline
@@ -549,9 +546,8 @@ const checkSingleProject = (
           if (isGoalReached) {
             // Goal reached - fund the project (regardless of deadline)
             const hasTrustline = yield* checkProjectTrustline(
-              config.server,
+              config,
               project.project_account_id,
-              config.publicKey,
             );
 
             if (currentAmountNum > targetAmountNum) {

@@ -32,8 +32,8 @@ const createProjectTransactionImpl = (
         const projectTokenCode = `P${code}`;
         const crowdfundingTokenCode = `C${code}`;
 
-        // MTLCrowd token (assuming it's issued by the same account for now)
-        const mtlCrowdAsset = new Asset("MTLCrowd", config.publicKey);
+        // MTLCrowd token from config
+        const mtlCrowdAsset = config.mtlCrowdAsset;
         const projectAsset = new Asset(projectTokenCode, config.publicKey);
         const crowdfundingAsset = new Asset(crowdfundingTokenCode, config.publicKey);
 

@@ -1,5 +1,6 @@
-import { Horizon, Networks } from "@stellar/stellar-sdk";
+import { type Asset, Horizon, Networks } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
+import { parseCrowdToken } from "./crowd-token";
 import { EnvironmentError } from "./errors";
 
 export interface StellarConfig {
@@ -7,6 +8,7 @@ export interface StellarConfig {
   readonly network: string;
   readonly server: Horizon.Server;
   readonly networkPassphrase: string;
+  readonly mtlCrowdAsset: Asset;
 }
 
 export const getStellarConfig = (): Effect.Effect<StellarConfig, EnvironmentError> =>
@@ -23,15 +25,24 @@ export const getStellarConfig = (): Effect.Effect<StellarConfig, EnvironmentErro
       pipe(
         Effect.sync(() => process.env["STELLAR_NETWORK"] ?? "testnet"),
       ),
-    ]),
-    Effect.map(([publicKey, network]: readonly [string, string]) => ({
-      publicKey,
-      network,
-      server: new Horizon.Server(
-        network === "mainnet"
-          ? "https://horizon.stellar.org"
-          : "https://horizon-testnet.stellar.org",
+      pipe(
+        Effect.sync(() => process.env["STELLAR_CROWD_TOKEN"]),
       ),
-      networkPassphrase: network === "mainnet" ? Networks.PUBLIC : Networks.TESTNET,
-    })),
+    ]),
+    Effect.flatMap(([publicKey, network, crowdToken]: readonly [string, string, string | undefined]) =>
+      pipe(
+        parseCrowdToken(crowdToken, publicKey),
+        Effect.map((crowdTokenConfig) => ({
+          publicKey,
+          network,
+          server: new Horizon.Server(
+            network === "mainnet"
+              ? "https://horizon.stellar.org"
+              : "https://horizon-testnet.stellar.org",
+          ),
+          networkPassphrase: network === "mainnet" ? Networks.PUBLIC : Networks.TESTNET,
+          mtlCrowdAsset: crowdTokenConfig.asset,
+        })),
+      )
+    ),
   );
