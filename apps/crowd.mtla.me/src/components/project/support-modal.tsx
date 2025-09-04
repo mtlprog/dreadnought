@@ -21,10 +21,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { StrKey } from "@stellar/stellar-sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import { z } from "zod";
 
 interface SupportModalProps {
   project: Project | null;
@@ -156,8 +156,10 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
   useEffect(() => {
     const handleVisibilityChange = () => {
       // Когда пользователь возвращается на вкладку и модалка открыта
-      if (!document.hidden && open && currentAccountId !== "" && StrKey.isValidEd25519PublicKey(currentAccountId)) {
-        console.log("User returned to tab, rechecking balance...");
+      if (
+        document.hidden === false && open && currentAccountId !== "" && StrKey.isValidEd25519PublicKey(currentAccountId)
+      ) {
+        console.warn("User returned to tab, rechecking balance...");
         void checkUserBalance(currentAccountId);
       }
     };
@@ -165,7 +167,7 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
     const handleWindowFocus = () => {
       // Когда окно получает фокус и модалка открыта
       if (open && currentAccountId !== "" && StrKey.isValidEd25519PublicKey(currentAccountId)) {
-        console.log("Window focused, rechecking balance...");
+        console.warn("Window focused, rechecking balance...");
         void checkUserBalance(currentAccountId);
       }
     };
@@ -243,9 +245,9 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
       if (!base64Pattern.test(str)) {
         return false;
       }
-      
+
       // Try to decode and re-encode to verify
-      return btoa(atob(str)) === str;
+      return globalThis.btoa(globalThis.atob(str)) === str;
     } catch {
       return false;
     }
@@ -255,13 +257,13 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
   const decodeFullDescription = (base64String: string): string => {
     try {
       // Check if the string is empty or undefined
-      if (!base64String || base64String.trim() === "") {
+      if (base64String === "" || base64String.trim() === "") {
         console.warn("Empty fulldescription provided");
         return "No detailed description available";
       }
 
       const trimmedString = base64String.trim();
-      
+
       // Check if it's valid base64
       if (!isValidBase64(trimmedString)) {
         console.warn("fulldescription is not valid base64, treating as plain text");
@@ -269,24 +271,24 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
       }
 
       // Decode base64 to bytes, then properly decode UTF-8
-      const binaryString = atob(trimmedString);
+      const binaryString = globalThis.atob(trimmedString);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
-      
+
       // Use TextDecoder for proper UTF-8 decoding
-      const decoder = new TextDecoder('utf-8');
+      const decoder = new globalThis.TextDecoder("utf-8");
       const decoded = decoder.decode(bytes);
-      
+
       return decoded;
     } catch (error) {
       console.error("Failed to decode fulldescription:", error);
       console.error("Base64 string length:", base64String?.length);
       console.error("First 100 chars:", base64String?.substring(0, 100));
-      
+
       // If decoding fails, return the original string as fallback
-      return base64String || "Failed to decode project description";
+      return base64String !== "" ? base64String : "Failed to decode project description";
     }
   };
 
@@ -351,11 +353,11 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
         && result.transactionXDR !== ""
       ) {
         setTransactionXDR(result.transactionXDR);
-        
+
         // Обновляем проекты после успешной генерации транзакции
         // (транзакция еще не подписана, но данные могли измениться)
-        if (onProjectUpdate) {
-          console.log("Transaction generated, updating projects...");
+        if (onProjectUpdate !== undefined) {
+          console.warn("Transaction generated, updating projects...");
           onProjectUpdate();
         }
       } else {
@@ -449,18 +451,41 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
                       rehypePlugins={[rehypeRaw]}
                       components={{
                         // Custom styling for markdown elements to match our design
-                        h1: ({ children }) => <h1 className="text-lg font-bold text-primary uppercase mb-2">{children}</h1>,
-                        h2: ({ children }) => <h2 className="text-base font-bold text-foreground uppercase mb-2">{children}</h2>,
-                        h3: ({ children }) => <h3 className="text-sm font-bold text-foreground uppercase mb-1">{children}</h3>,
-                        p: ({ children }) => <p className="mb-2 text-foreground font-mono text-sm leading-relaxed">{children}</p>,
+                        h1: ({ children }) => (
+                          <h1 className="text-lg font-bold text-primary uppercase mb-2">{children}</h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-base font-bold text-foreground uppercase mb-2">{children}</h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-sm font-bold text-foreground uppercase mb-1">{children}</h3>
+                        ),
+                        p: ({ children }) => (
+                          <p className="mb-2 text-foreground font-mono text-sm leading-relaxed">{children}</p>
+                        ),
                         ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
                         ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
                         li: ({ children }) => <li className="text-foreground font-mono text-sm">{children}</li>,
                         strong: ({ children }) => <strong className="font-bold text-primary">{children}</strong>,
                         em: ({ children }) => <em className="italic text-accent">{children}</em>,
-                        code: ({ children }) => <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">{children}</code>,
-                        blockquote: ({ children }) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground">{children}</blockquote>,
-                        a: ({ href, children }) => <a href={href} className="text-primary hover:text-accent underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                        code: ({ children }) => (
+                          <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">{children}</code>
+                        ),
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground">
+                            {children}
+                          </blockquote>
+                        ),
+                        a: ({ href, children }) => (
+                          <a
+                            href={href}
+                            className="text-primary hover:text-accent underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {children}
+                          </a>
+                        ),
                       }}
                     >
                       {decodeFullDescription(project.fulldescription)}
@@ -602,13 +627,13 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
 
                       {/* BUY MTL CROWD Button when user has no tokens */}
                       {form.watch("userAccountId") !== ""
-                          && form.watch("userAccountId") !== null
-                          && form.watch("userAccountId") !== undefined
-                          && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
-                          && !isLoadingBalance
-                          && balanceError === null
-                          && userBalance !== null
-                          && parseFloat(userBalance) === 0 && (
+                        && form.watch("userAccountId") !== null
+                        && form.watch("userAccountId") !== undefined
+                        && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
+                        && !isLoadingBalance
+                        && balanceError === null
+                        && userBalance !== null
+                        && parseFloat(userBalance) === 0 && (
                         <div className="border-2 border-accent bg-card p-4">
                           <div className="flex items-center gap-3 mb-3">
                             <div className="w-4 h-4 bg-accent" />
@@ -645,13 +670,13 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
 
                       {/* Show funding form only if user has tokens */}
                       {!(form.watch("userAccountId") !== ""
-                          && form.watch("userAccountId") !== null
-                          && form.watch("userAccountId") !== undefined
-                          && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
-                          && !isLoadingBalance
-                          && balanceError === null
-                          && userBalance !== null
-                          && parseFloat(userBalance) === 0) && (
+                        && form.watch("userAccountId") !== null
+                        && form.watch("userAccountId") !== undefined
+                        && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
+                        && !isLoadingBalance
+                        && balanceError === null
+                        && userBalance !== null
+                        && parseFloat(userBalance) === 0) && (
                         <>
                           <div className="space-y-3">
                             <label className="block text-lg font-bold text-foreground uppercase">
@@ -783,7 +808,8 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
                               ? "PROJECT FULLY FUNDED"
                               : (userBalance !== null && parseFloat(userBalance) === 0)
                               ? "NO MTLCROWD TOKENS"
-                              : (userBalance !== null && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))
+                              : (userBalance !== null
+                                  && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))
                               ? "INSUFFICIENT BALANCE"
                               : "FUND PROJECT"}
                           </Button>

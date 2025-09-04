@@ -5,7 +5,7 @@ const Base64String = S.String.pipe(
   S.filter(
     (s: string) => {
       try {
-        return btoa(atob(s)) === s;
+        return globalThis.btoa(globalThis.atob(s)) === s;
       } catch {
         return false;
       }

@@ -26,7 +26,7 @@ export function ProjectsSection() {
 
       if (result.success === true) {
         setProjects(result.data);
-        console.log("Projects updated:", result.data.length);
+        console.warn("Projects updated:", result.data.length);
       } else {
         console.error("Failed to fetch projects:", result.error);
         setProjects([]);
@@ -44,9 +44,9 @@ export function ProjectsSection() {
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedProject(null);
-    
+
     // Обновляем проекты в фоне после закрытия модалки
-    console.log("Modal closed, refreshing projects in background...");
+    console.warn("Modal closed, refreshing projects in background...");
     void fetchProjects(false); // false = без показа лоадера
   };
 

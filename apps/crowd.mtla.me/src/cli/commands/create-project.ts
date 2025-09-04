@@ -40,7 +40,9 @@ const askQuestions = (): Effect.Effect<ProjectData, ValidationError> =>
             message: "Полное описание проекта (base64 encoded):",
             validate: (value: string) => {
               try {
-                return btoa(atob(value)) === value ? true : "Должна быть корректная base64 строка";
+                return globalThis.btoa(globalThis.atob(value)) === value
+                  ? true
+                  : "Должна быть корректная base64 строка";
               } catch {
                 return "Должна быть корректная base64 строка";
               }
