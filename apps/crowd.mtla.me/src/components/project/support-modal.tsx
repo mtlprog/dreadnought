@@ -68,7 +68,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
     resolver: zodResolver(fundingFormSchema),
     defaultValues: {
       userAccountId: "",
-      amount: "100",
+      amount: "",
     },
   });
 
@@ -83,9 +83,6 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
 
       if (savedAccountId !== "" && StrKey.isValidEd25519PublicKey(savedAccountId)) {
         form.setValue("userAccountId", savedAccountId, { shouldTouch: false });
-      } else {
-        // Сбрасываем сумму на дефолтную, если нет сохраненного аккаунта
-        form.setValue("amount", "100", { shouldTouch: false });
       }
     }
   }, [open, savedAccountId, form]);
@@ -162,10 +159,9 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
       if (balance === 0 || remainingAmount === 0) {
         form.setValue("amount", "0", { shouldTouch: false });
       } else {
-        // Выбираем минимум из: баланса, оставшейся суммы, и дефолтных 100
+        // Устанавливаем максимально возможную сумму взноса
         const maxAllowedAmount = Math.min(balance, remainingAmount);
-        const defaultAmount = Math.min(100, maxAllowedAmount);
-        form.setValue("amount", defaultAmount.toString(), { shouldTouch: false });
+        form.setValue("amount", maxAllowedAmount.toString(), { shouldTouch: false });
       }
     }
   }, [userBalance, isLoadingBalance, form, project]);
