@@ -25,8 +25,7 @@ export function Header() {
             <button
               onClick={() => {
                 if (typeof document !== "undefined") {
-                  const projectsSection =
-                    document.getElementById("projects-section");
+                  const projectsSection = document.getElementById("projects-section");
                   projectsSection?.scrollIntoView({ behavior: "smooth" });
                 }
               }}

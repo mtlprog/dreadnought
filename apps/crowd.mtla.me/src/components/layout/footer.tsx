@@ -11,8 +11,7 @@ export function Footer() {
               MTL CROWD
             </h3>
             <p className="text-base font-mono text-muted-foreground leading-relaxed">
-              DECENTRALIZED FUNDING PLATFORM FOR FREEDOM FOCUSED PROJECTS.
-              POWERED BY STELLAR BLOCKCHAIN.
+              DECENTRALIZED FUNDING PLATFORM FOR FREEDOM FOCUSED PROJECTS. POWERED BY STELLAR BLOCKCHAIN.
             </p>
           </div>
 

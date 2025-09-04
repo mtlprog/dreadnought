@@ -36,6 +36,18 @@ const askQuestions = (): Effect.Effect<ProjectData, ValidationError> =>
           },
           {
             type: "text",
+            name: "fulldescription",
+            message: "Полное описание проекта (base64 encoded):",
+            validate: (value: string) => {
+              try {
+                return btoa(atob(value)) === value ? true : "Должна быть корректная base64 строка";
+              } catch {
+                return "Должна быть корректная base64 строка";
+              }
+            },
+          },
+          {
+            type: "text",
             name: "contact_account_id",
             message: "Счет координатора проекта:",
             validate: (value: string) => /^G[A-Z2-7]{55}$/.test(value) ? true : "Неверный формат Stellar адреса",
@@ -70,7 +82,7 @@ const askQuestions = (): Effect.Effect<ProjectData, ValidationError> =>
         }),
     }),
     Effect.flatMap(response =>
-      Object.keys(response as object).length < 7
+      Object.keys(response as object).length < 8
         ? Effect.fail(
           new ValidationError({
             field: "user_input",

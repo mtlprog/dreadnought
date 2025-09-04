@@ -1,10 +1,25 @@
 import * as S from "@effect/schema/Schema";
 
+// Base64 validation schema
+const Base64String = S.String.pipe(
+  S.filter(
+    (s: string) => {
+      try {
+        return btoa(atob(s)) === s;
+      } catch {
+        return false;
+      }
+    },
+    { message: () => "Must be a valid base64 encoded string" },
+  ),
+);
+
 // Base project data schema - single source of truth
 export const ProjectDataSchema = S.Struct({
   name: S.String,
   code: S.String,
   description: S.String,
+  fulldescription: Base64String,
   contact_account_id: S.String,
   project_account_id: S.String,
   target_amount: S.String,
