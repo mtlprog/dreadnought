@@ -69,10 +69,32 @@ const getClaimableBalances = (
   pipe(
     Effect.tryPromise({
       try: async () => {
-        const claimableBalances = await server.claimableBalances()
+        const allRecords: Horizon.ServerApi.ClaimableBalanceRecord[] = [];
+        let callBuilder = server.claimableBalances()
           .claimant(publicKey)
-          .call();
-        return claimableBalances.records;
+          .limit(200); // Maximum allowed per request
+
+        // Fetch all pages using pagination
+        while (true) {
+          const response = await callBuilder.call();
+          allRecords.push(...response.records);
+
+          // If we got fewer records than the limit, we've reached the end
+          if (response.records.length < 200) {
+            break;
+          }
+
+          // Prepare next page request
+          const lastRecord = response.records[response.records.length - 1];
+          if (lastRecord === undefined) break; // Safety check
+
+          callBuilder = server.claimableBalances()
+            .claimant(publicKey)
+            .cursor(lastRecord.paging_token)
+            .limit(200);
+        }
+
+        return allRecords;
       },
       catch: (error) =>
         new StellarError({

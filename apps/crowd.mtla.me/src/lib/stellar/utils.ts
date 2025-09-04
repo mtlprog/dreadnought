@@ -48,10 +48,10 @@ export const countUniqueSupporters = (
 
   for (const balance of claimableBalances) {
     const asset = balance.asset;
-    const assetCode = asset !== "native" ? asset.split(":")[0] : "native";
+    const assetCodeFromBalance = asset !== "native" ? asset.split(":")[0] : "native";
 
     // Check if this is a claimable balance for our crowdfunding token (C-prefix)
-    if (asset !== "native" && assetCode === crowdfundingTokenCode) {
+    if (asset !== "native" && assetCodeFromBalance === crowdfundingTokenCode) {
       // Check if STELLAR_ACCOUNT_ID is among the claimants
       const isClaimableByAccount = balance.claimants?.some(claimant => claimant.destination === stellarAccountId);
 
@@ -79,9 +79,10 @@ export const calculateRaisedAmount = (
 
   for (const balance of claimableBalances) {
     const asset = balance.asset;
+    const assetCodeFromBalance = asset !== "native" ? asset.split(":")[0] : "native";
 
     // Check if this is a claimable balance for our crowdfunding token (C-prefix)
-    if (asset !== "native" && asset.split(":")[0] === crowdfundingTokenCode) {
+    if (asset !== "native" && assetCodeFromBalance === crowdfundingTokenCode) {
       // Check if STELLAR_ACCOUNT_ID is among the claimants
       const isClaimableByAccount = balance.claimants?.some(claimant => claimant.destination === stellarAccountId);
 

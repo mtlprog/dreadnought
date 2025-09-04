@@ -49,12 +49,33 @@ const getClaimableBalancesForProject = (
   pipe(
     Effect.tryPromise({
       try: async () => {
-        const claimableBalances = await server.claimableBalances()
+        const allRecords: Horizon.ServerApi.ClaimableBalanceRecord[] = [];
+        let callBuilder = server.claimableBalances()
           .claimant(accountId)
-          .call();
+          .limit(200); // Maximum allowed per request
+
+        // Fetch all pages using pagination
+        while (true) {
+          const response = await callBuilder.call();
+          allRecords.push(...response.records);
+
+          // If we got fewer records than the limit, we've reached the end
+          if (response.records.length < 200) {
+            break;
+          }
+
+          // Prepare next page request
+          const lastRecord = response.records[response.records.length - 1];
+          if (lastRecord === undefined) break; // Safety check
+
+          callBuilder = server.claimableBalances()
+            .claimant(accountId)
+            .cursor(lastRecord.paging_token)
+            .limit(200);
+        }
 
         const crowdfundingTokenCode = `C${assetCode}`;
-        return claimableBalances.records.filter(balance => {
+        return allRecords.filter(balance => {
           const asset = balance.asset;
           return asset !== "native" && asset.split(":")[0] === crowdfundingTokenCode;
         });
@@ -78,12 +99,33 @@ const getTokenHolders = (
         const holders: TokenHolder[] = [];
 
         try {
-          // Get accounts holding this asset
-          const accounts = await config.server.accounts()
+          // Get all accounts holding this asset using pagination
+          const allAccounts: Horizon.ServerApi.AccountRecord[] = [];
+          let callBuilder = config.server.accounts()
             .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
-            .call();
+            .limit(200); // Maximum allowed per request
 
-          for (const account of accounts.records) {
+          // Fetch all pages using pagination
+          while (true) {
+            const response = await callBuilder.call();
+            allAccounts.push(...response.records);
+
+            // If we got fewer records than the limit, we've reached the end
+            if (response.records.length < 200) {
+              break;
+            }
+
+            // Prepare next page request
+            const lastRecord = response.records[response.records.length - 1];
+            if (lastRecord === undefined) break; // Safety check
+
+            callBuilder = config.server.accounts()
+              .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
+              .cursor(lastRecord.paging_token)
+              .limit(200);
+          }
+
+          for (const account of allAccounts) {
             for (const balance of account.balances) {
               if (
                 balance.asset_type !== "native"
@@ -628,10 +670,32 @@ const getActiveOffers = (
   pipe(
     Effect.tryPromise({
       try: async () => {
-        const offers = await server.offers()
+        const allRecords: Horizon.ServerApi.OfferRecord[] = [];
+        let callBuilder = server.offers()
           .forAccount(accountId)
-          .call();
-        return offers.records;
+          .limit(200); // Maximum allowed per request
+
+        // Fetch all pages using pagination
+        while (true) {
+          const response = await callBuilder.call();
+          allRecords.push(...response.records);
+
+          // If we got fewer records than the limit, we've reached the end
+          if (response.records.length < 200) {
+            break;
+          }
+
+          // Prepare next page request
+          const lastRecord = response.records[response.records.length - 1];
+          if (lastRecord === undefined) break; // Safety check
+
+          callBuilder = server.offers()
+            .forAccount(accountId)
+            .cursor(lastRecord.paging_token)
+            .limit(200);
+        }
+
+        return allRecords;
       },
       catch: (error) =>
         new StellarError({
