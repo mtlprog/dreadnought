@@ -16,9 +16,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  applicationName: "Montelibero Crowdfunding Platform",
   title: "MTL Crowd - Montelibero Funding",
   description:
     "Support freedom-focused projects with MTLCrowd tokens. Decentralized funding platform powered by Stellar blockchain.",
+  icons: {
+    icon: "/mtl_crowd.png",
+    shortcut: "/mtl_crowd.png",
+    apple: "/mtl_crowd.png",
+  },
 };
 
 export default function RootLayout({
