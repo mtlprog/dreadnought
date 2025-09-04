@@ -9,7 +9,7 @@ interface CacheEntry<T> {
 class MemoryCache {
   private readonly cache = new Map<string, CacheEntry<unknown>>();
 
-  set<T>(key: string, data: T, ttlMs: number = 5 * 60 * 1000): void {
+  set<T>(key: string, data: T, ttlMs: number = 1 * 60 * 1000): void {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
@@ -50,7 +50,7 @@ const cache = new MemoryCache();
 export const withCache = <A, E>(
   key: Readonly<string>,
   effect: Readonly<Effect.Effect<A, E>>,
-  ttlMs: Readonly<number> = 5 * 60 * 1000, // 5 minutes default
+  ttlMs: Readonly<number> = 1 * 60 * 1000, // 1 minutes default
 ): Effect.Effect<A, E> =>
   pipe(
     Effect.sync(() => cache.get<A>(key)),

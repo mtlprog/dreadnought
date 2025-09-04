@@ -16,7 +16,7 @@ export const getProjectsWithCache = (): Effect.Effect<ProjectInfo[], never> =>
         }),
         Effect.provide(StellarServiceLive),
       ),
-      5 * 60 * 1000, // 5 minutes cache
+      60 * 1000, // 1 minutes cache
     ),
     Effect.catchAll(() => Effect.succeed([])), // Return empty array on error
   );
