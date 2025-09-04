@@ -753,6 +753,10 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
                                 <span className="text-foreground">{project.code}</span>
                               </div>
                               <div className="flex justify-between">
+                                <span className="text-muted-foreground">SERVICE FEE:</span>
+                                <span className="text-foreground">5 XLM</span>
+                              </div>
+                              <div className="flex justify-between">
                                 <span className="text-muted-foreground">NETWORK FEE:</span>
                                 <span className="text-foreground">~0.00001 XLM</span>
                               </div>
