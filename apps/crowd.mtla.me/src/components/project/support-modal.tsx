@@ -129,6 +129,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
 
   // Отслеживаем изменения Account ID для проверки баланса и сохранения в localStorage
   const currentAccountId = form.watch("userAccountId");
+  const currentAmount = form.watch("amount");
 
   useEffect(() => {
     if (currentAccountId !== "" && StrKey.isValidEd25519PublicKey(currentAccountId)) {
@@ -150,19 +151,44 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
     }
   }, [currentAccountId, savedAccountId, setSavedAccountId, isLoadingBalance, checkUserBalance]);
 
-  // Автоматически устанавливаем сумму на основе баланса
+  // Автоматически устанавливаем сумму на основе баланса и оставшейся суммы для фандинга
   useEffect(() => {
-    if (userBalance !== null && !isLoadingBalance) {
+    if (userBalance !== null && !isLoadingBalance && project !== null) {
       const balance = parseFloat(userBalance);
-      if (balance === 0) {
+      const targetAmount = parseFloat(project.target_amount);
+      const currentAmount = parseFloat(project.current_amount);
+      const remainingAmount = Math.max(targetAmount - currentAmount, 0);
+      
+      if (balance === 0 || remainingAmount === 0) {
         form.setValue("amount", "0", { shouldTouch: false });
-      } else if (balance < 100) {
-        form.setValue("amount", balance.toString(), { shouldTouch: false });
       } else {
-        form.setValue("amount", "100", { shouldTouch: false });
+        // Выбираем минимум из: баланса, оставшейся суммы, и дефолтных 100
+        const maxAllowedAmount = Math.min(balance, remainingAmount);
+        const defaultAmount = Math.min(100, maxAllowedAmount);
+        form.setValue("amount", defaultAmount.toString(), { shouldTouch: false });
       }
     }
-  }, [userBalance, isLoadingBalance, form]);
+  }, [userBalance, isLoadingBalance, form, project]);
+
+  // Автокоррекция суммы при вводе пользователем
+  useEffect(() => {
+    if (project !== null && userBalance !== null && currentAmount !== null && currentAmount !== undefined && currentAmount !== "") {
+      const enteredAmount = parseFloat(currentAmount);
+      const balance = parseFloat(userBalance);
+      const targetAmount = parseFloat(project.target_amount);
+      const currentProjectAmount = parseFloat(project.current_amount);
+      const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
+      
+      if (!isNaN(enteredAmount) && enteredAmount > 0) {
+        const maxAllowedAmount = Math.min(balance, remainingAmount);
+        
+        // Если введенная сумма больше максимально допустимой, корректируем
+        if (enteredAmount > maxAllowedAmount && maxAllowedAmount > 0) {
+          form.setValue("amount", maxAllowedAmount.toString(), { shouldTouch: true });
+        }
+      }
+    }
+  }, [currentAmount, userBalance, project, form]);
 
   if (project === null) return null;
 
@@ -171,10 +197,15 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
     100,
   );
 
+  // Calculate remaining funding amount needed
+  const targetAmount = parseFloat(project.target_amount);
+  const currentProjectAmount = parseFloat(project.current_amount);
+  const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
+
   const handleGenerateTransaction = async (data: FundingFormData) => {
     if (project === null || project === undefined) return;
 
-    // Проверяем достаточность баланса
+    // Проверяем достаточность баланса и оставшуюся сумму для фандинга
     const requiredAmount = parseFloat(data.amount);
     const availableBalance = userBalance !== null ? parseFloat(userBalance) : 0;
 
@@ -183,9 +214,21 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
       return;
     }
 
+    if (remainingAmount === 0) {
+      setBalanceError("Project is already fully funded");
+      return;
+    }
+
     if (availableBalance < requiredAmount) {
       setBalanceError(
         `Insufficient balance. Required: ${requiredAmount} MTLCrowd, Available: ${availableBalance} MTLCrowd`,
+      );
+      return;
+    }
+
+    if (requiredAmount > remainingAmount) {
+      setBalanceError(
+        `Amount exceeds funding needed. Required: ${requiredAmount} MTLCrowd, Needed: ${remainingAmount} MTLCrowd`,
       );
       return;
     }
@@ -389,8 +432,10 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                           type="number"
                           {...form.register("amount")}
                           min="1"
-                          max={userBalance !== null ? parseFloat(userBalance).toString() : undefined}
-                          disabled={userBalance !== null && parseFloat(userBalance) === 0}
+                          max={userBalance !== null && remainingAmount > 0 
+                            ? Math.min(parseFloat(userBalance), remainingAmount).toString() 
+                            : undefined}
+                          disabled={userBalance !== null && parseFloat(userBalance) === 0 || remainingAmount === 0}
                           className="text-xl text-center"
                           placeholder="100"
                         />
@@ -421,9 +466,20 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                                       <p className="text-sm font-mono text-muted-foreground">
                                         AVAILABLE: {parseFloat(userBalance).toLocaleString()} MTLCROWD TOKENS
                                       </p>
+                                      <p className="text-sm font-mono text-muted-foreground">
+                                        NEEDED: {remainingAmount.toLocaleString()} MTLCROWD TOKENS
+                                      </p>
+                                      <p className="text-sm font-mono text-accent">
+                                        MAX CONTRIBUTION: {Math.min(parseFloat(userBalance), remainingAmount).toLocaleString()} MTLCROWD TOKENS
+                                      </p>
                                       {parseFloat(userBalance) === 0 && (
                                         <p className="text-sm font-mono text-red-500">
                                           NO MTLCROWD TOKENS AVAILABLE FOR FUNDING
+                                        </p>
+                                      )}
+                                      {remainingAmount === 0 && (
+                                        <p className="text-sm font-mono text-green-500">
+                                          PROJECT FULLY FUNDED
                                         </p>
                                       )}
                                     </>
@@ -459,7 +515,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                         <div className="space-y-2 text-sm font-mono">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">AMOUNT:</span>
-                            <span className="text-foreground">{form.watch("amount") ?? "0"} MTLCROWD</span>
+                            <span className="text-foreground">{form.watch("amount") ?? "0"} MTLCrowd</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">PROJECT:</span>
@@ -477,6 +533,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                         disabled={isGenerating
                           || !form.formState.isValid
                           || isLoadingBalance
+                          || remainingAmount === 0
                           || (userBalance !== null && parseFloat(userBalance) === 0)
                           || (userBalance !== null
                             && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))}
@@ -487,6 +544,8 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                           ? "GENERATING..."
                           : isLoadingBalance === true
                           ? "CHECKING BALANCE..."
+                          : remainingAmount === 0
+                          ? "PROJECT FULLY FUNDED"
                           : (userBalance !== null && parseFloat(userBalance) === 0)
                           ? "NO MTLCROWD TOKENS"
                           : (userBalance !== null && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))
