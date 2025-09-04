@@ -157,6 +157,7 @@ export const StellarServiceLive = Layer.succeed(
                       name: projectData.name,
                       code: projectData.code,
                       description: projectData.description,
+                      fulldescription: projectData.fulldescription,
                       contact_account_id: projectData.contact_account_id,
                       project_account_id: projectData.project_account_id,
                       target_amount: projectData.target_amount,

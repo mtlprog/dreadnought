@@ -22,6 +22,9 @@ import { StrKey } from "@stellar/stellar-sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 interface SupportModalProps {
   project: Project | null;
@@ -202,6 +205,61 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
     return `${accountId.substring(0, 2)}...${accountId.substring(accountId.length - 6)}`;
   };
 
+  // Function to check if string is valid base64
+  const isValidBase64 = (str: string): boolean => {
+    try {
+      // Check if string matches base64 pattern
+      const base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+      if (!base64Pattern.test(str)) {
+        return false;
+      }
+      
+      // Try to decode and re-encode to verify
+      return btoa(atob(str)) === str;
+    } catch {
+      return false;
+    }
+  };
+
+  // Function to decode base64 fulldescription with proper UTF-8 support
+  const decodeFullDescription = (base64String: string): string => {
+    try {
+      // Check if the string is empty or undefined
+      if (!base64String || base64String.trim() === "") {
+        console.warn("Empty fulldescription provided");
+        return "No detailed description available";
+      }
+
+      const trimmedString = base64String.trim();
+      
+      // Check if it's valid base64
+      if (!isValidBase64(trimmedString)) {
+        console.warn("fulldescription is not valid base64, treating as plain text");
+        return trimmedString;
+      }
+
+      // Decode base64 to bytes, then properly decode UTF-8
+      const binaryString = atob(trimmedString);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Use TextDecoder for proper UTF-8 decoding
+      const decoder = new TextDecoder('utf-8');
+      const decoded = decoder.decode(bytes);
+      
+      return decoded;
+    } catch (error) {
+      console.error("Failed to decode fulldescription:", error);
+      console.error("Base64 string length:", base64String?.length);
+      console.error("First 100 chars:", base64String?.substring(0, 100));
+      
+      // If decoding fails, return the original string as fallback
+      return base64String || "Failed to decode project description";
+    }
+  };
+
   // Calculate remaining funding amount needed
   const targetAmount = parseFloat(project.target_amount);
   const currentProjectAmount = parseFloat(project.current_amount);
@@ -332,7 +390,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="max-w-4xl">
-        <DialogHeader>
+        <DialogHeader className="pr-12">
           <DialogTitle>{project.name}</DialogTitle>
           <DialogDescription>
             PROJECT CODE: {project.code} | DEADLINE: {new Date(project.deadline).toLocaleDateString()}
@@ -348,9 +406,29 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
               <div className="space-y-4 text-base font-mono">
                 <div>
                   <span className="text-muted-foreground">DESCRIPTION:</span>
-                  <p className="text-foreground mt-2 leading-relaxed">
-                    {project.description}
-                  </p>
+                  <div className="text-foreground mt-2 leading-relaxed prose prose-sm max-w-none prose-invert">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeRaw]}
+                      components={{
+                        // Custom styling for markdown elements to match our design
+                        h1: ({ children }) => <h1 className="text-lg font-bold text-primary uppercase mb-2">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-base font-bold text-foreground uppercase mb-2">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-bold text-foreground uppercase mb-1">{children}</h3>,
+                        p: ({ children }) => <p className="mb-2 text-foreground font-mono text-sm leading-relaxed">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                        li: ({ children }) => <li className="text-foreground font-mono text-sm">{children}</li>,
+                        strong: ({ children }) => <strong className="font-bold text-primary">{children}</strong>,
+                        em: ({ children }) => <em className="italic text-accent">{children}</em>,
+                        code: ({ children }) => <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">{children}</code>,
+                        blockquote: ({ children }) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground">{children}</blockquote>,
+                        a: ({ href, children }) => <a href={href} className="text-primary hover:text-accent underline" target="_blank" rel="noopener noreferrer">{children}</a>,
+                      }}
+                    >
+                      {decodeFullDescription(project.fulldescription)}
+                    </ReactMarkdown>
+                  </div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">CONTACT ACCOUNT:</span>
@@ -485,136 +563,179 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                         className="space-y-3"
                       />
 
-                      <div className="space-y-3">
-                        <label className="block text-lg font-bold text-foreground uppercase">
-                          Amount (MTLCrowd Tokens)
-                        </label>
-                        <Input
-                          type="number"
-                          {...form.register("amount")}
-                          min="1"
-                          max={userBalance !== null && remainingAmount > 0
-                            ? Math.min(parseFloat(userBalance), remainingAmount).toString()
-                            : undefined}
-                          disabled={userBalance !== null && parseFloat(userBalance) === 0 || remainingAmount === 0}
-                          className="text-xl text-center"
-                          placeholder="100"
-                        />
+                      {/* BUY MTL CROWD Button when user has no tokens */}
+                      {form.watch("userAccountId") !== ""
+                          && form.watch("userAccountId") !== null
+                          && form.watch("userAccountId") !== undefined
+                          && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
+                          && !isLoadingBalance
+                          && balanceError === null
+                          && userBalance !== null
+                          && parseFloat(userBalance) === 0 && (
+                        <div className="border-2 border-accent bg-card p-4">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-4 h-4 bg-accent" />
+                            <span className="text-lg font-bold text-accent uppercase">
+                              NO TOKENS AVAILABLE
+                            </span>
+                          </div>
+                          <p className="text-sm font-mono text-muted-foreground mb-4">
+                            You need MTL CROWD tokens to support projects. Purchase tokens to start funding initiatives.
+                          </p>
+                          <Button
+                            type="button"
+                            variant="default"
+                            size="lg"
+                            className="w-full text-xl py-4"
+                            onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
+                          >
+                            BUY MTL CROWD
+                          </Button>
+                        </div>
+                      )}
 
-                        {/* Balance info under amount field */}
-                        <div className="space-y-2">
-                          {form.watch("userAccountId") !== ""
-                              && form.watch("userAccountId") !== null
-                              && form.watch("userAccountId") !== undefined
-                              && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
-                            ? (
-                              <>
-                                {isLoadingBalance
-                                  ? (
-                                    <p className="text-sm font-mono text-muted-foreground">
-                                      CHECKING BALANCE...
-                                    </p>
-                                  )
-                                  : balanceError !== null && balanceError !== undefined && balanceError !== ""
-                                  ? (
-                                    <p className="text-sm font-mono text-red-500">
-                                      ERROR LOADING BALANCE
-                                    </p>
-                                  )
-                                  : userBalance !== null
-                                  ? (
-                                    <>
-                                      <p className="text-sm font-mono text-muted-foreground">
-                                        AVAILABLE: {parseFloat(userBalance).toLocaleString()} MTLCROWD TOKENS
-                                      </p>
-                                      <p className="text-sm font-mono text-muted-foreground">
-                                        NEEDED: {remainingAmount.toLocaleString()} MTLCROWD TOKENS
-                                      </p>
-                                      <p className="text-sm font-mono text-accent">
-                                        MAX CONTRIBUTION:{" "}
-                                        {Math.min(parseFloat(userBalance), remainingAmount).toLocaleString()}{" "}
-                                        MTLCROWD TOKENS
-                                      </p>
-                                      {parseFloat(userBalance) === 0 && (
+                      {/* Show funding form only if user has tokens */}
+                      {!(form.watch("userAccountId") !== ""
+                          && form.watch("userAccountId") !== null
+                          && form.watch("userAccountId") !== undefined
+                          && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
+                          && !isLoadingBalance
+                          && balanceError === null
+                          && userBalance !== null
+                          && parseFloat(userBalance) === 0) && (
+                        <>
+                          <div className="space-y-3">
+                            <label className="block text-lg font-bold text-foreground uppercase">
+                              Amount (MTLCrowd Tokens)
+                            </label>
+                            <Input
+                              type="number"
+                              {...form.register("amount")}
+                              min="1"
+                              max={userBalance !== null && remainingAmount > 0
+                                ? Math.min(parseFloat(userBalance), remainingAmount).toString()
+                                : undefined}
+                              disabled={userBalance !== null && parseFloat(userBalance) === 0 || remainingAmount === 0}
+                              className="text-xl text-center"
+                              placeholder="100"
+                            />
+
+                            {/* Balance info under amount field */}
+                            <div className="space-y-2">
+                              {form.watch("userAccountId") !== ""
+                                  && form.watch("userAccountId") !== null
+                                  && form.watch("userAccountId") !== undefined
+                                  && StrKey.isValidEd25519PublicKey(form.watch("userAccountId"))
+                                ? (
+                                  <>
+                                    {isLoadingBalance
+                                      ? (
+                                        <p className="text-sm font-mono text-muted-foreground">
+                                          CHECKING BALANCE...
+                                        </p>
+                                      )
+                                      : balanceError !== null && balanceError !== undefined && balanceError !== ""
+                                      ? (
                                         <p className="text-sm font-mono text-red-500">
-                                          NO MTLCROWD TOKENS AVAILABLE FOR FUNDING
+                                          ERROR LOADING BALANCE
                                         </p>
-                                      )}
-                                      {remainingAmount === 0 && (
-                                        <p className="text-sm font-mono text-green-500">
-                                          PROJECT FULLY FUNDED
-                                        </p>
-                                      )}
-                                    </>
-                                  )
-                                  : null}
-                              </>
-                            )
-                            : (
-                              <p className="text-sm font-mono text-muted-foreground">
-                                MINIMUM SUPPORT: 1 MTLCROWD TOKEN
+                                      )
+                                      : userBalance !== null
+                                      ? (
+                                        <>
+                                          <p className="text-sm font-mono text-muted-foreground">
+                                            AVAILABLE: {parseFloat(userBalance).toLocaleString()} MTLCROWD TOKENS
+                                          </p>
+                                          <p className="text-sm font-mono text-muted-foreground">
+                                            NEEDED: {remainingAmount.toLocaleString()} MTLCROWD TOKENS
+                                          </p>
+                                          <p className="text-sm font-mono text-accent">
+                                            MAX CONTRIBUTION:{" "}
+                                            {Math.min(parseFloat(userBalance), remainingAmount).toLocaleString()}{" "}
+                                            MTLCROWD TOKENS
+                                          </p>
+                                          {parseFloat(userBalance) === 0 && (
+                                            <p className="text-sm font-mono text-red-500">
+                                              NO MTLCROWD TOKENS AVAILABLE FOR FUNDING
+                                            </p>
+                                          )}
+                                          {remainingAmount === 0 && (
+                                            <p className="text-sm font-mono text-green-500">
+                                              PROJECT FULLY FUNDED
+                                            </p>
+                                          )}
+                                        </>
+                                      )
+                                      : null}
+                                  </>
+                                )
+                                : (
+                                  <p className="text-sm font-mono text-muted-foreground">
+                                    MINIMUM SUPPORT: 1 MTLCROWD TOKEN
+                                  </p>
+                                )}
+                            </div>
+
+                            {form.formState.errors.amount !== undefined && (
+                              <p className="text-sm text-red-500">
+                                {form.formState.errors.amount.message}
                               </p>
                             )}
-                        </div>
 
-                        {form.formState.errors.amount !== undefined && (
-                          <p className="text-sm text-red-500">
-                            {form.formState.errors.amount.message}
-                          </p>
-                        )}
-
-                        {balanceError !== null && balanceError !== undefined && balanceError !== "" && (
-                          <p className="text-xs text-red-500">{balanceError}</p>
-                        )}
-                      </div>
-
-                      <div className="border-2 border-secondary bg-card p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="w-4 h-4 bg-secondary" />
-                          <span className="text-lg font-bold text-secondary uppercase">
-                            TRANSACTION PREVIEW
-                          </span>
-                        </div>
-                        <div className="space-y-2 text-sm font-mono">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">AMOUNT:</span>
-                            <span className="text-foreground">{form.watch("amount") ?? "0"} MTLCrowd</span>
+                            {balanceError !== null && balanceError !== undefined && balanceError !== "" && (
+                              <p className="text-xs text-red-500">{balanceError}</p>
+                            )}
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">PROJECT:</span>
-                            <span className="text-foreground">{project.code}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">NETWORK FEE:</span>
-                            <span className="text-foreground">~0.00001 XLM</span>
-                          </div>
-                        </div>
-                      </div>
 
-                      <Button
-                        type="submit"
-                        disabled={isGenerating
-                          || !form.formState.isValid
-                          || isLoadingBalance
-                          || remainingAmount === 0
-                          || (userBalance !== null && parseFloat(userBalance) === 0)
-                          || (userBalance !== null
-                            && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))}
-                        className="w-full text-xl py-6"
-                        size="lg"
-                      >
-                        {isGenerating === true
-                          ? "GENERATING..."
-                          : isLoadingBalance === true
-                          ? "CHECKING BALANCE..."
-                          : remainingAmount === 0
-                          ? "PROJECT FULLY FUNDED"
-                          : (userBalance !== null && parseFloat(userBalance) === 0)
-                          ? "NO MTLCROWD TOKENS"
-                          : (userBalance !== null && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))
-                          ? "INSUFFICIENT BALANCE"
-                          : "FUND PROJECT"}
-                      </Button>
+                          <div className="border-2 border-secondary bg-card p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-4 h-4 bg-secondary" />
+                              <span className="text-lg font-bold text-secondary uppercase">
+                                TRANSACTION PREVIEW
+                              </span>
+                            </div>
+                            <div className="space-y-2 text-sm font-mono">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">AMOUNT:</span>
+                                <span className="text-foreground">{form.watch("amount") ?? "0"} MTLCrowd</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">PROJECT:</span>
+                                <span className="text-foreground">{project.code}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">NETWORK FEE:</span>
+                                <span className="text-foreground">~0.00001 XLM</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <Button
+                            type="submit"
+                            disabled={isGenerating
+                              || !form.formState.isValid
+                              || isLoadingBalance
+                              || remainingAmount === 0
+                              || (userBalance !== null && parseFloat(userBalance) === 0)
+                              || (userBalance !== null
+                                && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))}
+                            className="w-full text-xl py-6"
+                            size="lg"
+                          >
+                            {isGenerating === true
+                              ? "GENERATING..."
+                              : isLoadingBalance === true
+                              ? "CHECKING BALANCE..."
+                              : remainingAmount === 0
+                              ? "PROJECT FULLY FUNDED"
+                              : (userBalance !== null && parseFloat(userBalance) === 0)
+                              ? "NO MTLCROWD TOKENS"
+                              : (userBalance !== null && parseFloat(userBalance) < parseFloat(form.watch("amount") ?? "0"))
+                              ? "INSUFFICIENT BALANCE"
+                              : "FUND PROJECT"}
+                          </Button>
+                        </>
+                      )}
                     </form>
                   </Form>
 

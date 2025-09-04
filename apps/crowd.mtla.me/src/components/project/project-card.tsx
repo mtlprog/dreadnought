@@ -41,15 +41,21 @@ export function ProjectCard({
             <span className="text-sm font-mono font-bold">{statusText}</span>
           </div>
         </div>
-        <CardTitle>{project.name}</CardTitle>
+        <CardTitle className="h-16 flex items-start leading-tight overflow-hidden">
+          <span className="line-clamp-2">
+            {project.name}
+          </span>
+        </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex-1">
-        <p className="text-base text-muted-foreground font-mono leading-relaxed mb-6">
-          {project.description.length > 150
-            ? `${project.description.substring(0, 150)}...`
-            : project.description}
-        </p>
+      <CardContent className="flex-1 flex flex-col">
+        <div className="flex-1">
+          <p className="text-base text-muted-foreground font-mono leading-relaxed mb-6">
+            {project.description.length > 150
+              ? `${project.description.substring(0, 150)}...`
+              : project.description}
+          </p>
+        </div>
 
         <div className="space-y-6">
           <div>
