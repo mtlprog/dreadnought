@@ -16,7 +16,7 @@ export function Header() {
                 MTL CROWD
               </h1>
               <p className="text-sm font-mono text-muted-foreground uppercase">
-                DECENTRALIZED FUNDING
+                MONTELIBERO FUNDING
               </p>
             </div>
           </Link>
@@ -25,7 +25,8 @@ export function Header() {
             <button
               onClick={() => {
                 if (typeof document !== "undefined") {
-                  const projectsSection = document.getElementById("projects-section");
+                  const projectsSection =
+                    document.getElementById("projects-section");
                   projectsSection?.scrollIntoView({ behavior: "smooth" });
                 }
               }}

@@ -196,6 +196,12 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
     100,
   );
 
+  // Function to truncate Stellar account ID for display
+  const truncateAccountId = (accountId: string): string => {
+    if (accountId.length < 8) return accountId;
+    return `${accountId.substring(0, 2)}...${accountId.substring(accountId.length - 6)}`;
+  };
+
   // Calculate remaining funding amount needed
   const targetAmount = parseFloat(project.target_amount);
   const currentProjectAmount = parseFloat(project.current_amount);
@@ -348,15 +354,27 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                 </div>
                 <div>
                   <span className="text-muted-foreground">CONTACT ACCOUNT:</span>
-                  <p className="text-foreground mt-1 break-all text-sm">
-                    {project.contact_account_id}
-                  </p>
+                  <a
+                    href={`https://bsn.expert/accounts/${project.contact_account_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-accent mt-1 block text-sm font-mono underline cursor-pointer transition-colors"
+                    title={project.contact_account_id}
+                  >
+                    {truncateAccountId(project.contact_account_id)}
+                  </a>
                 </div>
                 <div>
                   <span className="text-muted-foreground">PROJECT ACCOUNT:</span>
-                  <p className="text-foreground mt-1 break-all text-sm">
-                    {project.project_account_id}
-                  </p>
+                  <a
+                    href={`https://bsn.expert/accounts/${project.project_account_id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:text-accent mt-1 block text-sm font-mono underline cursor-pointer transition-colors"
+                    title={project.project_account_id}
+                  >
+                    {truncateAccountId(project.project_account_id)}
+                  </a>
                 </div>
               </div>
             </div>
@@ -377,21 +395,21 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="border-2 border-border bg-muted p-4 text-center">
-                    <div className="text-sm font-mono text-muted-foreground mb-1">RAISED</div>
-                    <div className="text-2xl font-black text-primary">
+                  <div className="border-2 border-border bg-muted p-3 text-center">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">RAISED</div>
+                    <div className="text-lg font-black text-primary leading-tight">
                       {parseInt(project.current_amount).toLocaleString()}
                     </div>
                   </div>
-                  <div className="border-2 border-border bg-muted p-4 text-center">
-                    <div className="text-sm font-mono text-muted-foreground mb-1">TARGET</div>
-                    <div className="text-2xl font-black text-foreground">
+                  <div className="border-2 border-border bg-muted p-3 text-center">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">TARGET</div>
+                    <div className="text-lg font-black text-foreground leading-tight">
                       {parseInt(project.target_amount).toLocaleString()}
                     </div>
                   </div>
-                  <div className="border-2 border-border bg-muted p-4 text-center">
-                    <div className="text-sm font-mono text-muted-foreground mb-1">SUPPORTERS</div>
-                    <div className="text-2xl font-black text-secondary">
+                  <div className="border-2 border-border bg-muted p-3 text-center">
+                    <div className="text-xs font-mono text-muted-foreground mb-1">SUPPORTERS</div>
+                    <div className="text-lg font-black text-secondary leading-tight">
                       {project.supporters_count}
                     </div>
                   </div>

@@ -41,7 +41,7 @@ export function HeroSection() {
                   CHOOSE PROJECTS
                 </h3>
                 <p className="text-base font-mono text-muted-foreground">
-                  ALLOCATE YOUR TOKENS TO PRIVACY FOCUSED INITIATIVES
+                  ALLOCATE YOUR TOKENS TO FREEDOM FOCUSED INITIATIVES
                 </p>
               </div>
 
@@ -59,8 +59,12 @@ export function HeroSection() {
 
           <div className="space-y-8">
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Button size="lg" className="text-2xl px-12 py-6">
-                BUY MTL CROWD TOKENS
+              <Button
+                size="lg"
+                className="text-xl px-12 py-6"
+                onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
+              >
+                MTL CROWD
               </Button>
               <Button
                 variant="outline"

@@ -59,7 +59,7 @@ export function ProjectsSection() {
               <span className="text-primary">PROJECTS</span>
             </h2>
             <p className="text-xl text-muted-foreground font-mono max-w-3xl mx-auto">
-              SUPPORT PRIVACY FOCUSED INITIATIVES WITH YOUR MTL CROWD TOKENS
+              SUPPORT FREEDOM FOCUSED INITIATIVES WITH YOUR MTL CROWD TOKENS
             </p>
           </div>
 
