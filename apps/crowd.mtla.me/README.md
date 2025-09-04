@@ -10,12 +10,33 @@
 # Stellar Configuration
 STELLAR_ACCOUNT_ID=GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # Публичный ключ Stellar аккаунта
 STELLAR_NETWORK=testnet  # testnet или mainnet
+STELLAR_COMM_ACCOUNT_ID=GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # Аккаунт для получения комиссий
+STELLAR_CROWD_TOKEN=MTLCROWD:GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX  # Токен MTLCrowd (опционально)
 ```
 
 ### Описание переменных:
 
 - **STELLAR_ACCOUNT_ID**: Публичный ключ Stellar аккаунта, который содержит данные проектов в manageData записях
 - **STELLAR_NETWORK**: Сеть Stellar (testnet для разработки, mainnet для продакшена)
+- **STELLAR_COMM_ACCOUNT_ID**: Публичный ключ аккаунта Programmers Guild DAO для получения комиссий (обязательно)
+- **STELLAR_CROWD_TOKEN**: Токен MTLCrowd в формате CODE:ISSUER (опционально, если не указан - будет использован XLM)
+
+### Настройка переменных окружения:
+
+Создайте файл `.env.local` в корне проекта и укажите ваши значения:
+
+```bash
+cp .env.example .env.local
+# Отредактируйте .env.local с вашими реальными значениями
+```
+
+Или установите переменные окружения в системе:
+
+```bash
+export STELLAR_ACCOUNT_ID="ваш_stellar_account_id"
+export STELLAR_COMM_ACCOUNT_ID="ваш_commission_account_id"
+export STELLAR_NETWORK="testnet"
+```
 
 ## Архитектура данных
 
@@ -44,5 +65,3 @@ STELLAR_NETWORK=testnet  # testnet или mainnet
 bun run cli project new    # Создать новый проект
 bun run cli project list   # Показать список проектов
 ```
-
-**Примечание**: CLI требует дополнительную переменную `STELLAR_SEED` для подписи транзакций.

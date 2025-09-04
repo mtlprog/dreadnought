@@ -98,9 +98,9 @@ export function ProjectCard({
         <Button
           className="w-full"
           onClick={() => onSupport(project)}
-          disabled={isCompleted}
+          variant={isCompleted ? "outline" : "default"}
         >
-          {isCompleted ? "FUNDING ENDED" : "SUPPORT PROJECT"}
+          {isCompleted ? "VIEW PROJECT" : "SUPPORT PROJECT"}
         </Button>
       </CardFooter>
     </Card>

@@ -151,6 +151,7 @@ export const StellarServiceLive = Layer.succeed(
                     const supportersCount = countUniqueSupporters(claimableBalances, entry.code, config.publicKey);
                     const currentAmount = calculateRaisedAmount(claimableBalances, entry.code, config.publicKey);
                     const isExpired = isProjectExpired(projectData.deadline);
+                    const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
 
                     const projectInfo: ProjectInfo = {
                       name: projectData.name,
@@ -163,7 +164,7 @@ export const StellarServiceLive = Layer.succeed(
                       current_amount: currentAmount,
                       supporters_count: supportersCount,
                       ipfsUrl: `https://ipfs.io/ipfs/${entry.cid}`,
-                      status: isExpired ? "completed" : "active",
+                      status: isExpired || isFullyFunded ? "completed" : "active",
                     };
 
                     return projectInfo;

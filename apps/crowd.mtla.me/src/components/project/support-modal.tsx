@@ -82,7 +82,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
       lastCheckedAccountRef.current = null;
 
       if (savedAccountId !== "" && StrKey.isValidEd25519PublicKey(savedAccountId)) {
-        form.setValue("userAccountId", savedAccountId, { shouldTouch: false });
+        form.setValue("userAccountId", savedAccountId, { shouldTouch: false, shouldValidate: true });
       }
     }
   }, [open, savedAccountId, form]);
@@ -155,32 +155,35 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
       const targetAmount = parseFloat(project.target_amount);
       const currentAmount = parseFloat(project.current_amount);
       const remainingAmount = Math.max(targetAmount - currentAmount, 0);
-      
+
       if (balance === 0 || remainingAmount === 0) {
-        form.setValue("amount", "0", { shouldTouch: false });
+        form.setValue("amount", "0", { shouldTouch: false, shouldValidate: true });
       } else {
         // Устанавливаем максимально возможную сумму взноса
         const maxAllowedAmount = Math.min(balance, remainingAmount);
-        form.setValue("amount", maxAllowedAmount.toString(), { shouldTouch: false });
+        form.setValue("amount", maxAllowedAmount.toString(), { shouldTouch: false, shouldValidate: true });
       }
     }
   }, [userBalance, isLoadingBalance, form, project]);
 
   // Автокоррекция суммы при вводе пользователем
   useEffect(() => {
-    if (project !== null && userBalance !== null && currentAmount !== null && currentAmount !== undefined && currentAmount !== "") {
+    if (
+      project !== null && userBalance !== null && currentAmount !== null && currentAmount !== undefined
+      && currentAmount !== ""
+    ) {
       const enteredAmount = parseFloat(currentAmount);
       const balance = parseFloat(userBalance);
       const targetAmount = parseFloat(project.target_amount);
       const currentProjectAmount = parseFloat(project.current_amount);
       const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
-      
+
       if (!isNaN(enteredAmount) && enteredAmount > 0) {
         const maxAllowedAmount = Math.min(balance, remainingAmount);
-        
+
         // Если введенная сумма больше максимально допустимой, корректируем
         if (enteredAmount > maxAllowedAmount && maxAllowedAmount > 0) {
-          form.setValue("amount", maxAllowedAmount.toString(), { shouldTouch: true });
+          form.setValue("amount", maxAllowedAmount.toString(), { shouldTouch: true, shouldValidate: true });
         }
       }
     }
@@ -197,6 +200,7 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
   const targetAmount = parseFloat(project.target_amount);
   const currentProjectAmount = parseFloat(project.current_amount);
   const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
+  const isProjectCompleted = project.status === "completed";
 
   const handleGenerateTransaction = async (data: FundingFormData) => {
     if (project === null || project === undefined) return;
@@ -397,7 +401,50 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
           </div>
 
           <div className="space-y-6">
-            {transactionXDR === null || transactionXDR === undefined || transactionXDR === ""
+            {isProjectCompleted
+              ? (
+                <div className="border-2 border-secondary bg-background p-6">
+                  <h3 className="text-xl font-bold text-secondary uppercase mb-6">
+                    PROJECT STATUS
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-4 h-4 bg-secondary" />
+                      <span className="text-lg font-bold text-secondary uppercase">
+                        FUNDING COMPLETED
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-sm font-mono">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">FINAL AMOUNT:</span>
+                        <span className="text-foreground">
+                          {parseFloat(project.current_amount).toLocaleString()} MTLCrowd
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">TARGET:</span>
+                        <span className="text-foreground">
+                          {parseFloat(project.target_amount).toLocaleString()} MTLCrowd
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">SUCCESS RATE:</span>
+                        <span className="text-secondary">{Math.round(progressPercentage)}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">TOTAL SUPPORTERS:</span>
+                        <span className="text-foreground">{project.supporters_count}</span>
+                      </div>
+                    </div>
+                    <div className="border-t-2 border-border pt-4 mt-4">
+                      <p className="text-sm font-mono text-muted-foreground">
+                        This project has reached its funding goal or deadline. No further contributions are accepted.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+              : transactionXDR === null || transactionXDR === undefined || transactionXDR === ""
               ? (
                 <div className="border-2 border-primary bg-background p-6">
                   <h3 className="text-xl font-bold text-primary uppercase mb-6">
@@ -428,8 +475,8 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                           type="number"
                           {...form.register("amount")}
                           min="1"
-                          max={userBalance !== null && remainingAmount > 0 
-                            ? Math.min(parseFloat(userBalance), remainingAmount).toString() 
+                          max={userBalance !== null && remainingAmount > 0
+                            ? Math.min(parseFloat(userBalance), remainingAmount).toString()
                             : undefined}
                           disabled={userBalance !== null && parseFloat(userBalance) === 0 || remainingAmount === 0}
                           className="text-xl text-center"
@@ -466,7 +513,9 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                                         NEEDED: {remainingAmount.toLocaleString()} MTLCROWD TOKENS
                                       </p>
                                       <p className="text-sm font-mono text-accent">
-                                        MAX CONTRIBUTION: {Math.min(parseFloat(userBalance), remainingAmount).toLocaleString()} MTLCROWD TOKENS
+                                        MAX CONTRIBUTION:{" "}
+                                        {Math.min(parseFloat(userBalance), remainingAmount).toLocaleString()}{" "}
+                                        MTLCROWD TOKENS
                                       </p>
                                       {parseFloat(userBalance) === 0 && (
                                         <p className="text-sm font-mono text-red-500">
