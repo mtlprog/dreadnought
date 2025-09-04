@@ -16,32 +16,41 @@ export function ProjectsSection() {
     setModalOpen(true);
   };
 
+  const fetchProjects = async (showLoading = true) => {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+      const response = await fetch("/api/projects");
+      const result = await response.json();
+
+      if (result.success === true) {
+        setProjects(result.data);
+        console.log("Projects updated:", result.data.length);
+      } else {
+        console.error("Failed to fetch projects:", result.error);
+        setProjects([]);
+      }
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      setProjects([]);
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  };
+
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedProject(null);
+    
+    // Обновляем проекты в фоне после закрытия модалки
+    console.log("Modal closed, refreshing projects in background...");
+    void fetchProjects(false); // false = без показа лоадера
   };
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch("/api/projects");
-        const result = await response.json();
-
-        if (result.success === true) {
-          setProjects(result.data);
-        } else {
-          console.error("Failed to fetch projects:", result.error);
-          setProjects([]);
-        }
-      } catch (error) {
-        console.error("Error fetching projects:", error);
-        setProjects([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     void fetchProjects();
   }, []);
 
@@ -124,6 +133,7 @@ export function ProjectsSection() {
         project={selectedProject}
         open={modalOpen}
         onClose={handleCloseModal}
+        onProjectUpdate={() => void fetchProjects(false)}
       />
     </section>
   );

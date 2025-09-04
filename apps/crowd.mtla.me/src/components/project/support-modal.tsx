@@ -30,6 +30,7 @@ interface SupportModalProps {
   project: Project | null;
   open: boolean;
   onClose: () => void;
+  onProjectUpdate?: () => void;
 }
 
 // Form schema
@@ -51,7 +52,7 @@ const fundingFormSchema = z.object({
 
 type FundingFormData = z.infer<typeof fundingFormSchema>;
 
-export function SupportModal({ project, open, onClose }: Readonly<SupportModalProps>) {
+export function SupportModal({ project, open, onClose, onProjectUpdate }: Readonly<SupportModalProps>) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [transactionXDR, setTransactionXDR] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
@@ -150,6 +151,35 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
       lastCheckedAccountRef.current = null;
     }
   }, [currentAccountId, savedAccountId, setSavedAccountId, isLoadingBalance, checkUserBalance]);
+
+  // Отслеживаем возврат пользователя на вкладку для перепроверки баланса
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Когда пользователь возвращается на вкладку и модалка открыта
+      if (!document.hidden && open && currentAccountId !== "" && StrKey.isValidEd25519PublicKey(currentAccountId)) {
+        console.log("User returned to tab, rechecking balance...");
+        void checkUserBalance(currentAccountId);
+      }
+    };
+
+    const handleWindowFocus = () => {
+      // Когда окно получает фокус и модалка открыта
+      if (open && currentAccountId !== "" && StrKey.isValidEd25519PublicKey(currentAccountId)) {
+        console.log("Window focused, rechecking balance...");
+        void checkUserBalance(currentAccountId);
+      }
+    };
+
+    // Добавляем слушатели событий
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleWindowFocus);
+
+    // Убираем слушатели при размонтировании
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [open, currentAccountId, checkUserBalance]);
 
   // Автоматически устанавливаем сумму на основе баланса и оставшейся суммы для фандинга
   useEffect(() => {
@@ -321,6 +351,13 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
         && result.transactionXDR !== ""
       ) {
         setTransactionXDR(result.transactionXDR);
+        
+        // Обновляем проекты после успешной генерации транзакции
+        // (транзакция еще не подписана, но данные могли измениться)
+        if (onProjectUpdate) {
+          console.log("Transaction generated, updating projects...");
+          onProjectUpdate();
+        }
       } else {
         console.error("Failed to generate transaction:", result.error ?? "Unknown error");
         // TODO: Show error to user
@@ -582,15 +619,27 @@ export function SupportModal({ project, open, onClose }: Readonly<SupportModalPr
                           <p className="text-sm font-mono text-muted-foreground mb-4">
                             You need MTL CROWD tokens to support projects. Purchase tokens to start funding initiatives.
                           </p>
-                          <Button
-                            type="button"
-                            variant="default"
-                            size="lg"
-                            className="w-full text-xl py-4"
-                            onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
-                          >
-                            BUY MTL CROWD
-                          </Button>
+                          <div className="space-y-3">
+                            <Button
+                              type="button"
+                              variant="default"
+                              size="lg"
+                              className="w-full text-xl py-4"
+                              onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
+                            >
+                              BUY MTL CROWD
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="w-full text-sm py-2"
+                              onClick={() => void checkUserBalance(currentAccountId)}
+                              disabled={isLoadingBalance}
+                            >
+                              {isLoadingBalance ? "CHECKING..." : "REFRESH BALANCE"}
+                            </Button>
+                          </div>
                         </div>
                       )}
 

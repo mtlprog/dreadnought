@@ -15,15 +15,12 @@ export async function POST(request: NextRequest) {
     // Effect.logInfo would be better here, but keeping console for now
 
     // Отправляем запрос к реальному MMWB API
-    const formData = new globalThis.FormData();
-    formData.append("uri", stellarUri);
-
     const response = await fetch("https://eurmtl.me/remote/sep07/add", {
       method: "POST",
-      body: formData,
       headers: {
-        "User-Agent": "MTL-Crowd/1.0",
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify({ uri: stellarUri }),
       // Добавляем timeout
       signal: globalThis.AbortSignal.timeout(10000), // 10 секунд
     });
