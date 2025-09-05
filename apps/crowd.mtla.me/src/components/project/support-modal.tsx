@@ -432,7 +432,7 @@ export function SupportModal({ project, open, onClose, onProjectUpdate }: Readon
         <DialogHeader className="pr-12">
           <DialogTitle>{project.name}</DialogTitle>
           <DialogDescription>
-            PROJECT CODE: {project.code} | DEADLINE: {new Date(project.deadline).toLocaleDateString()}
+            PROJECT CODE: {project.code} | DEADLINE: {new Date(project.deadline).toString()}
           </DialogDescription>
         </DialogHeader>
 

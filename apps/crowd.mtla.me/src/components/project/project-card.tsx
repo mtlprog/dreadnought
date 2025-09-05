@@ -94,7 +94,7 @@ export function ProjectCard({
               SUPPORTERS: {project.supporters_count}
             </span>
             <span className="text-muted-foreground">
-              DEADLINE: {new Date(project.deadline).toLocaleDateString()}
+              DEADLINE: {new Date(project.deadline).toString()}
             </span>
           </div>
         </div>
