@@ -7,6 +7,7 @@ import { calculateRaisedAmount, countUniqueSupporters, fetchProjectDataFromIPFS,
 
 export interface StellarService {
   readonly getProjects: () => Effect.Effect<ProjectInfo[], StellarServiceError>;
+  readonly getProject: (code: string) => Effect.Effect<ProjectInfo | null, StellarServiceError>;
 }
 
 export const StellarServiceTag = Context.GenericTag<StellarService>(
@@ -107,6 +108,102 @@ const getClaimableBalances = (
 export const StellarServiceLive = Layer.succeed(
   StellarServiceTag,
   StellarServiceTag.of({
+    getProject: (code: string) =>
+      pipe(
+        getStellarConfig(),
+        Effect.flatMap((config: Readonly<StellarConfig>) =>
+          Effect.tryPromise({
+            try: async () => {
+              const account = await config.server.loadAccount(config.publicKey);
+              return account.data_attr;
+            },
+            catch: (error) =>
+              new StellarError({
+                cause: error,
+                operation: "load_account",
+              }),
+          })
+        ),
+        Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
+          // Find project entry by code (case insensitive)
+          const normalizedCode = code.toUpperCase();
+          const projectEntry = Object.entries(dataEntries)
+            .filter(([key]: readonly [string, string]) => key.startsWith("ipfshash-"))
+            .map(([key, value]: readonly [string, string]) => {
+              const fullCode = key.replace("ipfshash-", "");
+              const baseCode = fullCode.startsWith("P") ? fullCode.slice(1) : fullCode;
+              return {
+                code: baseCode,
+                fullCode,
+                cid: Buffer.from(value, "base64").toString(),
+              };
+            })
+            .find((entry: Readonly<{ code: string; fullCode: string; cid: string }>) => 
+              entry.code.toUpperCase() === normalizedCode
+            );
+
+          if (!projectEntry) {
+            return Effect.succeed(null);
+          }
+
+          return pipe(
+            Effect.all([
+              fetchProjectDataFromIPFS(projectEntry.cid),
+              pipe(
+                getStellarConfig(),
+                Effect.flatMap((config: Readonly<StellarConfig>) =>
+                  checkTokenExists(config.server, config.publicKey, projectEntry.fullCode)
+                ),
+              ),
+              pipe(
+                getStellarConfig(),
+                Effect.flatMap((config: Readonly<StellarConfig>) =>
+                  getClaimableBalances(config.server, config.publicKey)
+                ),
+              ),
+              getStellarConfig(),
+            ]),
+            Effect.map(
+              (
+                [projectData, tokenExists, claimableBalances, config]: readonly [
+                  ProjectData,
+                  boolean,
+                  readonly Horizon.ServerApi.ClaimableBalanceRecord[],
+                  StellarConfig,
+                ],
+              ) => {
+                if (!tokenExists) {
+                  return null;
+                }
+
+                const supportersCount = countUniqueSupporters(claimableBalances, projectEntry.code, config.publicKey);
+                const currentAmount = calculateRaisedAmount(claimableBalances, projectEntry.code, config.publicKey);
+                const isExpired = isProjectExpired(projectData.deadline);
+                const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
+
+                const projectInfo: ProjectInfo = {
+                  name: projectData.name,
+                  code: projectData.code,
+                  description: projectData.description,
+                  fulldescription: projectData.fulldescription,
+                  contact_account_id: projectData.contact_account_id,
+                  project_account_id: projectData.project_account_id,
+                  target_amount: projectData.target_amount,
+                  deadline: projectData.deadline,
+                  current_amount: currentAmount,
+                  supporters_count: supportersCount,
+                  ipfsUrl: `https://ipfs.io/ipfs/${projectEntry.cid}`,
+                  status: isExpired || isFullyFunded ? "completed" : "active",
+                };
+
+                return projectInfo;
+              },
+            ),
+            Effect.catchAll(() => Effect.succeed(null)),
+          );
+        }),
+      ),
+
     getProjects: () =>
       pipe(
         getStellarConfig(),

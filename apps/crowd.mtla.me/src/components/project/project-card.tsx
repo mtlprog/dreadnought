@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { Project } from "@/types/project";
+import Link from "next/link";
 
 interface ProjectCardProps {
   project: Project;
-  onSupport: (project: Project) => void;
+  onSupport?: (project: Project) => void; // Made optional for backward compatibility
 }
 
 export function ProjectCard({
   project,
-  onSupport,
 }: Readonly<ProjectCardProps>) {
   const progressPercentage = Math.min(
     (parseFloat(project.current_amount) / parseFloat(project.target_amount))
@@ -101,13 +101,14 @@ export function ProjectCard({
       </CardContent>
 
       <CardFooter>
-        <Button
-          className="w-full"
-          onClick={() => onSupport(project)}
-          variant={isCompleted ? "outline" : "default"}
-        >
-          {isCompleted ? "VIEW PROJECT" : "SUPPORT PROJECT"}
-        </Button>
+        <Link href={`/${project.code.toLowerCase()}`} className="w-full">
+          <Button
+            className="w-full"
+            variant={isCompleted ? "outline" : "default"}
+          >
+            {isCompleted ? "VIEW PROJECT" : "SUPPORT PROJECT"}
+          </Button>
+        </Link>
       </CardFooter>
     </Card>
   );

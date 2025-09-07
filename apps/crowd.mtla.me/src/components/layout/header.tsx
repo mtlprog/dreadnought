@@ -22,17 +22,12 @@ export function Header() {
           </Link>
 
           <nav className="flex items-center gap-8">
-            <button
-              onClick={() => {
-                if (typeof document !== "undefined") {
-                  const projectsSection = document.getElementById("projects-section");
-                  projectsSection?.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
+            <Link
+              href="/#projects-section"
               className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
             >
               PROJECTS
-            </button>
+            </Link>
           </nav>
         </div>
       </div>

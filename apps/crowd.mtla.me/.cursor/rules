@@ -1,0 +1,64 @@
+# React 19 + Modern Patterns Rules
+
+## Form Management
+- **NEVER use react-hook-form** - it's outdated and adds unnecessary complexity
+- **Use native React 19 hooks** with zod for form validation:
+  - `useState` for form state
+  - `useEffect` for validation
+  - `zod` for schema validation
+  - Custom validation hooks for complex logic
+
+## Component Architecture
+- **Maximum component size: 200 lines** - break down larger components
+- **Single Responsibility Principle** - each component should do one thing well
+- **Composition over inheritance** - prefer component composition
+- **Extract reusable logic** into custom hooks
+- **Avoid code duplication** - create shared components and utilities
+
+## Code Organization
+- **DRY Principle** - Don't Repeat Yourself
+- **Extract common patterns** into reusable components
+- **Create utility functions** for repeated logic
+- **Use TypeScript interfaces** for component props
+- **Prefer functional components** with hooks
+
+## Form Validation Pattern
+```typescript
+// ✅ Good: Native React 19 + zod
+const [formData, setFormData] = useState(initialData);
+const [errors, setErrors] = useState<Record<string, string>>({});
+
+const validateForm = (data: FormData) => {
+  const result = schema.safeParse(data);
+  if (!result.success) {
+    setErrors(result.error.flatten().fieldErrors);
+    return false;
+  }
+  setErrors({});
+  return true;
+};
+
+// ❌ Bad: react-hook-form
+const form = useForm({ resolver: zodResolver(schema) });
+```
+
+## Component Size Guidelines
+- **Small components (50-100 lines)**: UI primitives, simple displays
+- **Medium components (100-200 lines)**: Complex UI sections, forms
+- **Large components (200+ lines)**: BREAK DOWN IMMEDIATELY
+
+## Refactoring Priority
+1. **Remove react-hook-form** from all components
+2. **Break down large components** (>200 lines)
+3. **Extract reusable components** from duplicated code
+4. **Create custom hooks** for shared logic
+5. **Simplify component props** and interfaces
+
+## Code Cleanup Rules
+- **ALWAYS delete unused code** from apps/ - this is a mortal sin to clutter the codebase
+- **If we remove a modal/component**, delete it completely from the codebase
+- **Break down into reusable components**, but delete the original unused component entirely
+- **Remove all unused imports** and dependencies
+- **Clean up unused files** immediately after refactoring
+- **No dead code** - if it's not used, it must be deleted
+- **Extract reusable parts** before deletion, then delete the original

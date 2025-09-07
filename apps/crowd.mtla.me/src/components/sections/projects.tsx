@@ -1,20 +1,12 @@
 "use client";
 
 import { ProjectCard } from "@/components/project/project-card";
-import { SupportModal } from "@/components/project/support-modal";
 import type { Project } from "@/types/project";
 import { useEffect, useState } from "react";
 
 export function ProjectsSection() {
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const handleSupport = (project: Project) => {
-    setSelectedProject(project);
-    setModalOpen(true);
-  };
 
   const fetchProjects = async (showLoading = true) => {
     try {
@@ -41,14 +33,6 @@ export function ProjectsSection() {
     }
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setSelectedProject(null);
-
-    // Обновляем проекты в фоне после закрытия модалки
-    console.warn("Modal closed, refreshing projects in background...");
-    void fetchProjects(false); // false = без показа лоадера
-  };
 
   useEffect(() => {
     void fetchProjects();
@@ -97,7 +81,6 @@ export function ProjectsSection() {
                       <ProjectCard
                         key={project.code}
                         project={project}
-                        onSupport={handleSupport}
                       />
                     ))}
                   </div>
@@ -118,7 +101,6 @@ export function ProjectsSection() {
                         <ProjectCard
                           key={project.code}
                           project={project}
-                          onSupport={handleSupport}
                         />
                       ))}
                     </div>
@@ -128,13 +110,6 @@ export function ProjectsSection() {
             )}
         </div>
       </div>
-
-      <SupportModal
-        project={selectedProject}
-        open={modalOpen}
-        onClose={handleCloseModal}
-        onProjectUpdate={() => void fetchProjects(false)}
-      />
     </section>
   );
 }

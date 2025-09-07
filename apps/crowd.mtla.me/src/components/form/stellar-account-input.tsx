@@ -1,17 +1,12 @@
 "use client";
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { StrKey } from "@stellar/stellar-sdk";
+import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import React from "react";
-import { type FieldPath, type FieldValues } from "react-hook-form";
 
-export interface StellarAccountInputProps<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
-> {
-  name: TName;
+export interface StellarAccountInputProps {
+  name: string;
   label: string;
   placeholder?: string;
   description?: string;
@@ -19,12 +14,12 @@ export interface StellarAccountInputProps<
   disabled?: boolean;
   className?: string;
   allowEmpty?: boolean;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
 }
 
-export function StellarAccountInput<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
->({
+export function StellarAccountInput({
   name,
   label,
   placeholder = "GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -33,60 +28,51 @@ export function StellarAccountInput<
   disabled = false,
   className,
   allowEmpty = false,
-}: StellarAccountInputProps<TFieldValues, TName>) {
+  value,
+  onChange,
+  error,
+}: StellarAccountInputProps) {
+  const isEmpty = value === "";
+  const isValid = !isEmpty && isValidStellarAccountId(value);
+  const hasError = error || (!isEmpty && !isValid) || (!allowEmpty && isEmpty && required);
+
   return (
-    <FormField
-      name={name}
-      render={({ field }) => {
-        const currentValue = field.value ?? "";
-        const isEmpty = currentValue === "";
+    <div className={className}>
+      <label className={cn(
+        "block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+        required && "after:content-['*'] after:ml-0.5 after:text-red-500"
+      )}>
+        {label}
+      </label>
 
-        // Validation state
-        let hasError = false;
+      {description && (
+        <p className="text-sm text-muted-foreground mt-1">{description}</p>
+      )}
 
-        if (!isEmpty && !StrKey.isValidEd25519PublicKey(currentValue)) {
-          hasError = true;
-        } else if (!allowEmpty && isEmpty && required) {
-          hasError = true;
-        }
+      <Input
+        name={name}
+        type="text"
+        placeholder={placeholder}
+        disabled={disabled}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(
+          hasError && "border-red-500 focus-visible:ring-red-500",
+          "font-mono text-sm mt-2",
+        )}
+        spellCheck={false}
+        autoComplete="off"
+      />
 
-        return (
-          <FormItem className={className}>
-            <FormLabel className={cn(required === true && "after:content-['*'] after:ml-0.5 after:text-red-500")}>
-              {label}
-            </FormLabel>
+      {error && (
+        <p className="text-sm text-red-500 mt-1">{error}</p>
+      )}
 
-            {description !== undefined && description !== null && description !== "" && (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            )}
-
-            <FormControl>
-              <Input
-                {...field}
-                type="text"
-                placeholder={placeholder}
-                disabled={disabled}
-                className={cn(
-                  hasError && "border-red-500 focus-visible:ring-red-500",
-                  "font-mono text-sm",
-                )}
-                spellCheck={false}
-                autoComplete="off"
-              />
-            </FormControl>
-
-            <FormMessage />
-
-            {currentValue !== "" && StrKey.isValidEd25519PublicKey(currentValue) && (
-              <p className="text-sm text-green-600">
-                ✓ Valid Stellar account ID
-              </p>
-            )}
-          </FormItem>
-        );
-      }}
-    />
+      {isValid && (
+        <p className="text-sm text-green-600 mt-1">
+          ✓ Valid Stellar account ID
+        </p>
+      )}
+    </div>
   );
 }
-
-export default StellarAccountInput;
