@@ -1,3 +1,4 @@
+import { useLocale } from "@/components/locale-provider";
 import { Progress } from "@/components/ui/progress";
 import { truncateAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
@@ -54,6 +55,7 @@ const decodeFullDescription = (base64String: string): string => {
 };
 
 export function ProjectInfo({ project }: ProjectInfoProps) {
+  const { t } = useLocale();
   const progressPercentage = Math.min(
     (parseFloat(project.current_amount) / parseFloat(project.target_amount)) * 100,
     100,
@@ -64,25 +66,22 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
       {/* Project Details */}
       <div className="border-2 border-border bg-card p-6">
         <h2 className="text-2xl font-bold text-primary uppercase mb-6">
-          PROJECT DETAILS
+          {t("project.details.title")}
         </h2>
         <div className="space-y-6 text-base font-mono">
           <div>
-            <span className="text-muted-foreground">DESCRIPTION:</span>
+            <span className="text-muted-foreground">{t("project.details.description")}</span>
             <div className="text-foreground mt-3 leading-relaxed prose prose-sm max-w-none prose-invert">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeRaw]}
                 components={{
-                  h1: ({ children }) => (
-                    <h1 className="text-lg font-bold text-primary uppercase mb-2">{children}</h1>
-                  ),
+                  h1: ({ children }) => <h1 className="text-lg font-bold text-primary uppercase mb-2">{children}</h1>,
                   h2: ({ children }) => (
                     <h2 className="text-base font-bold text-foreground uppercase mb-2">{children}</h2>
                   ),
-                  h3: ({ children }) => (
-                    <h3 className="text-sm font-bold text-foreground uppercase mb-1">{children}</h3>
-                  ),
+                  h3: ({ children }) => <h3 className="text-sm font-bold text-foreground uppercase mb-1">{children}
+                  </h3>,
                   p: ({ children }) => (
                     <p className="mb-2 text-foreground font-mono text-sm leading-relaxed">{children}</p>
                   ),
@@ -115,10 +114,10 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
               </ReactMarkdown>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <span className="text-muted-foreground">CONTACT ACCOUNT:</span>
+              <span className="text-muted-foreground">{t("project.details.contactAccount")}</span>
               <a
                 href={`https://bsn.expert/accounts/${project.contact_account_id}`}
                 target="_blank"
@@ -130,7 +129,7 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
               </a>
             </div>
             <div>
-              <span className="text-muted-foreground">PROJECT ACCOUNT:</span>
+              <span className="text-muted-foreground">{t("project.details.projectAccount")}</span>
               <a
                 href={`https://bsn.expert/accounts/${project.project_account_id}`}
                 target="_blank"
@@ -148,12 +147,12 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
       {/* Funding Status */}
       <div className="border-2 border-border bg-card p-6">
         <h2 className="text-2xl font-bold text-primary uppercase mb-6">
-          FUNDING STATUS
+          {t("project.funding.title")}
         </h2>
         <div className="space-y-6">
           <div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-xl font-bold text-foreground">PROGRESS</span>
+              <span className="text-xl font-bold text-foreground">{t("project.funding.progress")}</span>
               <span className="text-xl font-mono text-primary">
                 {Math.round(progressPercentage)}%
               </span>
@@ -163,19 +162,19 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="border-2 border-border bg-muted p-4 text-center">
-              <div className="text-xs font-mono text-muted-foreground mb-2">RAISED</div>
+              <div className="text-xs font-mono text-muted-foreground mb-2">{t("project.funding.raised")}</div>
               <div className="text-xl font-black text-primary leading-tight">
                 {parseInt(project.current_amount).toLocaleString()}
               </div>
             </div>
             <div className="border-2 border-border bg-muted p-4 text-center">
-              <div className="text-xs font-mono text-muted-foreground mb-2">TARGET</div>
+              <div className="text-xs font-mono text-muted-foreground mb-2">{t("project.funding.target")}</div>
               <div className="text-xl font-black text-foreground leading-tight">
                 {parseInt(project.target_amount).toLocaleString()}
               </div>
             </div>
             <div className="border-2 border-border bg-muted p-4 text-center">
-              <div className="text-xs font-mono text-muted-foreground mb-2">SUPPORTERS</div>
+              <div className="text-xs font-mono text-muted-foreground mb-2">{t("project.funding.supporters")}</div>
               <div className="text-xl font-black text-secondary leading-tight">
                 {project.supporters_count}
               </div>

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ code: string }> }
+  { params }: { params: Promise<{ code: string }> },
 ) {
   try {
     const { code } = await params;
@@ -16,7 +16,7 @@ export async function GET(
           error: "Project not found",
           data: null,
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function GET(
         error: "Failed to fetch project",
         data: null,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

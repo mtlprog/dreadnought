@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { StellarAccountInput } from "@/components/form/stellar-account-input";
+import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StellarAccountInput } from "@/components/form/stellar-account-input";
-import { BalanceDisplay } from "./balance-display";
 import { useFormValidation } from "@/hooks/use-form-validation";
-import { useStellarBalance } from "@/hooks/use-stellar-balance";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useStellarBalance } from "@/hooks/use-stellar-balance";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
+import { useEffect, useState } from "react";
 import { z } from "zod";
+import { BalanceDisplay } from "./balance-display";
 
 interface FundingFormProps {
   project: Project;
@@ -35,6 +36,7 @@ const fundingFormSchema = z.object({
 type FundingFormData = z.infer<typeof fundingFormSchema>;
 
 export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProps) {
+  const { t } = useLocale();
   const [formData, setFormData] = useState<FundingFormData>({
     userAccountId: "",
     amount: "",
@@ -57,7 +59,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
       if (formData.userAccountId !== savedAccountId) {
         setSavedAccountId(formData.userAccountId);
       }
-      checkBalance(formData.userAccountId);
+      void checkBalance(formData.userAccountId);
     } else {
       clearBalance();
     }
@@ -103,63 +105,63 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
     clearErrors();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const validation = validate(formData);
     if (!validation.success) {
       return;
     }
 
-    await onSubmit(formData);
+    void onSubmit(formData);
   };
 
   const targetAmount = parseFloat(project.target_amount);
   const currentProjectAmount = parseFloat(project.current_amount);
   const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
-  const balanceValue = balance ? parseFloat(balance) : 0;
+  const balanceValue = balance !== null ? parseFloat(balance) : 0;
   const isProjectCompleted = project.status === "completed";
 
   if (isProjectCompleted) {
     return (
       <div className="border-2 border-secondary bg-background p-6">
         <h2 className="text-2xl font-bold text-secondary uppercase mb-6">
-          PROJECT STATUS
+          {t("project.status.title")}
         </h2>
         <div className="space-y-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-6 h-6 bg-secondary" />
             <span className="text-xl font-bold text-secondary uppercase">
-              FUNDING COMPLETED
+              {t("project.status.completed")}
             </span>
           </div>
           <div className="space-y-3 text-base font-mono">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">FINAL AMOUNT:</span>
+              <span className="text-muted-foreground">{t("project.status.finalAmount")}</span>
               <span className="text-foreground">
                 {parseFloat(project.current_amount).toLocaleString()} MTLCrowd
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">TARGET:</span>
+              <span className="text-muted-foreground">{t("project.status.target")}</span>
               <span className="text-foreground">
                 {parseFloat(project.target_amount).toLocaleString()} MTLCrowd
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">SUCCESS RATE:</span>
+              <span className="text-muted-foreground">{t("project.status.successRate")}</span>
               <span className="text-secondary">
                 {Math.round((currentProjectAmount / targetAmount) * 100)}%
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">TOTAL SUPPORTERS:</span>
+              <span className="text-muted-foreground">{t("project.status.totalSupporters")}</span>
               <span className="text-foreground">{project.supporters_count}</span>
             </div>
           </div>
           <div className="border-t-2 border-border pt-4 mt-4">
             <p className="text-sm font-mono text-muted-foreground">
-              This project has reached its funding goal or deadline. No further contributions are accepted.
+              {t("project.status.completedMessage")}
             </p>
           </div>
         </div>
@@ -170,19 +172,19 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
   return (
     <div className="border-2 border-primary bg-background p-6">
       <h2 className="text-2xl font-bold text-primary uppercase mb-6">
-        SUPPORT PROJECT
+        {t("project.support.title")}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <StellarAccountInput
           name="userAccountId"
-          label="Your Account ID"
+          label={t("project.support.accountIdLabel")}
           placeholder="GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
           required
           className="space-y-3"
           value={formData.userAccountId}
           onChange={(value) => handleInputChange("userAccountId", value)}
-          error={errors.userAccountId}
+          error={errors["userAccountId"]}
         />
 
         {/* BUY MTL CROWD Button when user has no tokens */}
@@ -196,11 +198,11 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
             <div className="flex items-center gap-3 mb-3">
               <div className="w-4 h-4 bg-accent" />
               <span className="text-lg font-bold text-accent uppercase">
-                NO TOKENS AVAILABLE
+                {t("project.support.noTokens")}
               </span>
             </div>
             <p className="text-sm font-mono text-muted-foreground mb-4">
-              You need MTL CROWD tokens to support projects. Purchase tokens to start funding initiatives.
+              {t("project.support.noTokensMessage")}
             </p>
             <div className="space-y-3">
               <Button
@@ -210,17 +212,19 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 className="w-full text-xl py-4"
                 onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
               >
-                BUY MTL CROWD
+                {t("project.support.buyTokens")}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 className="w-full text-sm py-2"
-                onClick={() => checkBalance(formData.userAccountId)}
+                onClick={() => {
+                  void checkBalance(formData.userAccountId);
+                }}
                 disabled={isLoadingBalance}
               >
-                {isLoadingBalance ? "CHECKING..." : "REFRESH BALANCE"}
+                {isLoadingBalance ? t("common.loading") : t("project.support.refreshBalance")}
               </Button>
             </div>
           </div>
@@ -236,7 +240,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
           <>
             <div className="space-y-3">
               <label className="block text-lg font-bold text-foreground uppercase">
-                Amount (MTLCrowd Tokens)
+                {t("project.support.amountLabel")}
               </label>
               <Input
                 type="number"
@@ -257,12 +261,14 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 isLoading={isLoadingBalance}
                 error={balanceError}
                 remainingAmount={remainingAmount}
-                onRefresh={() => checkBalance(formData.userAccountId)}
+                onRefresh={() => {
+                  void checkBalance(formData.userAccountId);
+                }}
               />
 
-              {errors.amount && (
+              {errors["amount"] !== undefined && (
                 <p className="text-sm text-red-500">
-                  {errors.amount}
+                  {errors["amount"]}
                 </p>
               )}
             </div>
@@ -271,24 +277,24 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-4 h-4 bg-secondary" />
                 <span className="text-lg font-bold text-secondary uppercase">
-                  TRANSACTION PREVIEW
+                  {t("project.support.transactionPreview")}
                 </span>
               </div>
               <div className="space-y-2 text-sm font-mono">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">AMOUNT:</span>
-                  <span className="text-foreground">{formData.amount || "0"} MTLCrowd</span>
+                  <span className="text-muted-foreground">{t("project.support.amount")}:</span>
+                  <span className="text-foreground">{formData.amount !== "" ? formData.amount : "0"} MTLCrowd</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">PROJECT:</span>
+                  <span className="text-muted-foreground">{t("project.support.project")}:</span>
                   <span className="text-foreground">{project.code}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">SERVICE FEE:</span>
+                  <span className="text-muted-foreground">{t("project.support.serviceFee")}:</span>
                   <span className="text-foreground">5 XLM</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">NETWORK FEE:</span>
+                  <span className="text-muted-foreground">{t("project.support.networkFee")}:</span>
                   <span className="text-foreground">~0.00001 XLM</span>
                 </div>
               </div>
@@ -300,21 +306,21 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 || isLoadingBalance
                 || remainingAmount === 0
                 || (balance !== null && balanceValue === 0)
-                || (balance !== null && balanceValue < parseFloat(formData.amount || "0"))}
+                || (balance !== null && balanceValue < parseFloat(formData.amount !== "" ? formData.amount : "0"))}
               className="w-full text-xl py-6"
               size="lg"
             >
               {isSubmitting
-                ? "GENERATING..."
+                ? t("funding.processing")
                 : isLoadingBalance
-                ? "CHECKING BALANCE..."
+                ? t("project.support.checkingBalance")
                 : remainingAmount === 0
-                ? "PROJECT FULLY FUNDED"
+                ? t("project.support.fullyFunded")
                 : (balance !== null && balanceValue === 0)
-                ? "NO MTLCROWD TOKENS"
-                : (balance !== null && balanceValue < parseFloat(formData.amount || "0"))
-                ? "INSUFFICIENT BALANCE"
-                : "FUND PROJECT"}
+                ? t("project.support.noMTLTokens")
+                : (balance !== null && balanceValue < parseFloat(formData.amount !== "" ? formData.amount : "0"))
+                ? t("funding.insufficientBalance")
+                : t("funding.fundButton")}
             </Button>
           </>
         )}

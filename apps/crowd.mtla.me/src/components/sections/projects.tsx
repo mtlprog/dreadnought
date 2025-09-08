@@ -1,10 +1,12 @@
 "use client";
 
+import { useLocale } from "@/components/locale-provider";
 import { ProjectCard } from "@/components/project/project-card";
 import type { Project } from "@/types/project";
 import { useEffect, useState } from "react";
 
 export function ProjectsSection() {
+  const { t } = useLocale();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,7 +35,6 @@ export function ProjectsSection() {
     }
   };
 
-
   useEffect(() => {
     void fetchProjects();
   }, []);
@@ -47,12 +48,12 @@ export function ProjectsSection() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-5xl md:text-6xl font-black text-foreground uppercase tracking-tighter mb-6">
-              ACTIVE
+              {t("projects.title")}
               <br />
               <span className="text-primary">PROJECTS</span>
             </h2>
             <p className="text-xl text-muted-foreground font-mono max-w-3xl mx-auto">
-              SUPPORT FREEDOM FOCUSED INITIATIVES WITH YOUR MTL CROWD TOKENS
+              {t("projects.subtitle")}
             </p>
           </div>
 
@@ -61,7 +62,7 @@ export function ProjectsSection() {
               <div className="text-center py-16">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent animate-spin mx-auto mb-4"></div>
                 <p className="text-xl font-mono text-muted-foreground uppercase">
-                  LOADING PROJECTS...
+                  {t("projects.loading")}
                 </p>
               </div>
             )
@@ -72,7 +73,7 @@ export function ProjectsSection() {
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-6 h-6 bg-primary animate-pulse" />
                     <h3 className="text-3xl font-black text-primary uppercase">
-                      FUNDING ACTIVE ({activeProjects.length})
+                      {t("projects.fundingActive")} ({activeProjects.length})
                     </h3>
                   </div>
 
@@ -92,7 +93,7 @@ export function ProjectsSection() {
                     <div className="flex items-center gap-4 mb-8">
                       <div className="w-6 h-6 bg-secondary" />
                       <h3 className="text-3xl font-black text-secondary uppercase">
-                        FUNDING ENDED ({completedProjects.length})
+                        {t("projects.fundingEnded")} ({completedProjects.length})
                       </h3>
                     </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -14,6 +15,7 @@ interface ProjectCardProps {
 export function ProjectCard({
   project,
 }: Readonly<ProjectCardProps>) {
+  const { t } = useLocale();
   const progressPercentage = Math.min(
     (parseFloat(project.current_amount) / parseFloat(project.target_amount))
       * 100,
@@ -24,7 +26,7 @@ export function ProjectCard({
 
   const statusColor = isCompleted ? "text-secondary" : "text-primary";
 
-  const statusText = isCompleted ? "ENDED" : "ACTIVE";
+  const statusText = isCompleted ? t("projects.fundingEnded") : t("projects.active");
 
   return (
     <Card className="h-full flex flex-col">
@@ -61,7 +63,7 @@ export function ProjectCard({
           <div>
             <div className="flex justify-between items-center mb-2">
               <span className="text-lg font-bold text-foreground">
-                FUNDING PROGRESS
+                {t("projects.fundingProgress")}
               </span>
               <span className="text-lg font-mono text-primary">
                 {Math.round(progressPercentage)}%
@@ -73,7 +75,7 @@ export function ProjectCard({
           <div className="grid grid-cols-2 gap-4">
             <div className="border-2 border-border bg-muted p-4">
               <div className="text-sm font-mono text-muted-foreground mb-1">
-                RAISED
+                {t("projects.raised")}
               </div>
               <div className="text-xl font-black text-primary">
                 {parseInt(project.current_amount).toLocaleString()}
@@ -81,7 +83,7 @@ export function ProjectCard({
             </div>
             <div className="border-2 border-border bg-muted p-4">
               <div className="text-sm font-mono text-muted-foreground mb-1">
-                TARGET
+                {t("projects.target")}
               </div>
               <div className="text-xl font-black text-foreground">
                 {parseInt(project.target_amount).toLocaleString()}
@@ -91,10 +93,10 @@ export function ProjectCard({
 
           <div className="flex justify-between items-center text-sm font-mono">
             <span className="text-muted-foreground">
-              SUPPORTERS: {project.supporters_count}
+              {t("projects.supporters")}: {project.supporters_count}
             </span>
             <span className="text-muted-foreground">
-              DEADLINE: {new Date(project.deadline).toLocaleDateString()}
+              {t("projects.deadline")}: {new Date(project.deadline).toLocaleDateString()}
             </span>
           </div>
         </div>
@@ -106,7 +108,7 @@ export function ProjectCard({
             className="w-full"
             variant={isCompleted ? "outline" : "default"}
           >
-            {isCompleted ? "VIEW PROJECT" : "SUPPORT PROJECT"}
+            {isCompleted ? t("projects.viewProject") : t("projects.fundProject")}
           </Button>
         </Link>
       </CardFooter>

@@ -1,8 +1,8 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
+import { cn } from "@/lib/utils";
 import React from "react";
 
 export interface StellarAccountInputProps {
@@ -16,7 +16,7 @@ export interface StellarAccountInputProps {
   allowEmpty?: boolean;
   value: string;
   onChange: (value: string) => void;
-  error?: string;
+  error?: string | undefined;
 }
 
 export function StellarAccountInput({
@@ -38,16 +38,16 @@ export function StellarAccountInput({
 
   return (
     <div className={className}>
-      <label className={cn(
-        "block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
-        required && "after:content-['*'] after:ml-0.5 after:text-red-500"
-      )}>
+      <label
+        className={cn(
+          "block text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+          required && "after:content-['*'] after:ml-0.5 after:text-red-500",
+        )}
+      >
         {label}
       </label>
 
-      {description && (
-        <p className="text-sm text-muted-foreground mt-1">{description}</p>
-      )}
+      {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
 
       <Input
         name={name}
@@ -64,9 +64,7 @@ export function StellarAccountInput({
         autoComplete="off"
       />
 
-      {error && (
-        <p className="text-sm text-red-500 mt-1">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
 
       {isValid && (
         <p className="text-sm text-green-600 mt-1">

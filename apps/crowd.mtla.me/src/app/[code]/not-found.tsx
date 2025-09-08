@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -13,17 +13,17 @@ export default function NotFound() {
             PROJECT NOT FOUND
           </h2>
           <p className="text-lg font-mono text-muted-foreground mb-8">
-            The project you're looking for doesn't exist or has been removed.
+            The project you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
         </div>
-        
+
         <div className="space-y-4">
           <Link href="/">
             <Button size="lg" className="w-full text-xl py-4">
               BACK TO PROJECTS
             </Button>
           </Link>
-          
+
           <div className="text-sm font-mono text-muted-foreground">
             <p>Looking for a specific project?</p>
             <p>Check the project code and try again.</p>

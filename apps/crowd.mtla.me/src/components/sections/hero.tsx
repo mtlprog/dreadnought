@@ -1,24 +1,27 @@
 "use client";
 
+import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
+  const { t } = useLocale();
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-background border-b-4 border-primary">
       <div className="container mx-auto px-6 py-24">
         <div className="max-w-6xl mx-auto text-center space-y-12">
           <div className="space-y-6">
             <h1 className="text-6xl md:text-8xl font-black text-foreground uppercase tracking-tighter leading-none">
-              FUND THE
+              {t("hero.title")}
               <br />
-              <span className="text-primary">NETWORK STATE</span>
+              <span className="text-primary">{t("hero.titleHighlight")}</span>
             </h1>
             <div className="max-w-4xl mx-auto space-y-4">
               <p className="text-2xl text-muted-foreground font-mono leading-relaxed">
-                MTL CROWD TOKENS ARE DONATION CREDITS TO MONTELIBERO ASSOCIATION
+                {t("hero.subtitle")}
               </p>
               <p className="text-xl text-muted-foreground font-mono leading-relaxed">
-                GOVERN HOW YOUR DONATIONS ARE USED THROUGH DECENTRALIZED PROJECT FUNDING
+                {t("hero.description")}
               </p>
             </div>
           </div>
@@ -26,32 +29,32 @@ export function HeroSection() {
           <div className="border-4 border-secondary bg-card p-12 max-w-4xl mx-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div className="space-y-4">
-                <div className="text-4xl font-black text-secondary">01</div>
+                <div className="text-4xl font-black text-secondary">{t("hero.step1.number")}</div>
                 <h3 className="text-xl font-bold text-foreground uppercase">
-                  BUY TOKENS
+                  {t("hero.step1.title")}
                 </h3>
                 <p className="text-base font-mono text-muted-foreground">
-                  PURCHASE MTL CROWD TOKENS AS DONATION CREDITS
+                  {t("hero.step1.description")}
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="text-4xl font-black text-secondary">02</div>
+                <div className="text-4xl font-black text-secondary">{t("hero.step2.number")}</div>
                 <h3 className="text-xl font-bold text-foreground uppercase">
-                  CHOOSE PROJECTS
+                  {t("hero.step2.title")}
                 </h3>
                 <p className="text-base font-mono text-muted-foreground">
-                  ALLOCATE YOUR TOKENS TO FREEDOM FOCUSED INITIATIVES
+                  {t("hero.step2.description")}
                 </p>
               </div>
 
               <div className="space-y-4">
-                <div className="text-4xl font-black text-secondary">03</div>
+                <div className="text-4xl font-black text-secondary">{t("hero.step3.number")}</div>
                 <h3 className="text-xl font-bold text-foreground uppercase">
-                  TRACK IMPACT
+                  {t("hero.step3.title")}
                 </h3>
                 <p className="text-base font-mono text-muted-foreground">
-                  MONITOR PROJECT PROGRESS AND FUND ALLOCATION
+                  {t("hero.step3.description")}
                 </p>
               </div>
             </div>
@@ -64,7 +67,7 @@ export function HeroSection() {
                 className="text-xl px-12 py-6"
                 onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
               >
-                MTL CROWD
+                {t("hero.mtlCrowdButton")}
               </Button>
               <Button
                 variant="outline"
@@ -75,7 +78,7 @@ export function HeroSection() {
                   projectsSection?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                VIEW PROJECTS
+                {t("hero.viewProjectsButton")}
               </Button>
             </div>
           </div>

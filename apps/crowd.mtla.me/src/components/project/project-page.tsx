@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
 import { TransactionResult } from "@/components/form/transaction-result";
-import { ProjectInfo } from "./project-info";
-import { FundingForm } from "./funding-form";
+import { useTranslations } from "@/hooks/use-translations";
 import { addStellarUri } from "@/lib/stellar-uri-service";
 import type { Project } from "@/types/project";
+import { useState } from "react";
+import { FundingForm } from "./funding-form";
+import { ProjectInfo } from "./project-info";
 
 interface ProjectPageProps {
   project: Project;
 }
 
 export function ProjectPage({ project }: ProjectPageProps) {
+  const t = useTranslations();
   const [transactionXDR, setTransactionXDR] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [isTelegramUrlLoading, setIsTelegramUrlLoading] = useState(false);
@@ -80,7 +82,7 @@ export function ProjectPage({ project }: ProjectPageProps) {
     try {
       const params = new globalThis.URLSearchParams();
       params.append("xdr", transactionXDR);
-      params.append("msg", "Please sign this funding transaction");
+      params.append("msg", t("project.signTransaction"));
       if (typeof window !== "undefined") {
         params.append("return_url", window.location.href);
       }
@@ -109,9 +111,9 @@ export function ProjectPage({ project }: ProjectPageProps) {
               {project.name}
             </h1>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-lg font-mono text-muted-foreground">
-              <span>PROJECT CODE: {project.code}</span>
+              <span>{t("project.projectCode")}: {project.code}</span>
               <span className="hidden sm:block">|</span>
-              <span>DEADLINE: {new Date(project.deadline).toLocaleDateString()}</span>
+              <span>{t("project.deadline")}: {new Date(project.deadline).toLocaleDateString()}</span>
             </div>
           </div>
 
@@ -122,44 +124,46 @@ export function ProjectPage({ project }: ProjectPageProps) {
 
             {/* Right Column - Support Form */}
             <div className="space-y-6">
-              {transactionXDR ? (
-                <div className="space-y-4">
-                  <TransactionResult
-                    transactionXDR={transactionXDR}
-                    title="Funding Transaction Generated"
-                    isCopied={isCopied}
-                    onCopy={(text) => void handleCopy(text)}
-                    isTelegramUrlLoading={isTelegramUrlLoading}
-                    onTelegramOpen={() => void handleTelegramOpen()}
-                    showTelegramButton={true}
-                    showCopyButton={true}
-                    showSep7Button={true}
-                    className="border-2 border-primary bg-background"
-                  />
+              {transactionXDR
+                ? (
+                  <div className="space-y-4">
+                    <TransactionResult
+                      transactionXDR={transactionXDR}
+                      title={t("project.transactionGenerated")}
+                      isCopied={isCopied}
+                      onCopy={(text) => void handleCopy(text)}
+                      isTelegramUrlLoading={isTelegramUrlLoading}
+                      onTelegramOpen={() => void handleTelegramOpen()}
+                      showTelegramButton={true}
+                      showCopyButton={true}
+                      showSep7Button={true}
+                      className="border-2 border-primary bg-background"
+                    />
 
-                  {/* Telegram Error Display */}
-                  {telegramError && (
-                    <div className="border-2 border-red-500 bg-red-50 p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-4 h-4 bg-red-500" />
-                        <span className="text-lg font-bold text-red-700 uppercase">
-                          MMWB ERROR
-                        </span>
+                    {/* Telegram Error Display */}
+                    {telegramError && (
+                      <div className="border-2 border-red-500 bg-red-50 p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-4 h-4 bg-red-500" />
+                          <span className="text-lg font-bold text-red-700 uppercase">
+                            {t("project.mmwbError")}
+                          </span>
+                        </div>
+                        <p className="text-sm text-red-600">{telegramError}</p>
+                        <p className="text-xs text-red-500 mt-2">
+                          {t("project.useSep7Button")}
+                        </p>
                       </div>
-                      <p className="text-sm text-red-600">{telegramError}</p>
-                      <p className="text-xs text-red-500 mt-2">
-                        Please use the SEP-0007 button to sign the transaction manually.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <FundingForm
-                  project={project}
-                  onSubmit={handleGenerateTransaction}
-                  isSubmitting={isGenerating}
-                />
-              )}
+                    )}
+                  </div>
+                )
+                : (
+                  <FundingForm
+                    project={project}
+                    onSubmit={handleGenerateTransaction}
+                    isSubmitting={isGenerating}
+                  />
+                )}
             </div>
           </div>
         </div>

@@ -1,8 +1,12 @@
 "use client";
 
+import { useLocale } from "@/components/locale-provider";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import Link from "next/link";
 
 export function Header() {
+  const { t } = useLocale();
+
   return (
     <header className="border-b-4 border-primary bg-background">
       <div className="container mx-auto px-6 py-6">
@@ -13,10 +17,10 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-3xl font-black text-primary uppercase tracking-wider">
-                MTL CROWD
+                {t("header.title")}
               </h1>
               <p className="text-sm font-mono text-muted-foreground uppercase">
-                MONTELIBERO FUNDING
+                {t("header.subtitle")}
               </p>
             </div>
           </Link>
@@ -26,8 +30,9 @@ export function Header() {
               href="/#projects-section"
               className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
             >
-              PROJECTS
+              {t("header.projects")}
             </Link>
+            <LocaleSwitcher />
           </nav>
         </div>
       </div>

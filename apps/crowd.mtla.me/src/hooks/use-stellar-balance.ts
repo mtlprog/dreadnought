@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from "react";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
+import { useCallback, useRef, useState } from "react";
 
 export function useStellarBalance() {
   const [balance, setBalance] = useState<string | null>(null);

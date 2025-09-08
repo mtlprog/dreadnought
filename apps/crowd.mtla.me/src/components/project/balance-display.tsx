@@ -10,13 +10,13 @@ interface BalanceDisplayProps {
   onRefresh: () => void;
 }
 
-export function BalanceDisplay({ 
-  accountId, 
-  balance, 
-  isLoading, 
-  error, 
+export function BalanceDisplay({
+  accountId,
+  balance,
+  isLoading,
+  error,
   remainingAmount,
-  onRefresh 
+  onRefresh,
 }: BalanceDisplayProps) {
   const isValidAccount = accountId !== "" && isValidStellarAccountId(accountId);
   const balanceValue = balance ? parseFloat(balance) : 0;
@@ -72,13 +72,13 @@ export function BalanceDisplay({
       <p className="text-sm font-mono text-accent">
         MAX CONTRIBUTION: {maxContribution.toLocaleString()} MTLCROWD TOKENS
       </p>
-      
+
       {balanceValue === 0 && (
         <p className="text-sm font-mono text-red-500">
           NO MTLCROWD TOKENS AVAILABLE FOR FUNDING
         </p>
       )}
-      
+
       {remainingAmount === 0 && (
         <p className="text-sm font-mono text-green-500">
           PROJECT FULLY FUNDED

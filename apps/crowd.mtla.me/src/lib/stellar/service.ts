@@ -138,7 +138,7 @@ export const StellarServiceLive = Layer.succeed(
                 cid: Buffer.from(value, "base64").toString(),
               };
             })
-            .find((entry: Readonly<{ code: string; fullCode: string; cid: string }>) => 
+            .find((entry: Readonly<{ code: string; fullCode: string; cid: string }>) =>
               entry.code.toUpperCase() === normalizedCode
             );
 

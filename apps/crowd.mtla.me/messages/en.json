@@ -1,0 +1,146 @@
+{
+  "metadata": {
+    "title": "MTL Crowd - Montelibero Funding",
+    "description": "Support freedom-focused projects with MTLCrowd tokens. Decentralized funding platform powered by Stellar blockchain.",
+    "applicationName": "Montelibero Crowdfunding Platform"
+  },
+  "header": {
+    "title": "MTL CROWD",
+    "subtitle": "MONTELIBERO FUNDING",
+    "projects": "PROJECTS"
+  },
+  "hero": {
+    "title": "FUND THE",
+    "titleHighlight": "NETWORK STATE",
+    "subtitle": "MTL CROWD TOKENS ARE DONATION CREDITS TO MONTELIBERO ASSOCIATION",
+    "description": "GOVERN HOW YOUR DONATIONS ARE USED THROUGH DECENTRALIZED PROJECT FUNDING",
+    "step1": {
+      "number": "01",
+      "title": "BUY TOKENS",
+      "description": "PURCHASE MTL CROWD TOKENS AS DONATION CREDITS"
+    },
+    "step2": {
+      "number": "02", 
+      "title": "CHOOSE PROJECTS",
+      "description": "ALLOCATE YOUR TOKENS TO FREEDOM FOCUSED INITIATIVES"
+    },
+    "step3": {
+      "number": "03",
+      "title": "TRACK IMPACT", 
+      "description": "MONITOR PROJECT PROGRESS AND FUND ALLOCATION"
+    },
+    "mtlCrowdButton": "MTL CROWD",
+    "viewProjectsButton": "VIEW PROJECTS"
+  },
+  "projects": {
+    "title": "PROJECTS",
+    "subtitle": "FREEDOM FOCUSED INITIATIVES",
+    "loading": "Loading projects...",
+    "error": "Failed to load projects",
+    "noProjects": "No projects available",
+    "fundingGoal": "Funding Goal",
+    "raised": "Raised",
+    "deadline": "Deadline",
+    "fundingEnded": "FUNDING ENDED",
+    "fundProject": "FUND PROJECT",
+    "active": "ACTIVE",
+    "fundingProgress": "FUNDING PROGRESS",
+    "target": "TARGET",
+    "supporters": "SUPPORTERS",
+    "viewProject": "VIEW PROJECT",
+    "fundingActive": "FUNDING ACTIVE"
+  },
+  "projectPage": {
+    "backToProjects": "← Back to Projects",
+    "projectNotFound": "Project not found",
+    "fundingDetails": "Funding Details",
+    "currentBalance": "Current Balance",
+    "targetAmount": "Target Amount",
+    "deadline": "Deadline",
+    "description": "Description"
+  },
+  "funding": {
+    "title": "Fund Project",
+    "stellarAccount": "Stellar Account",
+    "stellarAccountPlaceholder": "Enter your Stellar account ID",
+    "amount": "Amount (MTLCrowd)",
+    "amountPlaceholder": "Enter amount to fund",
+    "balance": "Your Balance",
+    "fundButton": "Fund Project",
+    "processing": "Processing...",
+    "success": "Funding successful!",
+    "error": "Funding failed",
+    "insufficientBalance": "Insufficient balance",
+    "invalidAccount": "Invalid Stellar account",
+    "transactionHash": "Transaction Hash"
+  },
+  "footer": {
+    "title": "MTL CROWD",
+    "description": "DECENTRALIZED FUNDING PLATFORM FOR FREEDOM FOCUSED PROJECTS. POWERED BY STELLAR BLOCKCHAIN.",
+    "resourcesTitle": "RESOURCES",
+    "documentation": "→ DOCUMENTATION",
+    "cliReference": "→ CLI REFERENCE", 
+    "technicalSupport": "→ TECHNICAL SUPPORT",
+    "associationTitle": "ASSOCIATION",
+    "githubOrg": "GITHUB ORG",
+    "montelibroRu": "MONTELIBERO RU",
+    "programmersGuildChat": "PROGRAMMERS GUILD CHAT",
+    "rights": "🄯2025 BUILDING ON TOP OF IT IS PERMITTED AND EXTRIMELLY SUPPORTED."
+  },
+  "project": {
+    "details": {
+      "title": "PROJECT DETAILS",
+      "description": "DESCRIPTION:",
+      "contactAccount": "CONTACT ACCOUNT:",
+      "projectAccount": "PROJECT ACCOUNT:"
+    },
+    "funding": {
+      "title": "FUNDING STATUS",
+      "progress": "PROGRESS",
+      "raised": "RAISED",
+      "target": "TARGET",
+      "supporters": "SUPPORTERS"
+    },
+    "status": {
+      "title": "PROJECT STATUS",
+      "completed": "FUNDING COMPLETED",
+      "finalAmount": "FINAL AMOUNT:",
+      "target": "TARGET:",
+      "successRate": "SUCCESS RATE:",
+      "totalSupporters": "TOTAL SUPPORTERS:",
+      "completedMessage": "This project has reached its funding goal or deadline. No further contributions are accepted."
+    },
+    "support": {
+      "title": "SUPPORT PROJECT",
+      "accountIdLabel": "Your Account ID",
+      "noTokens": "NO TOKENS AVAILABLE",
+      "noTokensMessage": "You need MTL CROWD tokens to support projects. Purchase tokens to start funding initiatives.",
+      "buyTokens": "BUY MTL CROWD",
+      "refreshBalance": "REFRESH BALANCE",
+      "amountLabel": "Amount (MTLCrowd Tokens)",
+      "transactionPreview": "TRANSACTION PREVIEW",
+      "amount": "AMOUNT",
+      "project": "PROJECT",
+      "serviceFee": "SERVICE FEE",
+      "networkFee": "NETWORK FEE",
+      "checkingBalance": "CHECKING BALANCE...",
+      "fullyFunded": "PROJECT FULLY FUNDED",
+      "noMTLTokens": "NO MTLCROWD TOKENS"
+    },
+    "projectCode": "PROJECT CODE",
+    "deadline": "DEADLINE",
+    "signTransaction": "Please sign this funding transaction",
+    "transactionGenerated": "Funding Transaction Generated",
+    "mmwbError": "MMWB ERROR",
+    "useSep7Button": "Please use the SEP-0007 button to sign the transaction manually."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save"
+  }
+}

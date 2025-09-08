@@ -10,15 +10,15 @@ interface ProjectPageProps {
 
 async function getProject(code: string): Promise<Project | null> {
   try {
-    const baseUrl = process.env['NEXT_PUBLIC_BASE_URL'] || 'http://localhost:3000';
+    const baseUrl = process.env["NEXT_PUBLIC_BASE_URL"] || "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/projects/${encodeURIComponent(code)}`, {
-      next: { revalidate: 300 }
+      next: { revalidate: 300 },
     });
-    
+
     if (!response.ok) {
       return null;
     }
-    
+
     const result = await response.json();
     return result.success ? result.data : null;
   } catch (error) {
@@ -30,7 +30,7 @@ async function getProject(code: string): Promise<Project | null> {
 export async function generateMetadata({ params }: ProjectPageProps) {
   const { code } = await params;
   const project = await getProject(code);
-  
+
   if (!project) {
     return {
       title: "Project Not Found",
@@ -45,7 +45,9 @@ export async function generateMetadata({ params }: ProjectPageProps) {
 
   return {
     title: `${project.name} - MTL Crowd`,
-    description: `Support ${project.name} with MTLCrowd tokens. ${Math.round(progressPercentage)}% funded. ${project.current_amount}/${project.target_amount} MTLCrowd raised.`,
+    description: `Support ${project.name} with MTLCrowd tokens. ${
+      Math.round(progressPercentage)
+    }% funded. ${project.current_amount}/${project.target_amount} MTLCrowd raised.`,
     openGraph: {
       title: `${project.name} - MTL Crowd`,
       description: `Support ${project.name} with MTLCrowd tokens. ${Math.round(progressPercentage)}% funded.`,
@@ -62,7 +64,7 @@ export async function generateMetadata({ params }: ProjectPageProps) {
 export default async function ProjectPageRoute({ params }: ProjectPageProps) {
   const { code } = await params;
   const project = await getProject(code);
-  
+
   if (!project) {
     notFound();
   }

@@ -1,5 +1,5 @@
-import { useState, useCallback } from "react";
-import { z } from "zod";
+import { useCallback, useState } from "react";
+import type { z } from "zod";
 
 export function useFormValidation<T>(schema: z.ZodSchema<T>) {
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -8,7 +8,7 @@ export function useFormValidation<T>(schema: z.ZodSchema<T>) {
   const validate = useCallback((data: unknown) => {
     setIsValidating(true);
     const result = schema.safeParse(data);
-    
+
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
       result.error.errors.forEach((error) => {
@@ -21,7 +21,7 @@ export function useFormValidation<T>(schema: z.ZodSchema<T>) {
       setIsValidating(false);
       return { success: false, data: null, errors: fieldErrors };
     }
-    
+
     setErrors({});
     setIsValidating(false);
     return { success: true, data: result.data, errors: {} };
