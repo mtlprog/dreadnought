@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "@/components/locale-provider";
+import { useLocale } from "@/components/locale-client-provider";
 import { Github, MessageCircle } from "lucide-react";
 import Link from "next/link";
 

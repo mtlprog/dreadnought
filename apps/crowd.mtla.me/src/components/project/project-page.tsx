@@ -1,7 +1,7 @@
 "use client";
 
 import { TransactionResult } from "@/components/form/transaction-result";
-import { useLocale } from "@/components/locale-provider";
+import { useLocale } from "@/components/locale-client-provider";
 import { addStellarUri } from "@/lib/stellar-uri-service";
 import type { Project } from "@/types/project";
 import { useState } from "react";

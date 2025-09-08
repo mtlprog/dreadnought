@@ -1,11 +1,11 @@
 import { StellarAccountInput } from "@/components/form/stellar-account-input";
-import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useDualBalance } from "@/hooks/use-dual-balance";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useLocale } from "@/components/locale-client-provider";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
 import { HelpCircle } from "lucide-react";

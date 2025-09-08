@@ -1,6 +1,6 @@
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { LocaleProvider } from "@/components/locale-provider";
+import { LocaleClientProvider } from "@/components/locale-client-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -55,7 +55,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LocaleProvider initialLocale={locale}>
+        <LocaleClientProvider initialLocale={locale}>
           <TooltipProvider
             delayDuration={300}
             skipDelayDuration={100}
@@ -64,7 +64,7 @@ export default async function RootLayout({
             <main>{children}</main>
             <Footer />
           </TooltipProvider>
-        </LocaleProvider>
+        </LocaleClientProvider>
       </body>
     </html>
   );

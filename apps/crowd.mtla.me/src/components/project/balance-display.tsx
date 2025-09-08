@@ -1,5 +1,5 @@
-import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/components/locale-client-provider";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 
 interface BalanceDisplayProps {

@@ -1,9 +1,9 @@
 "use client";
 
-import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useLocale } from "@/components/locale-client-provider";
 import type { Project } from "@/types/project";
 import Link from "next/link";
 

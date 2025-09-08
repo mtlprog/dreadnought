@@ -1,7 +1,7 @@
 "use client";
 
-import { useLocale } from "@/components/locale-provider";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { useLocale } from "@/components/locale-client-provider";
 import Link from "next/link";
 
 export function Header() {
@@ -9,26 +9,26 @@ export function Header() {
 
   return (
     <header className="border-b-4 border-primary bg-background">
-      <div className="container mx-auto px-6 py-6">
+      <div className="container mx-auto px-4 py-4 md:px-6 md:py-6">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-4">
-            <div className="w-12 h-12 border-4 border-primary bg-primary flex items-center justify-center">
-              <div className="w-6 h-6 bg-background" />
+          <Link href="/" className="flex items-center gap-2 md:gap-4">
+            <div className="w-8 h-8 md:w-12 md:h-12 border-2 md:border-4 border-primary bg-primary flex items-center justify-center">
+              <div className="w-4 h-4 md:w-6 md:h-6 bg-background" />
             </div>
-            <div>
-              <h1 className="text-3xl font-black text-primary uppercase tracking-wider">
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-3xl font-black text-primary uppercase tracking-wider leading-none">
                 {t("header.title")}
               </h1>
-              <p className="text-sm font-mono text-muted-foreground uppercase">
+              <p className="text-xs md:text-sm font-mono text-muted-foreground uppercase leading-none">
                 {t("header.subtitle")}
               </p>
             </div>
           </Link>
 
-          <nav className="flex items-center gap-8">
+          <nav className="flex items-center gap-2 md:gap-8">
             <Link
               href="/#projects-section"
-              className="text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide"
+              className="text-sm md:text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide whitespace-nowrap"
             >
               {t("header.projects")}
             </Link>
