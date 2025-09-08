@@ -3,9 +3,9 @@ import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useDualBalance } from "@/hooks/use-dual-balance";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useLocalStorage } from "@/hooks/use-local-storage";
-import { useStellarBalance } from "@/hooks/use-stellar-balance";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
 import { HelpCircle } from "lucide-react";
@@ -15,7 +15,9 @@ import { BalanceDisplay } from "./balance-display";
 
 interface FundingFormProps {
   project: Project;
-  onSubmit: (data: { userAccountId: string; amount: string }) => Promise<void>;
+  onSubmit: (
+    data: { userAccountId: string; amount: string; mtlCrowdAmount: string; eurMtlAmount: string },
+  ) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -46,7 +48,34 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
 
   const [savedAccountId, setSavedAccountId] = useLocalStorage<string>("crowd_account_id", "");
   const { errors, validate, clearErrors } = useFormValidation(fundingFormSchema);
-  const { balance, isLoading: isLoadingBalance, error: balanceError, checkBalance, clearBalance } = useStellarBalance();
+  const { balance, isLoading: isLoadingBalance, error: balanceError, checkBalance, clearBalance } = useDualBalance();
+
+  // Calculate MTLCrowd and EURMTL spending breakdown
+  const calculateSpending = (totalAmount: string, mtlCrowdBalance: string, eurMtlBalance: string) => {
+    const totalNum = Number(totalAmount);
+    const mtlCrowdNum = Number(mtlCrowdBalance);
+    const eurMtlNum = Number(eurMtlBalance);
+
+    const total = Number.isNaN(totalNum) ? 0 : totalNum;
+    const mtlCrowd = Number.isNaN(mtlCrowdNum) ? 0 : mtlCrowdNum;
+    const eurMtl = Number.isNaN(eurMtlNum) ? 0 : eurMtlNum;
+
+    if (total <= mtlCrowd && total > 0) {
+      // Use only MTLCrowd
+      return { mtlCrowdAmount: total.toString(), eurMtlAmount: "0" };
+    } else if (total > 0) {
+      // Use all MTLCrowd first, then EURMTL
+      const remainingNeeded = total - mtlCrowd;
+      const eurMtlToUse = Math.min(remainingNeeded, eurMtl);
+      return {
+        mtlCrowdAmount: mtlCrowd.toString(),
+        eurMtlAmount: eurMtlToUse.toString(),
+      };
+    }
+
+    // Default case for zero or invalid amounts
+    return { mtlCrowdAmount: "0", eurMtlAmount: "0" };
+  };
 
   // Auto-fill account ID from localStorage
   useEffect(() => {
@@ -67,36 +96,41 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
     }
   }, [formData.userAccountId, savedAccountId, setSavedAccountId, checkBalance, clearBalance]);
 
-  // Auto-set amount based on balance and remaining funding
+  // Auto-set amount based on MTLCrowd balance only (previous logic with hundreds)
   useEffect(() => {
     if (balance !== null && isLoadingBalance === false) {
-      const balanceValue = parseFloat(balance);
+      const mtlCrowdBalance = Math.floor(parseFloat(balance.mtlCrowd));
       const targetAmount = parseFloat(project.target_amount);
       const currentAmount = parseFloat(project.current_amount);
       const remainingAmount = Math.max(targetAmount - currentAmount, 0);
 
-      if (balanceValue === 0 || remainingAmount === 0) {
+      if (mtlCrowdBalance === 0 || remainingAmount === 0) {
         setFormData(prev => ({ ...prev, amount: "0" }));
       } else {
-        const maxAllowedAmount = Math.min(balanceValue, remainingAmount);
-        setFormData(prev => ({ ...prev, amount: maxAllowedAmount.toString() }));
+        // Use only MTLCrowd balance for auto-fill, не учитываем EURMTL
+        const maxFromMtlCrowd = Math.floor(Math.min(mtlCrowdBalance, remainingAmount));
+        setFormData(prev => ({ ...prev, amount: maxFromMtlCrowd.toString() }));
       }
     }
   }, [balance, isLoadingBalance, project]);
 
-  // Auto-correct amount when user types
+  // Auto-correct amount when user types - allow EURMTL usage but limit by total available
   useEffect(() => {
     if (balance !== null && formData.amount !== "" && formData.amount !== "0") {
       const enteredAmount = parseFloat(formData.amount);
-      const balanceValue = parseFloat(balance);
+      const mtlCrowdBalance = Math.floor(parseFloat(balance.mtlCrowd));
+      const eurMtlBalance = Math.floor(parseFloat(balance.eurMtl));
+      const totalAvailable = mtlCrowdBalance + eurMtlBalance;
       const targetAmount = parseFloat(project.target_amount);
       const currentProjectAmount = parseFloat(project.current_amount);
       const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
 
       if (!isNaN(enteredAmount) && enteredAmount > 0) {
-        const maxAllowedAmount = Math.min(balanceValue, remainingAmount);
+        // Позволяем пользователю ввести больше MTLCrowd (используя EURMTL),
+        // но ограничиваем общим лимитом (MTLCrowd + EURMTL) и потребностями проекта
+        const maxAllowedAmount = Math.floor(Math.min(totalAvailable, remainingAmount));
         if (enteredAmount > maxAllowedAmount && maxAllowedAmount > 0) {
-          setFormData(prev => ({ ...prev, amount: maxAllowedAmount.toString() }));
+          setFormData(prev => ({ ...prev, amount: Math.floor(maxAllowedAmount).toString() }));
         }
       }
     }
@@ -115,14 +149,29 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
       return;
     }
 
-    void onSubmit(formData);
+    // Calculate spending breakdown
+    const mtlCrowdBalance = balance !== null ? balance.mtlCrowd : "0";
+    const eurMtlBalance = balance !== null ? balance.eurMtl : "0";
+    const spending = calculateSpending(formData.amount, mtlCrowdBalance, eurMtlBalance);
+
+    void onSubmit({
+      ...formData,
+      ...spending,
+    });
   };
 
   const targetAmount = parseFloat(project.target_amount);
   const currentProjectAmount = parseFloat(project.current_amount);
   const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
-  const balanceValue = balance !== null ? parseFloat(balance) : 0;
+  const mtlCrowdBalanceValue = balance !== null ? Math.floor(parseFloat(balance.mtlCrowd)) : 0;
+  const eurMtlBalanceValue = balance !== null ? Math.floor(parseFloat(balance.eurMtl)) : 0;
+  const totalAvailable = mtlCrowdBalanceValue + eurMtlBalanceValue;
   const isProjectCompleted = project.status === "completed";
+
+  // Calculate spending for current amount
+  const currentSpending = balance !== null
+    ? calculateSpending(formData.amount, balance.mtlCrowd, balance.eurMtl)
+    : { mtlCrowdAmount: "0", eurMtlAmount: "0" };
 
   if (isProjectCompleted) {
     return (
@@ -190,13 +239,13 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
           tooltip={t("project.support.tooltips.accountId")}
         />
 
-        {/* BUY MTL CROWD Button when user has no tokens */}
+        {/* BUY MTL CROWD Button when user has no MTLCrowd AND no EURMTL */}
         {formData.userAccountId !== ""
           && isValidStellarAccountId(formData.userAccountId) === true
           && isLoadingBalance === false
           && balanceError === null
           && balance !== null
-          && balanceValue === 0 && (
+          && totalAvailable === 0 && (
           <div className="border-2 border-accent bg-card p-4">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-4 h-4 bg-accent" />
@@ -239,7 +288,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
           && isLoadingBalance === false
           && balanceError === null
           && balance !== null
-          && balanceValue === 0) && (
+          && totalAvailable === 0) && (
           <>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -272,19 +321,21 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 onChange={(e) => handleInputChange("amount", e.target.value)}
                 min="1"
                 max={balance !== null && remainingAmount > 0
-                  ? Math.min(balanceValue, remainingAmount).toString()
+                  ? Math.floor(Math.min(totalAvailable, remainingAmount)).toString()
                   : undefined}
-                disabled={balance !== null && balanceValue === 0 || remainingAmount === 0}
+                disabled={balance !== null && totalAvailable === 0 || remainingAmount === 0}
                 className="text-xl text-center"
                 placeholder="100"
               />
 
               <BalanceDisplay
                 accountId={formData.userAccountId}
-                balance={balance}
+                balance={balance !== null ? balance.mtlCrowd : null}
+                eurMtlBalance={balance !== null ? balance.eurMtl : null}
                 isLoading={isLoadingBalance}
                 error={balanceError}
                 remainingAmount={remainingAmount}
+                eurMtlSpend={currentSpending.eurMtlAmount !== "0" ? formData.amount : undefined}
                 onRefresh={() => {
                   void checkBalance(formData.userAccountId);
                 }}
@@ -329,8 +380,8 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
               disabled={isSubmitting === true
                 || isLoadingBalance === true
                 || remainingAmount === 0
-                || (balance !== null && balanceValue === 0)
-                || (balance !== null && balanceValue < parseFloat(formData.amount !== "" ? formData.amount : "0"))}
+                || (balance !== null && totalAvailable === 0)
+                || (balance !== null && totalAvailable < parseFloat(formData.amount !== "" ? formData.amount : "0"))}
               className="w-full text-xl py-6"
               size="lg"
             >
@@ -340,9 +391,9 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 ? t("project.support.checkingBalance")
                 : remainingAmount === 0
                 ? t("project.support.fullyFunded")
-                : (balance !== null && balanceValue === 0)
+                : (balance !== null && totalAvailable === 0)
                 ? t("project.support.noMTLTokens")
-                : (balance !== null && balanceValue < parseFloat(formData.amount !== "" ? formData.amount : "0"))
+                : (balance !== null && totalAvailable < parseFloat(formData.amount !== "" ? formData.amount : "0"))
                 ? t("funding.insufficientBalance")
                 : t("funding.fundButton")}
             </Button>

@@ -8,6 +8,8 @@ const FundingRequestSchema = S.Struct({
   userAccountId: S.String,
   projectCode: S.String,
   amount: S.String,
+  mtlCrowdAmount: S.optional(S.String),
+  eurMtlAmount: S.optional(S.String),
 });
 
 // Response schemas
@@ -43,13 +45,24 @@ export async function POST(request: NextRequest): Promise<NextResponse<FundingRe
       // Create funding transaction
       const transactionXDR = yield* pipe(
         FundingServiceTag,
-        Effect.flatMap((service) =>
-          service.createFundingTransaction(
-            validatedRequest.userAccountId,
-            validatedRequest.projectCode,
-            validatedRequest.amount,
-          )
-        ),
+        Effect.flatMap((service) => {
+          // If EURMTL amount is provided, use the enhanced funding transaction
+          if (validatedRequest.eurMtlAmount !== undefined && parseFloat(validatedRequest.eurMtlAmount) > 0) {
+            return service.createFundingTransactionWithEURMTL(
+              validatedRequest.userAccountId,
+              validatedRequest.projectCode,
+              validatedRequest.mtlCrowdAmount ?? "0",
+              validatedRequest.eurMtlAmount,
+            );
+          } else {
+            // Use standard funding transaction
+            return service.createFundingTransaction(
+              validatedRequest.userAccountId,
+              validatedRequest.projectCode,
+              validatedRequest.amount,
+            );
+          }
+        }),
       );
 
       return NextResponse.json({

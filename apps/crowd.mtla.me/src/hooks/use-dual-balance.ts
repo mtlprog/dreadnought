@@ -2,8 +2,13 @@ import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import { Effect, pipe } from "effect";
 import { useCallback, useRef, useState } from "react";
 
-export function useStellarBalance() {
-  const [balance, setBalance] = useState<string | null>(null);
+interface DualBalance {
+  mtlCrowd: string;
+  eurMtl: string;
+}
+
+export function useDualBalance() {
+  const [balance, setBalance] = useState<DualBalance | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const lastCheckedAccountRef = useRef<string | null>(null);
@@ -38,13 +43,23 @@ export function useStellarBalance() {
       }),
       Effect.flatMap(response =>
         Effect.tryPromise({
-          try: () => response.json() as Promise<{ success: boolean; balance?: string; error?: string }>,
+          try: () =>
+            response.json() as Promise<{
+              success: boolean;
+              balance?: string;
+              mtlCrowd?: string;
+              eurMtl?: string;
+              error?: string;
+            }>,
           catch: () => new Error("Failed to parse response"),
         })
       ),
       Effect.tap((result) => {
-        if (result.success && result.balance !== undefined) {
-          setBalance(result.balance);
+        if (result.success && result.mtlCrowd !== undefined && result.eurMtl !== undefined) {
+          setBalance({
+            mtlCrowd: result.mtlCrowd,
+            eurMtl: result.eurMtl,
+          });
         } else {
           setError(result.error ?? "Failed to load balance");
           setBalance(null);

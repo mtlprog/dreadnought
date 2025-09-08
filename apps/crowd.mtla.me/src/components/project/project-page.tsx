@@ -20,7 +20,9 @@ export function ProjectPage({ project }: ProjectPageProps) {
   const [telegramError, setTelegramError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerateTransaction = async (data: { userAccountId: string; amount: string }) => {
+  const handleGenerateTransaction = async (
+    data: { userAccountId: string; amount: string; mtlCrowdAmount: string; eurMtlAmount: string },
+  ) => {
     const targetAmount = parseFloat(project.target_amount);
     const currentProjectAmount = parseFloat(project.current_amount);
     const remainingAmount = Math.max(targetAmount - currentProjectAmount, 0);
@@ -48,6 +50,8 @@ export function ProjectPage({ project }: ProjectPageProps) {
           userAccountId: data.userAccountId,
           projectCode: project.code,
           amount: data.amount,
+          mtlCrowdAmount: data.mtlCrowdAmount,
+          eurMtlAmount: data.eurMtlAmount,
         }),
       });
 

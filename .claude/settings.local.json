@@ -6,7 +6,8 @@
       "Bash(bun run:*)",
       "Bash(bun x tsc:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

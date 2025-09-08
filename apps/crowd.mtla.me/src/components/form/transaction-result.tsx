@@ -92,7 +92,7 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
             <textarea
               readOnly
               value={transactionXDR}
-              className="w-full min-h-[120px] p-3 bg-muted font-mono text-sm rounded-md border resize-none"
+              className="w-full min-h-[120px] p-3 bg-muted font-mono text-sm border resize-none"
               placeholder="Transaction XDR will appear here..."
             />
           </div>

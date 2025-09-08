@@ -12,6 +12,8 @@ const BalanceRequestSchema = S.Struct({
 type BalanceSuccess = {
   success: true;
   balance: string;
+  mtlCrowd: string;
+  eurMtl: string;
 };
 
 type BalanceError = {
@@ -38,15 +40,17 @@ export async function POST(request: NextRequest): Promise<NextResponse<BalanceRe
         Effect.mapError(() => new Error("Invalid request format")),
       );
 
-      // Get MTLCrowd balance
-      const balance = yield* pipe(
+      // Get both MTLCrowd and EURMTL balances
+      const balances = yield* pipe(
         BalanceServiceTag,
-        Effect.flatMap((service) => service.getMTLCrowdBalance(validatedRequest.accountId)),
+        Effect.flatMap((service) => service.getBalances(validatedRequest.accountId)),
       );
 
       return NextResponse.json({
         success: true,
-        balance,
+        balance: balances.mtlCrowd, // For backward compatibility
+        mtlCrowd: balances.mtlCrowd,
+        eurMtl: balances.eurMtl,
       } as BalanceResponse);
     }),
     Effect.catchAll((error) =>

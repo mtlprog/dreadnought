@@ -128,8 +128,19 @@
       "noMTLTokens": "НЕТ ТОКЕНОВ MTLCROWD",
       "tooltips": {
         "accountId": "Введите идентификатор вашего аккаунта Stellar (начинается с G). Именно с него будут списаны ваши токены MTLCrowd. Ваш ID аккаунта подобен адресу кошелька в сети Stellar.",
-        "amount": "Укажите, сколько токенов MTLCrowd вы хотите потратить на этот проект. Каждый токен представляет ваш донатный кредит Ассоциации Монтелиберо."
-      }
+        "amount": "Укажите, сколько токенов MTLCrowd вы хотите потратить на этот проект. Можете ввести больше чем у вас есть MTLCrowd - система автоматически обменяет ваши EURMTL токены в MTLCrowd (курс 1:1) при необходимости. Каждый токен представляет ваш донатный кредит Ассоциации Монтелиберо."
+      },
+      "mtlCrowdAvailable": "ДОСТУПНО MTLCROWD",
+      "tokens": "ТОКЕНОВ",
+      "needed": "НУЖНО ДЛЯ ПРОЕКТА",
+      "maxContribution": "МАКСИМУМ ИЗ MTLCROWD",
+      "eurMtlAutoExchange": "ДОСТУПЕН АВТО-ОБМЕН EURMTL",
+      "transactionWillUse": "ТРАНЗАКЦИЯ ИСПОЛЬЗУЕТ",
+      "fromMtlCrowd": "ИЗ MTLCROWD",
+      "fromEurMtl": "ИЗ EURMTL",
+      "exchangedToMtlCrowd": "ОБМЕНЕНО В MTLCROWD",
+      "noTokensAvailable": "НЕТ ТОКЕНОВ ДОСТУПНЫХ ДЛЯ ФИНАНСИРОВАНИЯ",
+      "minimumSupport": "МИНИМАЛЬНАЯ ПОДДЕРЖКА: 1 ТОКЕН MTLCROWD"
     },
     "projectCode": "КОД ПРОЕКТА",
     "deadline": "ДЕДЛАЙН",

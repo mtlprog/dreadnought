@@ -128,8 +128,19 @@
       "noMTLTokens": "NO MTLCROWD TOKENS",
       "tooltips": {
         "accountId": "Enter your Stellar account ID (starts with G). This is where your MTLCrowd tokens will be deducted from. Your account ID is like your wallet address on the Stellar network.",
-        "amount": "Specify how many MTLCrowd tokens you want to spend on this project. Each token represents your donation credit to the Montelibero Association."
-      }
+        "amount": "Specify how many MTLCrowd tokens you want to spend on this project. You can enter more than your MTLCrowd balance - the system will automatically exchange your EURMTL tokens to MTLCrowd (1:1 rate) if needed. Each token represents your donation credit to the Montelibero Association."
+      },
+      "mtlCrowdAvailable": "AVAILABLE MTLCROWD",
+      "tokens": "TOKENS",
+      "needed": "NEEDED FOR PROJECT",
+      "maxContribution": "MAX FROM MTLCROWD",
+      "eurMtlAutoExchange": "AUTO-EXCHANGE EURMTL AVAILABLE",
+      "transactionWillUse": "TRANSACTION WILL USE",
+      "fromMtlCrowd": "FROM MTLCROWD",
+      "fromEurMtl": "FROM EURMTL",
+      "exchangedToMtlCrowd": "EXCHANGED TO MTLCROWD",
+      "noTokensAvailable": "NO TOKENS AVAILABLE FOR FUNDING",
+      "minimumSupport": "MINIMUM SUPPORT: 1 MTLCROWD TOKEN"
     },
     "projectCode": "PROJECT CODE",
     "deadline": "DEADLINE",
