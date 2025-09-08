@@ -3,6 +3,8 @@
 import { type Locale, LocaleService, LocaleServiceLive } from "@/services/locale";
 import { Effect, pipe } from "effect";
 import { useEffect, useState } from "react";
+import enMessages from "../../messages/en.json";
+import ruMessages from "../../messages/ru.json";
 
 interface UseLocaleResult {
   locale: Locale;
@@ -16,19 +18,23 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (initialLocale) {
+    if (initialLocale !== undefined) {
       // If initial locale is provided from server, use it and set cookie
       const program = pipe(
         LocaleService,
         Effect.flatMap(service => service.setLocale(initialLocale)),
-        Effect.tap(() => Effect.sync(() => {
-          setLocaleState(initialLocale);
-          setIsLoading(false);
-        })),
-        Effect.catchAll(() => Effect.sync(() => {
-          setLocaleState(initialLocale);
-          setIsLoading(false);
-        })),
+        Effect.tap(() =>
+          Effect.sync(() => {
+            setLocaleState(initialLocale);
+            setIsLoading(false);
+          })
+        ),
+        Effect.catchAll(() =>
+          Effect.sync(() => {
+            setLocaleState(initialLocale);
+            setIsLoading(false);
+          })
+        ),
         Effect.provide(LocaleServiceLive),
       );
       void Effect.runPromise(program);
@@ -72,11 +78,11 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
     // For synchronous usage in React components, we use the current locale state
     // In a real Effect-based app, this would be handled differently
     const messages = {
-      en: require("../../messages/en.json"),
-      ru: require("../../messages/ru.json"),
+      en: enMessages,
+      ru: ruMessages,
     };
 
-    const getNestedValue = (obj: Record<string, unknown>, path: string): string => {
+    const getNestedValue = (obj: Readonly<Record<string, unknown>>, path: string): string => {
       const result = path.split(".").reduce((current: unknown, key: string) => {
         if (current !== null && typeof current === "object" && key in (current as Record<string, unknown>)) {
           return (current as Record<string, unknown>)[key];
@@ -96,4 +102,3 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
     isLoading,
   };
 }
-

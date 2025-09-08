@@ -1,8 +1,8 @@
 "use client";
 
-import { type Locale } from "@/services/locale";
-import { createContext, useContext, type ReactNode } from "react";
 import { useLocaleEffect } from "@/hooks/use-locale-effect";
+import { type Locale } from "@/services/locale";
+import { createContext, type ReactNode, useContext } from "react";
 
 interface LocaleContextType {
   locale: Locale;

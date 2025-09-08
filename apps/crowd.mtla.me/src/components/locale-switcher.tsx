@@ -1,12 +1,12 @@
 "use client";
 
+import { useLocale } from "@/components/locale-client-provider";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useLocale } from "@/components/locale-client-provider";
 import { Globe } from "lucide-react";
 
 const locales = [

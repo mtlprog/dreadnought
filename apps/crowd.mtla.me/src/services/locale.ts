@@ -112,12 +112,12 @@ const removeLocalStorageEffect = (key: string): Effect.Effect<void, LocaleError>
 const getBrowserLanguageEffect = (): Effect.Effect<Locale, LocaleError> =>
   pipe(
     Effect.try({
-      try: () => {
+      try: (): Locale => {
         if (typeof globalThis === "undefined" || typeof globalThis.navigator === "undefined") {
-          return "en" as Locale;
+          return "en";
         }
         const lang = globalThis.navigator.language.slice(0, 2);
-        return (lang === "ru" ? "ru" : "en");
+        return lang === "ru" ? "ru" : "en";
       },
       catch: (error) =>
         new LocaleError({
@@ -133,7 +133,7 @@ import ru from "../../messages/ru.json";
 
 const messages = { en, ru } as const;
 
-const getNestedValue = (obj: Record<string, unknown>, path: string): string => {
+const getNestedValue = (obj: Readonly<Record<string, unknown>>, path: string): string => {
   const result = path.split(".").reduce((current: unknown, key: string) => {
     if (current !== null && typeof current === "object" && key in (current as Record<string, unknown>)) {
       return (current as Record<string, unknown>)[key];
@@ -152,7 +152,7 @@ export const LocaleServiceLive = Layer.succeed(LocaleService, {
       }
       return "en" as Locale;
     }),
-    Effect.catchAll(() => Effect.succeed("en" as Locale)),
+    Effect.catchAll(() => Effect.succeed<Locale>("en")),
   ),
 
   setLocale: (locale: Locale) => setCookieEffect("locale", locale),
@@ -178,7 +178,7 @@ export const LocaleServiceLive = Layer.succeed(LocaleService, {
     Effect.flatMap(cookieValue => {
       // Return cookie locale if valid
       if (cookieValue === "en" || cookieValue === "ru") {
-        return Effect.succeed(cookieValue as Locale);
+        return Effect.succeed<Locale>(cookieValue);
       }
 
       // Check localStorage for migration
@@ -189,8 +189,8 @@ export const LocaleServiceLive = Layer.succeed(LocaleService, {
             return pipe(
               setCookieEffect("locale", localStorageValue),
               Effect.zipRight(removeLocalStorageEffect("locale")),
-              Effect.map(() => localStorageValue as Locale),
-              Effect.catchAll(() => Effect.succeed(localStorageValue as Locale)),
+              Effect.map((): Locale => localStorageValue),
+              Effect.catchAll(() => Effect.succeed<Locale>(localStorageValue)),
             );
           }
 
@@ -200,14 +200,14 @@ export const LocaleServiceLive = Layer.succeed(LocaleService, {
             Effect.flatMap(browserLang =>
               pipe(
                 setCookieEffect("locale", browserLang),
-                Effect.map(() => browserLang),
-                Effect.catchAll(() => Effect.succeed(browserLang)),
+                Effect.map((): Locale => browserLang),
+                Effect.catchAll(() => Effect.succeed<Locale>(browserLang)),
               )
             ),
           );
         }),
       );
     }),
-    Effect.catchAll(() => Effect.succeed("en" as Locale)),
+    Effect.catchAll(() => Effect.succeed<Locale>("en")),
   ),
 });

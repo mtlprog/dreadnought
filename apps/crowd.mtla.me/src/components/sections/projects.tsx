@@ -1,7 +1,7 @@
 "use client";
 
-import { ProjectCard } from "@/components/project/project-card";
 import { useLocale } from "@/components/locale-client-provider";
+import { ProjectCard } from "@/components/project/project-card";
 import type { Project } from "@/types/project";
 import { useEffect, useState } from "react";
 

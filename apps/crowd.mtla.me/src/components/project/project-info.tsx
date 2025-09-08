@@ -1,5 +1,5 @@
-import { Progress } from "@/components/ui/progress";
 import { useLocale } from "@/components/locale-client-provider";
+import { Progress } from "@/components/ui/progress";
 import { truncateAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
 import ReactMarkdown from "react-markdown";

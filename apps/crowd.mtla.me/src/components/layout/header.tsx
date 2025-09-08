@@ -1,7 +1,7 @@
 "use client";
 
-import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useLocale } from "@/components/locale-client-provider";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import Link from "next/link";
 
 export function Header() {

@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useLocale } from "@/components/locale-client-provider";
+import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   const { t } = useLocale();
