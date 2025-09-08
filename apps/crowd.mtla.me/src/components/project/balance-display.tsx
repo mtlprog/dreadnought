@@ -19,10 +19,10 @@ export function BalanceDisplay({
   onRefresh,
 }: BalanceDisplayProps) {
   const isValidAccount = accountId !== "" && isValidStellarAccountId(accountId);
-  const balanceValue = balance ? parseFloat(balance) : 0;
+  const balanceValue = balance !== null ? parseFloat(balance) : 0;
   const maxContribution = Math.min(balanceValue, remainingAmount);
 
-  if (!isValidAccount) {
+  if (isValidAccount === false) {
     return (
       <p className="text-sm font-mono text-muted-foreground">
         MINIMUM SUPPORT: 1 MTLCROWD TOKEN
@@ -38,7 +38,7 @@ export function BalanceDisplay({
     );
   }
 
-  if (error) {
+  if (error !== null) {
     return (
       <div className="space-y-2">
         <p className="text-sm font-mono text-red-500">

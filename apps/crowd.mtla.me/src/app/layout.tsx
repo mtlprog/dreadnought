@@ -1,9 +1,11 @@
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { LocaleProvider } from "@/components/locale-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
-import type { Metadata, ReactNode } from "next";
+import type { ReactNode } from "react";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -54,9 +56,14 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <LocaleProvider initialLocale={locale}>
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <TooltipProvider
+            delayDuration={300}
+            skipDelayDuration={100}
+          >
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </TooltipProvider>
         </LocaleProvider>
       </body>
     </html>

@@ -10,7 +10,7 @@ interface ProjectPageProps {
 
 async function getProject(code: string): Promise<Project | null> {
   try {
-    const baseUrl = process.env["NEXT_PUBLIC_BASE_URL"] || "http://localhost:3000";
+    const baseUrl = process.env["NEXT_PUBLIC_BASE_URL"] ?? "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/projects/${encodeURIComponent(code)}`, {
       next: { revalidate: 300 },
     });
@@ -19,8 +19,8 @@ async function getProject(code: string): Promise<Project | null> {
       return null;
     }
 
-    const result = await response.json();
-    return result.success ? result.data : null;
+    const result = await response.json() as { success: boolean; data: Project };
+    return result.success === true ? result.data : null;
   } catch (error) {
     console.error("Error fetching project:", error);
     return null;
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: ProjectPageProps) {
   const { code } = await params;
   const project = await getProject(code);
 
-  if (!project) {
+  if (project === null) {
     return {
       title: "Project Not Found",
       description: "The requested project could not be found.",
@@ -65,7 +65,7 @@ export default async function ProjectPageRoute({ params }: ProjectPageProps) {
   const { code } = await params;
   const project = await getProject(code);
 
-  if (!project) {
+  if (project === null) {
     notFound();
   }
 

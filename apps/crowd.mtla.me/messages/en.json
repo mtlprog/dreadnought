@@ -125,7 +125,11 @@
       "networkFee": "NETWORK FEE",
       "checkingBalance": "CHECKING BALANCE...",
       "fullyFunded": "PROJECT FULLY FUNDED",
-      "noMTLTokens": "NO MTLCROWD TOKENS"
+      "noMTLTokens": "NO MTLCROWD TOKENS",
+      "tooltips": {
+        "accountId": "Enter your Stellar account ID (starts with G). This is where your MTLCrowd tokens will be deducted from. Your account ID is like your wallet address on the Stellar network.",
+        "amount": "Specify how many MTLCrowd tokens you want to spend on this project. Each token represents your donation credit to the Montelibero Association."
+      }
     },
     "projectCode": "PROJECT CODE",
     "deadline": "DEADLINE",

@@ -1,15 +1,15 @@
 import { getProject } from "@/lib/projects";
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ code: string }> },
 ) {
   try {
     const { code } = await params;
     const project = await getProject(code);
 
-    if (!project) {
+    if (project === null) {
       return NextResponse.json(
         {
           success: false,

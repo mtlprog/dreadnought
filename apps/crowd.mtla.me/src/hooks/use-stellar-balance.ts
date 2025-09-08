@@ -8,7 +8,7 @@ export function useStellarBalance() {
   const lastCheckedAccountRef = useRef<string | null>(null);
 
   const checkBalance = useCallback(async (accountId: string) => {
-    if (accountId === "" || !isValidStellarAccountId(accountId)) {
+    if (accountId === "" || isValidStellarAccountId(accountId) === false) {
       setBalance(null);
       setError(null);
       return;

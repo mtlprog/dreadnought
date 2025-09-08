@@ -54,16 +54,20 @@ function detectLocale(): Locale {
   }
 
   // Check localStorage for migration
-  const localStorageLocale = localStorage.getItem("locale");
+  const localStorageLocale = typeof globalThis.localStorage !== "undefined"
+    ? globalThis.localStorage.getItem("locale")
+    : null;
   if (localStorageLocale !== null && (localStorageLocale === "en" || localStorageLocale === "ru")) {
     // Migrate to cookie
     setCookie("locale", localStorageLocale);
-    localStorage.removeItem("locale");
+    if (typeof globalThis.localStorage !== "undefined") {
+      globalThis.localStorage.removeItem("locale");
+    }
     return localStorageLocale as Locale;
   }
 
   // Check browser language
-  const browserLang = navigator.language.slice(0, 2);
+  const browserLang = typeof globalThis.navigator !== "undefined" ? globalThis.navigator.language.slice(0, 2) : "en";
   if (browserLang === "ru") {
     setCookie("locale", "ru");
     return "ru";

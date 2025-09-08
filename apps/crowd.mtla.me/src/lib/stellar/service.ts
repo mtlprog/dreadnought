@@ -142,7 +142,7 @@ export const StellarServiceLive = Layer.succeed(
               entry.code.toUpperCase() === normalizedCode
             );
 
-          if (!projectEntry) {
+          if (projectEntry === undefined) {
             return Effect.succeed(null);
           }
 

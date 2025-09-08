@@ -1,7 +1,7 @@
 "use client";
 
 import { TransactionResult } from "@/components/form/transaction-result";
-import { useTranslations } from "@/hooks/use-translations";
+import { useLocale } from "@/components/locale-provider";
 import { addStellarUri } from "@/lib/stellar-uri-service";
 import type { Project } from "@/types/project";
 import { useState } from "react";
@@ -13,7 +13,7 @@ interface ProjectPageProps {
 }
 
 export function ProjectPage({ project }: ProjectPageProps) {
-  const t = useTranslations();
+  const { t } = useLocale();
   const [transactionXDR, setTransactionXDR] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [isTelegramUrlLoading, setIsTelegramUrlLoading] = useState(false);
@@ -53,7 +53,7 @@ export function ProjectPage({ project }: ProjectPageProps) {
 
       const result = await response.json() as { success: boolean; transactionXDR?: string; error?: string };
 
-      if (result.success && result.transactionXDR) {
+      if (result.success === true && result.transactionXDR !== undefined) {
         setTransactionXDR(result.transactionXDR);
       }
     } catch (error) {
@@ -76,7 +76,7 @@ export function ProjectPage({ project }: ProjectPageProps) {
   };
 
   const handleTelegramOpen = async () => {
-    if (!transactionXDR) return;
+    if (transactionXDR === null) return;
 
     setIsTelegramUrlLoading(true);
     try {
@@ -124,7 +124,7 @@ export function ProjectPage({ project }: ProjectPageProps) {
 
             {/* Right Column - Support Form */}
             <div className="space-y-6">
-              {transactionXDR
+              {transactionXDR !== null
                 ? (
                   <div className="space-y-4">
                     <TransactionResult
@@ -141,7 +141,7 @@ export function ProjectPage({ project }: ProjectPageProps) {
                     />
 
                     {/* Telegram Error Display */}
-                    {telegramError && (
+                    {telegramError !== null && (
                       <div className="border-2 border-red-500 bg-red-50 p-4">
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-4 h-4 bg-red-500" />

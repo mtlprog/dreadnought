@@ -2,11 +2,13 @@ import { StellarAccountInput } from "@/components/form/stellar-account-input";
 import { useLocale } from "@/components/locale-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { useStellarBalance } from "@/hooks/use-stellar-balance";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
+import { HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { BalanceDisplay } from "./balance-display";
@@ -48,14 +50,14 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
 
   // Auto-fill account ID from localStorage
   useEffect(() => {
-    if (savedAccountId !== "" && isValidStellarAccountId(savedAccountId)) {
+    if (savedAccountId !== "" && isValidStellarAccountId(savedAccountId) === true) {
       setFormData(prev => ({ ...prev, userAccountId: savedAccountId }));
     }
   }, [savedAccountId]);
 
   // Check balance when account ID changes
   useEffect(() => {
-    if (formData.userAccountId !== "" && isValidStellarAccountId(formData.userAccountId)) {
+    if (formData.userAccountId !== "" && isValidStellarAccountId(formData.userAccountId) === true) {
       if (formData.userAccountId !== savedAccountId) {
         setSavedAccountId(formData.userAccountId);
       }
@@ -67,7 +69,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
 
   // Auto-set amount based on balance and remaining funding
   useEffect(() => {
-    if (balance !== null && !isLoadingBalance) {
+    if (balance !== null && isLoadingBalance === false) {
       const balanceValue = parseFloat(balance);
       const targetAmount = parseFloat(project.target_amount);
       const currentAmount = parseFloat(project.current_amount);
@@ -109,7 +111,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
     e.preventDefault();
 
     const validation = validate(formData);
-    if (!validation.success) {
+    if (validation.success === false) {
       return;
     }
 
@@ -185,12 +187,13 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
           value={formData.userAccountId}
           onChange={(value) => handleInputChange("userAccountId", value)}
           error={errors["userAccountId"]}
+          tooltip={t("project.support.tooltips.accountId")}
         />
 
         {/* BUY MTL CROWD Button when user has no tokens */}
         {formData.userAccountId !== ""
-          && isValidStellarAccountId(formData.userAccountId)
-          && !isLoadingBalance
+          && isValidStellarAccountId(formData.userAccountId) === true
+          && isLoadingBalance === false
           && balanceError === null
           && balance !== null
           && balanceValue === 0 && (
@@ -224,7 +227,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 }}
                 disabled={isLoadingBalance}
               >
-                {isLoadingBalance ? t("common.loading") : t("project.support.refreshBalance")}
+                {isLoadingBalance === true ? t("common.loading") : t("project.support.refreshBalance")}
               </Button>
             </div>
           </div>
@@ -232,16 +235,37 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
 
         {/* Show funding form only if user has tokens */}
         {!(formData.userAccountId !== ""
-          && isValidStellarAccountId(formData.userAccountId)
-          && !isLoadingBalance
+          && isValidStellarAccountId(formData.userAccountId) === true
+          && isLoadingBalance === false
           && balanceError === null
           && balance !== null
           && balanceValue === 0) && (
           <>
             <div className="space-y-3">
-              <label className="block text-lg font-bold text-foreground uppercase">
-                {t("project.support.amountLabel")}
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="block text-lg font-bold text-foreground uppercase">
+                  {t("project.support.amountLabel")}
+                </label>
+                <Tooltip delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center w-4 h-4 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors"
+                      aria-label="Show help information"
+                      tabIndex={0}
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    className="max-w-xs font-mono text-xs border-primary"
+                  >
+                    <p>{t("project.support.tooltips.amount")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Input
                 type="number"
                 value={formData.amount}
@@ -302,17 +326,17 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
 
             <Button
               type="submit"
-              disabled={isSubmitting
-                || isLoadingBalance
+              disabled={isSubmitting === true
+                || isLoadingBalance === true
                 || remainingAmount === 0
                 || (balance !== null && balanceValue === 0)
                 || (balance !== null && balanceValue < parseFloat(formData.amount !== "" ? formData.amount : "0"))}
               className="w-full text-xl py-6"
               size="lg"
             >
-              {isSubmitting
+              {isSubmitting === true
                 ? t("funding.processing")
-                : isLoadingBalance
+                : isLoadingBalance === true
                 ? t("project.support.checkingBalance")
                 : remainingAmount === 0
                 ? t("project.support.fullyFunded")

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { z } from "zod";
 
+// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 export function useFormValidation<T>(schema: z.ZodSchema<T>) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isValidating, setIsValidating] = useState(false);
