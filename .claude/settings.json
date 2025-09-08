@@ -1,0 +1,80 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun *)",
+      "Bash(git *)",
+      "Bash(bunx *)",
+      "Read(**/*)",
+      "Write(**/*)",
+      "Edit(**/*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./node_modules/**)",
+      "Read(./dist/**)",
+      "Read(./build/**)",
+      "Read(./.next/**)",
+      "Bash(rm -rf /)",
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ]
+  },
+  "env": {
+    "EDITOR": "code",
+    "NODE_ENV": "development"
+  },
+  "hooks": {
+    "beforeEdit": [
+      {
+        "pattern": "*.{ts,tsx}",
+        "command": "bunx prettier --write ${file}"
+      }
+    ],
+    "afterEdit": [
+      {
+        "pattern": "*.{ts,tsx}",
+        "command": "bunx tsc --noEmit ${file}"
+      },
+      {
+        "pattern": "packages/**/*.{ts,tsx}",
+        "command": "bun test ${file%.ts}.test.ts"
+      }
+    ],
+    "beforeCommit": [
+      {
+        "command": "bun test"
+      },
+      {
+        "command": "bun run lint"
+      }
+    ]
+  },
+  "commands": {
+    "dev": "bun dev",
+    "test": "bun test",
+    "build": "bun build",
+    "lint": "bunx eslint . --fix",
+    "typecheck": "bunx tsc --noEmit"
+  },
+  "filePatterns": {
+    "ignore": [
+      "node_modules",
+      ".next",
+      "dist",
+      "build",
+      ".git",
+      ".DS_Store",
+      "*.log",
+      ".env*"
+    ],
+    "watch": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.css",
+      "**/*.json",
+      "**/*.md"
+    ]
+  }
+}
