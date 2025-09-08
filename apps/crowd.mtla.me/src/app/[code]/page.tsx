@@ -10,7 +10,7 @@ interface ProjectPageProps {
 
 async function getProject(code: string): Promise<Project | null> {
   try {
-    const baseUrl = process.env["NEXT_PUBLIC_BASE_URL"] ?? "http://localhost:3000";
+    const baseUrl = process.env["NEXT_PUBLIC_BASE_URL"] ?? "https://crowd.mtla.me";
     const response = await fetch(`${baseUrl}/api/projects/${encodeURIComponent(code)}`, {
       next: { revalidate: 300 },
     });
