@@ -34,8 +34,7 @@ const addCommissionOperation = (config: StellarConfig) =>
     amount: COMMISSION_AMOUNT,
   });
 
-const addTrustLineOperation = (asset: Asset, limit = "922337203685.4775807") =>
-  Operation.changeTrust({ asset, limit });
+const addTrustLineOperation = (asset: Asset, limit = "922337203685.4775807") => Operation.changeTrust({ asset, limit });
 
 const addBuyOfferOperation = (selling: Asset, buying: Asset, buyAmount: string, price = "1.0000000") =>
   Operation.manageBuyOffer({

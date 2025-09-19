@@ -1,6 +1,6 @@
 "use client";
 
-import { type Locale, LocaleService, LocaleServiceLive } from "@/services/locale";
+import { type Locale, LocaleServiceLive, LocaleServiceTag } from "@/services/locale";
 import { Effect, pipe } from "effect";
 import { useEffect, useState } from "react";
 import enMessages from "../../messages/en.json";
@@ -21,7 +21,7 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
     if (initialLocale !== undefined) {
       // If initial locale is provided from server, use it and set cookie
       const program = pipe(
-        LocaleService,
+        LocaleServiceTag,
         Effect.flatMap(service => service.setLocale(initialLocale)),
         Effect.tap(() =>
           Effect.sync(() => {
@@ -41,7 +41,7 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
     } else {
       // Detect browser locale
       const program = pipe(
-        LocaleService,
+        LocaleServiceTag,
         Effect.flatMap(service => service.detectBrowserLocale),
         Effect.tap(detectedLocale =>
           Effect.sync(() => {
@@ -64,7 +64,7 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
 
   const setLocale = (newLocale: Locale) => {
     const program = pipe(
-      LocaleService,
+      LocaleServiceTag,
       Effect.flatMap(service => service.setLocale(newLocale)),
       Effect.tap(() => Effect.sync(() => setLocaleState(newLocale))),
       Effect.catchAll(error => Effect.sync(() => console.error("Failed to set locale:", error))),
