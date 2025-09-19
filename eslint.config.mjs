@@ -32,12 +32,7 @@ export default [
       // Configuration files
       "*.config.js",
       "*.config.mjs",
-      "**/postcss.config.mjs",
-      "**/next.config.ts",
-      "**/next.config.js",
-      "**/next.config.mjs",
       "eslint.config.mjs",
-      "**/next-env.d.ts",
       
       // Logs
       "*.log",
@@ -135,7 +130,7 @@ export default [
         "allowString": false,
         "allowNumber": false,
         "allowNullableObject": false,
-        "allowNullableBoolean": true,
+        "allowNullableBoolean": false,
         "allowNullableString": false,
         "allowNullableNumber": false,
         "allowAny": false
@@ -170,7 +165,6 @@ export default [
     files: ["**/components/**/*.{ts,tsx}", "**/app/**/*.{ts,tsx}", "**/lib/**/*.{ts,tsx}"],
     rules: {
       "@typescript-eslint/prefer-readonly-parameter-types": "off",
-      "@typescript-eslint/strict-boolean-expressions": "off",
     },
   },
 

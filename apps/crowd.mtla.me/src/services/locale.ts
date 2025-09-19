@@ -1,8 +1,8 @@
 import * as S from "@effect/schema/Schema";
 import { Context, Effect, Layer, pipe } from "effect";
 
-export const LocaleSchema = S.Literal("en", "ru");
-export type Locale = S.Schema.Type<typeof LocaleSchema>;
+export const Locale = S.Literal("en", "ru");
+export type Locale = S.Schema.Type<typeof Locale>;
 
 export class CookieError extends S.TaggedError<CookieError>()(
   "CookieError",
@@ -25,7 +25,7 @@ export class TranslationError extends S.TaggedError<TranslationError>()(
   "TranslationError",
   {
     key: S.String,
-    locale: LocaleSchema,
+    locale: Locale,
     message: S.String,
   },
 ) {}
@@ -37,7 +37,7 @@ export interface LocaleService {
   readonly detectBrowserLocale: Effect.Effect<Locale, LocaleError>;
 }
 
-export const LocaleServiceTag = Context.GenericTag<LocaleService>("@dreadnought/LocaleService");
+export const LocaleService = Context.GenericTag<LocaleService>("@dreadnought/LocaleService");
 
 const getCookieEffect = (name: string): Effect.Effect<string | null, CookieError> =>
   pipe(
@@ -143,7 +143,7 @@ const getNestedValue = (obj: Readonly<Record<string, unknown>>, path: string): s
   return typeof result === "string" ? result : path;
 };
 
-export const LocaleServiceLive = Layer.succeed(LocaleServiceTag, {
+export const LocaleServiceLive = Layer.succeed(LocaleService, {
   getLocale: pipe(
     getCookieEffect("locale"),
     Effect.map(cookieValue => {
