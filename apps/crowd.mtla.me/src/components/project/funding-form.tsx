@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useDualBalance } from "@/hooks/use-dual-balance";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { COMMISSION_AMOUNT } from "@/lib/stellar/funding-service";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
 import { HelpCircle } from "lucide-react";
@@ -366,7 +367,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("project.support.serviceFee")}:</span>
-                  <span className="text-foreground">5 XLM</span>
+                  <span className="text-foreground">{COMMISSION_AMOUNT} XLM</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t("project.support.networkFee")}:</span>
