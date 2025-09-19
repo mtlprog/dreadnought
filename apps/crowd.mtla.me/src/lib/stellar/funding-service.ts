@@ -24,38 +24,6 @@ export const FundingServiceTag = Context.GenericTag<FundingService>(
 // EURMTL asset definition
 const EURMTL_ASSET = new Asset("EURMTL", "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V");
 
-// Commission configuration
-export const COMMISSION_AMOUNT = "0.0000000";
-
-const addCommissionOperation = (config: StellarConfig) =>
-  Operation.payment({
-    destination: config.commissionAccountId,
-    asset: Asset.native(),
-    amount: COMMISSION_AMOUNT,
-  });
-
-const addTrustLineOperation = (asset: Asset, limit = "922337203685.4775807") =>
-  Operation.changeTrust({ asset, limit });
-
-const addBuyOfferOperation = (selling: Asset, buying: Asset, buyAmount: string, price = "1.0000000") =>
-  Operation.manageBuyOffer({
-    selling,
-    buying,
-    buyAmount,
-    price,
-    offerId: "0",
-  });
-
-const addClaimableBalanceOperation = (asset: Asset, amount: string, platformKey: string, userKey: string) =>
-  Operation.createClaimableBalance({
-    asset,
-    amount,
-    claimants: [
-      new Claimant(platformKey),
-      new Claimant(userKey),
-    ],
-  });
-
 const createFundingTransactionImpl = (
   config: StellarConfig,
   userAccountId: string,
@@ -77,10 +45,35 @@ const createFundingTransactionImpl = (
           fee: BASE_FEE,
           networkPassphrase: config.networkPassphrase,
         })
-          .addOperation(addTrustLineOperation(crowdfundingAsset))
-          .addOperation(addBuyOfferOperation(mtlCrowdAsset, crowdfundingAsset, amount))
-          .addOperation(addCommissionOperation(config))
-          .addOperation(addClaimableBalanceOperation(crowdfundingAsset, amount, config.publicKey, userAccountId))
+          // Open trust line to C-token if it doesn't exist
+          .addOperation(Operation.changeTrust({
+            asset: crowdfundingAsset,
+            limit: "922337203685.4775807", // Maximum possible limit
+          }))
+          // Buy C-tokens with MTLCrowd tokens (1:1 exchange)
+          .addOperation(Operation.manageBuyOffer({
+            selling: mtlCrowdAsset,
+            buying: crowdfundingAsset,
+            buyAmount: amount,
+            price: "1.0000000", // 1:1 exchange rate
+            offerId: "0", // New offer
+          }))
+          // Send 5 XLM commission to the commission account
+          .addOperation(Operation.payment({
+            destination: config.commissionAccountId,
+            asset: Asset.native(),
+            amount: "5.0000000",
+          }))
+          // Create claimable balance with the C-tokens
+          // This allows user to reclaim their funds if needed
+          .addOperation(Operation.createClaimableBalance({
+            asset: crowdfundingAsset,
+            amount,
+            claimants: [
+              new Claimant(config.publicKey), // Platform can claim
+              new Claimant(userAccountId), // User can reclaim
+            ],
+          }))
           .setTimeout(TimeoutInfinite)
           .build();
 
@@ -116,19 +109,59 @@ const createFundingTransactionWithEURMTLImpl = (
         const transactionBuilder = new TransactionBuilder(userAccount, {
           fee: BASE_FEE,
           networkPassphrase: config.networkPassphrase,
-        })
-          .addOperation(addTrustLineOperation(mtlCrowdAsset))
-          .addOperation(addTrustLineOperation(crowdfundingAsset));
+        });
+
+        // Open trust line to MTLCrowd if it doesn't exist (needed for EURMTL exchange)
+        transactionBuilder.addOperation(Operation.changeTrust({
+          asset: mtlCrowdAsset,
+          limit: "922337203685.4775807", // Maximum possible limit
+        }));
+
+        // Open trust line to C-token if it doesn't exist
+        transactionBuilder.addOperation(Operation.changeTrust({
+          asset: crowdfundingAsset,
+          limit: "922337203685.4775807", // Maximum possible limit
+        }));
 
         // If EURMTL amount > 0, create exchange order EURMTL -> MTLCrowd (1:1)
         if (parseFloat(eurMtlAmount) > 0) {
-          transactionBuilder.addOperation(addBuyOfferOperation(EURMTL_ASSET, mtlCrowdAsset, eurMtlAmount));
+          transactionBuilder.addOperation(Operation.manageBuyOffer({
+            selling: EURMTL_ASSET,
+            buying: mtlCrowdAsset,
+            buyAmount: eurMtlAmount,
+            price: "1.0000000", // 1:1 exchange rate
+            offerId: "0", // New offer
+          }));
         }
 
+        // Buy C-tokens with MTLCrowd tokens (1:1 exchange) - use total amount
+        transactionBuilder.addOperation(Operation.manageBuyOffer({
+          selling: mtlCrowdAsset,
+          buying: crowdfundingAsset,
+          buyAmount: totalAmount,
+          price: "1.0000000", // 1:1 exchange rate
+          offerId: "0", // New offer
+        }));
+
+        // Send 5 XLM commission to the commission account
+        transactionBuilder.addOperation(Operation.payment({
+          destination: config.commissionAccountId,
+          asset: Asset.native(),
+          amount: "5.0000000",
+        }));
+
+        // Create claimable balance with the C-tokens
+        // This allows user to reclaim their funds if needed
+        transactionBuilder.addOperation(Operation.createClaimableBalance({
+          asset: crowdfundingAsset,
+          amount: totalAmount,
+          claimants: [
+            new Claimant(config.publicKey), // Platform can claim
+            new Claimant(userAccountId), // User can reclaim
+          ],
+        }));
+
         const transaction = transactionBuilder
-          .addOperation(addBuyOfferOperation(mtlCrowdAsset, crowdfundingAsset, totalAmount))
-          .addOperation(addCommissionOperation(config))
-          .addOperation(addClaimableBalanceOperation(crowdfundingAsset, totalAmount, config.publicKey, userAccountId))
           .setTimeout(TimeoutInfinite)
           .build();
 
