@@ -3,6 +3,9 @@ import { Effect, pipe } from "effect";
 import { parseCrowdToken } from "./crowd-token";
 import { EnvironmentError } from "./errors";
 
+// Commission fee in XLM for transactions
+export const TRANSACTION_COMMISSION_FEE = "0.5000000";
+
 export interface StellarConfig {
   readonly publicKey: string;
   readonly network: string;

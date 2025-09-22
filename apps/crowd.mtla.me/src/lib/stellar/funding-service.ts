@@ -1,6 +1,6 @@
 import { Asset, BASE_FEE, Claimant, Operation, TimeoutInfinite, TransactionBuilder } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
-import { getStellarConfig, type StellarConfig } from "./config";
+import { getStellarConfig, type StellarConfig, TRANSACTION_COMMISSION_FEE } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 
 export interface FundingService {
@@ -58,11 +58,11 @@ const createFundingTransactionImpl = (
             price: "1.0000000", // 1:1 exchange rate
             offerId: "0", // New offer
           }))
-          // Send 5 XLM commission to the commission account
+          // Send commission to the commission account
           .addOperation(Operation.payment({
             destination: config.commissionAccountId,
             asset: Asset.native(),
-            amount: "5.0000000",
+            amount: TRANSACTION_COMMISSION_FEE,
           }))
           // Create claimable balance with the C-tokens
           // This allows user to reclaim their funds if needed
@@ -143,11 +143,11 @@ const createFundingTransactionWithEURMTLImpl = (
           offerId: "0", // New offer
         }));
 
-        // Send 5 XLM commission to the commission account
+        // Send commission to the commission account
         transactionBuilder.addOperation(Operation.payment({
           destination: config.commissionAccountId,
           asset: Asset.native(),
-          amount: "5.0000000",
+          amount: TRANSACTION_COMMISSION_FEE,
         }));
 
         // Create claimable balance with the C-tokens

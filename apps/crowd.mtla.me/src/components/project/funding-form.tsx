@@ -246,41 +246,41 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
           && balanceError === null
           && balance !== null
           && totalAvailable === 0 && (
-          <div className="border-2 border-accent bg-card p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-4 h-4 bg-accent" />
-              <span className="text-lg font-bold text-accent uppercase">
-                {t("project.support.noTokens")}
-              </span>
+            <div className="border-2 border-accent bg-card p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-4 h-4 bg-accent" />
+                <span className="text-lg font-bold text-accent uppercase">
+                  {t("project.support.noTokens")}
+                </span>
+              </div>
+              <p className="text-sm font-mono text-muted-foreground mb-4">
+                {t("project.support.noTokensMessage")}
+              </p>
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  variant="default"
+                  size="lg"
+                  className="w-full text-xl py-4"
+                  onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
+                >
+                  {t("project.support.buyTokens")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-sm py-2"
+                  onClick={() => {
+                    void checkBalance(formData.userAccountId);
+                  }}
+                  disabled={isLoadingBalance}
+                >
+                  {isLoadingBalance ? t("common.loading") : t("project.support.refreshBalance")}
+                </Button>
+              </div>
             </div>
-            <p className="text-sm font-mono text-muted-foreground mb-4">
-              {t("project.support.noTokensMessage")}
-            </p>
-            <div className="space-y-3">
-              <Button
-                type="button"
-                variant="default"
-                size="lg"
-                className="w-full text-xl py-4"
-                onClick={() => window.open("https://eurmtl.me/asset/MTLCrowd", "_blank")}
-              >
-                {t("project.support.buyTokens")}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-full text-sm py-2"
-                onClick={() => {
-                  void checkBalance(formData.userAccountId);
-                }}
-                disabled={isLoadingBalance}
-              >
-                {isLoadingBalance ? t("common.loading") : t("project.support.refreshBalance")}
-              </Button>
-            </div>
-          </div>
-        )}
+          )}
 
         {/* Show funding form only if user has tokens */}
         {!(formData.userAccountId !== ""
@@ -289,116 +289,116 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
           && balanceError === null
           && balance !== null
           && totalAvailable === 0) && (
-          <>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <label className="block text-lg font-bold text-foreground uppercase">
-                  {t("project.support.amountLabel")}
-                </label>
-                <Tooltip delayDuration={200}>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      className="inline-flex items-center justify-center w-4 h-4 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors"
-                      aria-label="Show help information"
-                      tabIndex={0}
+            <>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <label className="block text-lg font-bold text-foreground uppercase">
+                    {t("project.support.amountLabel")}
+                  </label>
+                  <Tooltip delayDuration={200}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="inline-flex items-center justify-center w-4 h-4 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors"
+                        aria-label="Show help information"
+                        tabIndex={0}
+                      >
+                        <HelpCircle className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      align="start"
+                      className="max-w-xs font-mono text-xs border-primary"
                     >
-                      <HelpCircle className="w-4 h-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    align="start"
-                    className="max-w-xs font-mono text-xs border-primary"
-                  >
-                    <p>{t("project.support.tooltips.amount")}</p>
-                  </TooltipContent>
-                </Tooltip>
+                      <p>{t("project.support.tooltips.amount")}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <Input
+                  type="number"
+                  value={formData.amount}
+                  onChange={(e) => handleInputChange("amount", e.target.value)}
+                  min="1"
+                  max={balance !== null && remainingAmount > 0
+                    ? Math.floor(Math.min(totalAvailable, remainingAmount)).toString()
+                    : undefined}
+                  disabled={balance !== null && totalAvailable === 0 || remainingAmount === 0}
+                  className="text-xl text-center"
+                  placeholder="100"
+                />
+
+                <BalanceDisplay
+                  accountId={formData.userAccountId}
+                  balance={balance !== null ? balance.mtlCrowd : null}
+                  eurMtlBalance={balance !== null ? balance.eurMtl : null}
+                  isLoading={isLoadingBalance}
+                  error={balanceError}
+                  remainingAmount={remainingAmount}
+                  eurMtlSpend={currentSpending.eurMtlAmount !== "0" ? formData.amount : undefined}
+                  onRefresh={() => {
+                    void checkBalance(formData.userAccountId);
+                  }}
+                />
+
+                {errors["amount"] !== undefined && (
+                  <p className="text-sm text-red-500">
+                    {errors["amount"]}
+                  </p>
+                )}
               </div>
-              <Input
-                type="number"
-                value={formData.amount}
-                onChange={(e) => handleInputChange("amount", e.target.value)}
-                min="1"
-                max={balance !== null && remainingAmount > 0
-                  ? Math.floor(Math.min(totalAvailable, remainingAmount)).toString()
-                  : undefined}
-                disabled={balance !== null && totalAvailable === 0 || remainingAmount === 0}
-                className="text-xl text-center"
-                placeholder="100"
-              />
 
-              <BalanceDisplay
-                accountId={formData.userAccountId}
-                balance={balance !== null ? balance.mtlCrowd : null}
-                eurMtlBalance={balance !== null ? balance.eurMtl : null}
-                isLoading={isLoadingBalance}
-                error={balanceError}
-                remainingAmount={remainingAmount}
-                eurMtlSpend={currentSpending.eurMtlAmount !== "0" ? formData.amount : undefined}
-                onRefresh={() => {
-                  void checkBalance(formData.userAccountId);
-                }}
-              />
-
-              {errors["amount"] !== undefined && (
-                <p className="text-sm text-red-500">
-                  {errors["amount"]}
-                </p>
-              )}
-            </div>
-
-            <div className="border-2 border-secondary bg-card p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-4 h-4 bg-secondary" />
-                <span className="text-lg font-bold text-secondary uppercase">
-                  {t("project.support.transactionPreview")}
-                </span>
-              </div>
-              <div className="space-y-2 text-sm font-mono">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("project.support.amount")}:</span>
-                  <span className="text-foreground">{formData.amount !== "" ? formData.amount : "0"} MTLCrowd</span>
+              <div className="border-2 border-secondary bg-card p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-4 h-4 bg-secondary" />
+                  <span className="text-lg font-bold text-secondary uppercase">
+                    {t("project.support.transactionPreview")}
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("project.support.project")}:</span>
-                  <span className="text-foreground">{project.code}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("project.support.serviceFee")}:</span>
-                  <span className="text-foreground">5 XLM</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("project.support.networkFee")}:</span>
-                  <span className="text-foreground">~0.00001 XLM</span>
+                <div className="space-y-2 text-sm font-mono">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("project.support.amount")}:</span>
+                    <span className="text-foreground">{formData.amount !== "" ? formData.amount : "0"} MTLCrowd</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("project.support.project")}:</span>
+                    <span className="text-foreground">{project.code}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("project.support.serviceFee")}:</span>
+                    <span className="text-foreground">0.5 XLM</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">{t("project.support.networkFee")}:</span>
+                    <span className="text-foreground">~0.00001 XLM</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <Button
-              type="submit"
-              disabled={isSubmitting
-                || isLoadingBalance
-                || remainingAmount === 0
-                || (balance !== null && totalAvailable === 0)
-                || (balance !== null && totalAvailable < parseFloat(formData.amount !== "" ? formData.amount : "0"))}
-              className="w-full text-xl py-6"
-              size="lg"
-            >
-              {isSubmitting
-                ? t("funding.processing")
-                : isLoadingBalance
-                ? t("project.support.checkingBalance")
-                : remainingAmount === 0
-                ? t("project.support.fullyFunded")
-                : (balance !== null && totalAvailable === 0)
-                ? t("project.support.noMTLTokens")
-                : (balance !== null && totalAvailable < parseFloat(formData.amount !== "" ? formData.amount : "0"))
-                ? t("funding.insufficientBalance")
-                : t("funding.fundButton")}
-            </Button>
-          </>
-        )}
+              <Button
+                type="submit"
+                disabled={isSubmitting
+                  || isLoadingBalance
+                  || remainingAmount === 0
+                  || (balance !== null && totalAvailable === 0)
+                  || (balance !== null && totalAvailable < parseFloat(formData.amount !== "" ? formData.amount : "0"))}
+                className="w-full text-xl py-6"
+                size="lg"
+              >
+                {isSubmitting
+                  ? t("funding.processing")
+                  : isLoadingBalance
+                    ? t("project.support.checkingBalance")
+                    : remainingAmount === 0
+                      ? t("project.support.fullyFunded")
+                      : (balance !== null && totalAvailable === 0)
+                        ? t("project.support.noMTLTokens")
+                        : (balance !== null && totalAvailable < parseFloat(formData.amount !== "" ? formData.amount : "0"))
+                          ? t("funding.insufficientBalance")
+                          : t("funding.fundButton")}
+              </Button>
+            </>
+          )}
       </form>
     </div>
   );
