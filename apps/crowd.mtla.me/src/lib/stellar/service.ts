@@ -3,7 +3,13 @@ import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 import type { ProjectData, ProjectInfo } from "./types";
-import { calculateRaisedAmount, countUniqueSupporters, fetchProjectDataFromIPFS, isProjectExpired } from "./utils";
+import {
+  calculateRaisedAmount,
+  countUniqueSupporters,
+  fetchProjectDataFromIPFS,
+  isProjectExpired,
+  sortProjectsByPriority,
+} from "./utils";
 
 export interface StellarService {
   readonly getProjects: () => Effect.Effect<ProjectInfo[], StellarServiceError>;
@@ -296,9 +302,10 @@ export const StellarServiceLive = Layer.succeed(
             { concurrency: "unbounded" },
           );
         }),
-        Effect.map((projects: readonly (ProjectInfo | null)[]) =>
-          projects.filter((p: Readonly<ProjectInfo | null>): p is ProjectInfo => p !== null)
-        ),
+        Effect.map((projects: readonly (ProjectInfo | null)[]) => {
+          const validProjects = projects.filter((p: Readonly<ProjectInfo | null>): p is ProjectInfo => p !== null);
+          return sortProjectsByPriority(validProjects);
+        }),
       ),
   }),
 );

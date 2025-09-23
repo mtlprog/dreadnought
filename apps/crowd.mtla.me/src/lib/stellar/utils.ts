@@ -1,7 +1,7 @@
 import type { Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
 import { StellarError } from "./errors";
-import type { ProjectData } from "./types";
+import type { ProjectData, ProjectInfo } from "./types";
 
 /**
  * Fetch project data from IPFS using CID
@@ -93,4 +93,27 @@ export const calculateRaisedAmount = (
   }
 
   return totalAmount.toString();
+};
+
+/**
+ * Sort projects by deadline (ascending) and raised amount (descending)
+ * Projects with sooner deadlines and higher raised amounts appear first
+ */
+export const sortProjectsByPriority = (projects: readonly ProjectInfo[]): ProjectInfo[] => {
+  return [...projects].sort((a, b) => {
+    const aDeadline = new Date(a.deadline);
+    const bDeadline = new Date(b.deadline);
+    const aAmount = parseFloat(a.current_amount);
+    const bAmount = parseFloat(b.current_amount);
+
+    // First sort by deadline (ascending - sooner deadlines first)
+    const deadlineComparison = aDeadline.getTime() - bDeadline.getTime();
+
+    if (deadlineComparison !== 0) {
+      return deadlineComparison;
+    }
+
+    // If deadlines are equal, sort by raised amount (descending - higher amounts first)
+    return bAmount - aAmount;
+  });
 };
