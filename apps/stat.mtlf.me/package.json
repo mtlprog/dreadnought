@@ -1,17 +1,30 @@
 {
-  "name": "stat.mtlf.me",
+  "name": "@dreadnought/stat.mtlf.me",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cli": "bun run src/cli/index.ts"
   },
   "dependencies": {
+    "@effect/platform": "latest",
+    "@effect/platform-bun": "latest",
+    "@effect/schema": "latest",
+    "@stellar/stellar-sdk": "^12.3.0",
+    "chalk": "^5.3.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "commander": "^11.1.0",
+    "effect": "^3.11.0",
+    "lucide-react": "^0.542.0",
+    "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.4"
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "typescript": "^5",
@@ -21,7 +34,7 @@
     "@tailwindcss/postcss": "^4",
     "tailwindcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "15.5.4",
+    "eslint-config-next": "15.5.2",
     "@eslint/eslintrc": "^3"
   }
 }

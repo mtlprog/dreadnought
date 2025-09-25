@@ -8,7 +8,11 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(mkdir:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(STELLAR_NETWORK=mainnet bun run cli price -a XLM --token-a-issuer native -b USDC --token-b-issuer GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN)",
+      "Bash(bun:*)",
+      "Bash(STELLAR_NETWORK=mainnet bun run cli xlm-usdc)",
+      "Bash(STELLAR_NETWORK=mainnet bun run cli mtl-eurmtl)"
     ],
     "deny": [],
     "ask": []
