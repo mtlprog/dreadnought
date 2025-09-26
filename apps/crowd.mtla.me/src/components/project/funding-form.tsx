@@ -98,7 +98,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
 
   // Auto-set amount based on MTLCrowd balance only (previous logic with hundreds)
   useEffect(() => {
-    if (balance !== null && !isLoadingBalance) {
+    if (balance !== null && isLoadingBalance === false) {
       const mtlCrowdBalance = Math.floor(parseFloat(balance.mtlCrowd));
       const targetAmount = parseFloat(project.target_amount);
       const currentAmount = parseFloat(project.current_amount);
@@ -242,7 +242,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
         {/* BUY MTL CROWD Button when user has no MTLCrowd AND no EURMTL */}
         {formData.userAccountId !== ""
           && isValidStellarAccountId(formData.userAccountId) === true
-          && !isLoadingBalance
+          && isLoadingBalance === false
           && balanceError === null
           && balance !== null
           && totalAvailable === 0 && (
@@ -276,7 +276,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 }}
                 disabled={isLoadingBalance}
               >
-                {isLoadingBalance ? t("common.loading") : t("project.support.refreshBalance")}
+                {isLoadingBalance === true ? t("common.loading") : t("project.support.refreshBalance")}
               </Button>
             </div>
           </div>
@@ -285,7 +285,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
         {/* Show funding form only if user has tokens */}
         {!(formData.userAccountId !== ""
           && isValidStellarAccountId(formData.userAccountId) === true
-          && !isLoadingBalance
+          && isLoadingBalance === false
           && balanceError === null
           && balance !== null
           && totalAvailable === 0) && (
@@ -377,17 +377,17 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
 
             <Button
               type="submit"
-              disabled={isSubmitting
-                || isLoadingBalance
+              disabled={isSubmitting === true
+                || isLoadingBalance === true
                 || remainingAmount === 0
                 || (balance !== null && totalAvailable === 0)
                 || (balance !== null && totalAvailable < parseFloat(formData.amount !== "" ? formData.amount : "0"))}
               className="w-full text-xl py-6"
               size="lg"
             >
-              {isSubmitting
+              {isSubmitting === true
                 ? t("funding.processing")
-                : isLoadingBalance
+                : isLoadingBalance === true
                 ? t("project.support.checkingBalance")
                 : remainingAmount === 0
                 ? t("project.support.fullyFunded")

@@ -272,22 +272,334 @@ src/
     └── fixtures.ts    # Test data
 ```
 
-### Bun Test Pattern
+### Effect-TS Testing Patterns (CRITICAL)
+
+#### ManagedRuntime Pattern (MANDATORY)
 ```typescript
-import { describe, test, expect } from "bun:test"
-import { Effect, Layer } from "effect"
+import { describe, test, expect, afterEach } from "bun:test";
+import { Effect, ManagedRuntime, pipe } from "effect";
+import { ServiceName, ServiceNameLive } from "./service";
 
 describe("Service", () => {
-  const runtime = Runtime.make(TestLayer)
-  
-  test("should work", async () => {
-    const result = await pipe(
-      effectToTest,
-      runtime.runPromise
+  test("should work correctly", async () => {
+    const testRuntime = ManagedRuntime.make(ServiceNameLive);
+
+    try {
+      const program = pipe(
+        ServiceName,
+        Effect.flatMap((service) => service.method())
+      );
+
+      const result = await testRuntime.runPromise(program);
+      expect(result).toBe(expected);
+    } finally {
+      // ОБЯЗАТЕЛЬНО: всегда dispose runtime
+      await testRuntime.dispose();
+    }
+  });
+});
+```
+
+#### Multiple Service Dependencies
+```typescript
+import { Layer } from "effect";
+
+describe("Complex Service", () => {
+  test("should handle dependencies", async () => {
+    const TestLayer = Layer.merge(
+      ServiceALive,
+      Layer.merge(ServiceBLive, ServiceCLive)
+    );
+
+    const testRuntime = ManagedRuntime.make(TestLayer);
+
+    try {
+      const program = pipe(
+        Effect.all({
+          serviceA: ServiceA,
+          serviceB: ServiceB,
+        }),
+        Effect.flatMap(({ serviceA, serviceB }) =>
+          Effect.all([
+            serviceA.methodA(),
+            serviceB.methodB(),
+          ])
+        )
+      );
+
+      const [resultA, resultB] = await testRuntime.runPromise(program);
+      expect(resultA).toBe(expectedA);
+      expect(resultB).toBe(expectedB);
+    } finally {
+      await testRuntime.dispose();
+    }
+  });
+});
+```
+
+#### Error Testing Pattern
+```typescript
+test("should handle errors correctly", async () => {
+  const testRuntime = ManagedRuntime.make(ServiceLive);
+
+  try {
+    const program = pipe(
+      ServiceName,
+      Effect.flatMap((service) => service.failingMethod()),
+      Effect.catchTag("ExpectedError", (error) => Effect.succeed(error))
+    );
+
+    const result = await testRuntime.runPromise(program);
+    expect(result).toBeInstanceOf(ExpectedError);
+  } finally {
+    await testRuntime.dispose();
+  }
+});
+```
+
+#### Async Resource Testing
+```typescript
+test("should manage resources properly", async () => {
+  const testRuntime = ManagedRuntime.make(
+    Layer.merge(DatabaseLive, NetworkLive)
+  );
+
+  try {
+    const program = pipe(
+      Effect.all({
+        db: DatabaseService,
+        network: NetworkService,
+      }),
+      Effect.flatMap(({ db, network }) =>
+        pipe(
+          db.transaction((tx) =>
+            pipe(
+              network.fetchData(),
+              Effect.flatMap((data) => tx.insert(data))
+            )
+          )
+        )
+      )
+    );
+
+    const result = await testRuntime.runPromise(program);
+    expect(result.id).toBeDefined();
+  } finally {
+    await testRuntime.dispose();
+  }
+});
+```
+
+### Testing Anti-Patterns (FORBIDDEN)
+
+#### ❌ WRONG: Using non-existent Runtime.make()
+```typescript
+// ❌ НЕ СУЩЕСТВУЕТ - Runtime.make() не существует
+const runtime = Runtime.make(TestLayer); // ERROR!
+```
+
+#### ❌ WRONG: Not disposing runtime
+```typescript
+// ❌ УТЕЧКА РЕСУРСОВ - нет dispose()
+test("bad test", async () => {
+  const testRuntime = ManagedRuntime.make(ServiceLive);
+  const result = await testRuntime.runPromise(program);
+  // ОТСУТСТВУЕТ: await testRuntime.dispose();
+});
+```
+
+#### ❌ WRONG: Reusing runtime between tests
+```typescript
+// ❌ КОНФЛИКТ СОСТОЯНИЯ - переиспользование runtime
+describe("Bad Tests", () => {
+  const testRuntime = ManagedRuntime.make(ServiceLive); // ПЛОХО!
+
+  test("test1", async () => {
+    // runtime уже может быть в неправильном состоянии
+  });
+});
+```
+
+#### ✅ CORRECT: Fresh runtime per test
+```typescript
+// ✅ ПРАВИЛЬНО: новый runtime для каждого теста
+describe("Good Tests", () => {
+  test("test1", async () => {
+    const testRuntime = ManagedRuntime.make(ServiceLive);
+    try {
+      // test logic
+    } finally {
+      await testRuntime.dispose();
+    }
+  });
+
+  test("test2", async () => {
+    const testRuntime = ManagedRuntime.make(ServiceLive); // Новый!
+    try {
+      // test logic
+    } finally {
+      await testRuntime.dispose();
+    }
+  });
+});
+```
+
+### Runtime Configuration Patterns
+
+#### BunRuntime for Applications
+```typescript
+import { BunRuntime } from "@effect/platform-bun";
+import { Effect, pipe } from "effect";
+
+// ✅ ПРАВИЛЬНО: для production приложений
+const program = pipe(
+  Effect.all({
+    config: ConfigService,
+    stellar: StellarService,
+  }),
+  Effect.flatMap(({ config, stellar }) =>
+    stellar.loadAccount(config.defaultAccount)
+  )
+);
+
+// Запуск с BunRuntime
+BunRuntime.runMain(
+  pipe(
+    program,
+    Effect.provide(AppLayer),
+    Effect.tap(() => Effect.log("Application started"))
+  )
+);
+```
+
+#### Layer Composition Best Practices
+```typescript
+// ✅ ПРАВИЛЬНО: композиция слоев
+export const AppLayer = Layer.merge(
+  Layer.merge(ConfigServiceLive, LoggerServiceLive),
+  Layer.merge(
+    Layer.merge(DatabaseServiceLive, NetworkServiceLive),
+    Layer.merge(StellarServiceLive, PriceServiceLive)
+  )
+);
+
+// ✅ ПРАВИЛЬНО: для API роутов
+export async function GET() {
+  const program = pipe(
+    FundStructureService,
+    Effect.flatMap((service) => service.getFundStructure()),
+    Effect.provide(AppLayer),
+    Effect.catchAll((error) =>
+      Effect.fail({
+        error: "API Error",
+        message: error instanceof Error ? error.message : "Unknown error"
+      })
     )
-    expect(result).toBe(expected)
+  );
+
+  return Effect.runPromise(program)
+    .then(result => NextResponse.json(result))
+    .catch(error => NextResponse.json(error, { status: 500 }));
+}
+```
+
+### TypeScript Configuration Issues
+
+#### exactOptionalPropertyTypes Fix
+```typescript
+// ❌ WRONG: undefined assignment with exactOptionalPropertyTypes
+const result = {
+  ...baseObject,
+  optionalField: someCondition ? value : undefined // ERROR!
+};
+
+// ✅ CORRECT: conditional spread
+const result = {
+  ...baseObject,
+  ...(someCondition ? { optionalField: value } : {})
+};
+
+// ✅ CORRECT: explicit handling
+const result = someCondition
+  ? { ...baseObject, optionalField: value }
+  : baseObject;
+```
+
+#### Stellar SDK Integration with Effect
+```typescript
+import { Effect, pipe } from "effect";
+import { Server } from "@stellar/stellar-sdk/lib/horizon";
+
+// ✅ ПРАВИЛЬНО: оборачивание Stellar SDK в Effect
+export const loadAccount = (publicKey: string) => pipe(
+  Effect.tryPromise({
+    try: () => new Server(horizonUrl).loadAccount(publicKey),
+    catch: (error) => new StellarError({
+      cause: error,
+      message: `Failed to load account: ${publicKey}`
+    })
+  }),
+  Effect.tap(() => Effect.log(`Account loaded: ${publicKey}`)),
+  Effect.timeout("10 seconds")
+);
+
+// ✅ ПРАВИЛЬНО: обработка path finding
+export const findPaymentPath = (
+  source: Asset,
+  destination: Asset,
+  amount: string
+) => pipe(
+  Effect.tryPromise({
+    try: () => server.strictReceivePaymentPaths(
+      source,
+      destination,
+      amount
+    ).call(),
+    catch: (error) => new PathFindingError({ cause: error })
+  }),
+  Effect.map(response => response.records),
+  Effect.tap(paths => Effect.log(`Found ${paths.length} paths`))
+);
+```
+
+### Test Data Management
+```typescript
+// ✅ ПРАВИЛЬНО: тестовые фикстуры
+export const TestData = {
+  ACCOUNTS: {
+    MAIN_ISSUER: "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+    SUBFOND_MABIZ: "GAQ5ERJVI6IW5UVNPEVXUUVMXH3GCDHJ4BJAXMAAKPR5VBWWAUOMABIZ",
+  },
+  ASSETS: {
+    EURMTL: {
+      code: "EURMTL",
+      issuer: "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+      type: "credit_alphanum4" as const,
+    },
+    XLM: {
+      code: "XLM",
+      issuer: "",
+      type: "native" as const,
+    },
+  }
+} as const;
+
+// ✅ ПРАВИЛЬНО: mock сервисы для тестов
+export const MockStellarServiceLive = Layer.succeed(StellarService, {
+  loadAccount: (publicKey: string) => Effect.succeed({
+    id: publicKey,
+    sequence: "1234567890123456",
+    balances: [
+      { asset_type: "native", balance: "1000.0000000" },
+      {
+        asset_type: "credit_alphanum4",
+        asset_code: "EURMTL",
+        asset_issuer: TestData.ACCOUNTS.MAIN_ISSUER,
+        balance: "500.00"
+      }
+    ]
   })
-})
+});
 ```
 
 ## 🚫 Forbidden Patterns
@@ -303,6 +615,15 @@ describe("Service", () => {
 - ❌ Use npm/yarn/pnpm - use Bun
 - ❌ Commit directly to packages without tests
 - ❌ Store secrets in code
+
+### Effect-TS Anti-Patterns (CRITICAL)
+- ❌ **Runtime.make()** - НЕ СУЩЕСТВУЕТ! Use `ManagedRuntime.make()`
+- ❌ **runtime.runPromise()** on Runtime - НЕ СУЩЕСТВУЕТ! Use `testRuntime.runPromise()`
+- ❌ **Forgetting testRuntime.dispose()** - утечка ресурсов
+- ❌ **Reusing runtime between tests** - конфликт состояний
+- ❌ **Using undefined with exactOptionalPropertyTypes** - используй conditional spread
+- ❌ **Not using pipe() for Effect chains** - обязательно используй pipe
+- ❌ **Mixing async/await with Effect** - только Effect.tryPromise
 
 ## 📚 Package Documentation
 
@@ -320,28 +641,44 @@ All packages must be documented in `/packages/README.md`:
 ## 🎯 Priority Rules Summary
 
 1. **Effect-TS everywhere** - No exceptions
-2. **Ask before coding** - Requirements first
-3. **Check existing packages** - Reuse over rebuild
-4. **Develop in /apps** - Packages only when requested
-5. **Test package changes** - Maintain compatibility
-6. **Use Bun** - Not Node/npm
-7. **Zero border-radius** - Angular design
-8. **Trunk-based git** - Direct to master
-9. **Stellar with Effect** - Wrap all blockchain ops
-10. **Large UI elements** - Retrofuturistic scale
+2. **ManagedRuntime for tests** - Always dispose() in finally blocks
+3. **Ask before coding** - Requirements first
+4. **Check existing packages** - Reuse over rebuild
+5. **Develop in /apps** - Packages only when requested
+6. **Test package changes** - Maintain compatibility
+7. **Use Bun** - Not Node/npm
+8. **Zero border-radius** - Angular design
+9. **Trunk-based git** - Direct to master
+10. **Stellar with Effect** - Wrap all blockchain ops
+11. **Large UI elements** - Retrofuturistic scale
 
 ## Working Notes
 
 When working on this project:
+- **CRITICAL**: Always use `ManagedRuntime.make()` for tests, never `Runtime.make()`
+- **CRITICAL**: Always call `await testRuntime.dispose()` in finally blocks
+- **CRITICAL**: Create fresh runtime for each test - never reuse between tests
 - Always maintain the Effect-TS pattern consistency
 - Check `/packages/README.md` before implementing features
 - Ask for clarification on ambiguous requirements
 - Prefer explicit over implicit
+- Use conditional spread for optional properties with exactOptionalPropertyTypes
 - Document all decisions in code comments
 - Use descriptive commit messages
 - Keep components simple and composable
-- Test edge cases thoroughly
+- Test edge cases thoroughly with proper Error handling via Effect.catchTag
 - Consider mobile-first responsive design
 - Maintain high contrast accessibility
+- Always use pipe() for Effect chains
+- Wrap all Stellar SDK calls in Effect.tryPromise
+
+## ⚠️ Critical Testing Reminders
+
+**НИКОГДА НЕ ЗАБЫВАЙ:**
+1. `const testRuntime = ManagedRuntime.make(ServiceLive)` - правильный способ
+2. `try { ... } finally { await testRuntime.dispose() }` - обязательная структура
+3. Новый runtime для каждого теста - никогда не переиспользовать
+4. Используй `Effect.catchTag` для обработки ошибок в тестах
+5. Оборачивай все Stellar API в `Effect.tryPromise`
 
 Remember: The goal is sustainable, reusable code that grows thoughtfully from proven app implementations.

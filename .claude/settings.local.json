@@ -25,7 +25,12 @@
       "WebFetch(domain:stellar.github.io)",
       "Bash(STELLAR_NETWORK=mainnet bun run src/test-path.ts)",
       "Bash(STELLAR_NETWORK=mainnet bun run dev)",
-      "SlashCommand(/review)"
+      "SlashCommand(/review)",
+      "WebFetch(domain:effect-ts.github.io)",
+      "WebFetch(domain:effect.website)",
+      "Bash(eslint:*)",
+      "Bash(npx eslint:*)",
+      "Bash(./node_modules/.bin/eslint:*)"
     ],
     "deny": [],
     "ask": []

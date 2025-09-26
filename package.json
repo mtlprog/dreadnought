@@ -6,12 +6,16 @@
     "packages/*"
   ],
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint . --fix",
     "lint:fix": "eslint . --fix",
     "lint:packages": "eslint packages/",
     "lint:apps": "eslint apps/",
+    "typecheck": "bun run type-check",
     "type-check": "tsc --noEmit",
-    "check": "bun run type-check && bun run lint"
+    "test": "bun --filter '*' test",
+    "build": "bun --filter '*' run build",
+    "check": "bun run type-check && bun run lint",
+    "verify": "bun run lint && bun run typecheck && bun run test && bun run build"
   },
   "devDependencies": {
     "@types/bun": "latest",

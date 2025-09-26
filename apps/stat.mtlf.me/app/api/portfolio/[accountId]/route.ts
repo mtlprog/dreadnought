@@ -1,12 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type AssetInfo, PortfolioService, PortfolioServiceLive, PriceService, PriceServiceLive } from "@/lib/stellar";
 import { Effect, Layer, pipe } from "effect";
-import {
-  PortfolioService,
-  PortfolioServiceLive,
-  PriceService,
-  PriceServiceLive,
-  AssetInfo,
-} from "@/lib/stellar";
+import { type NextRequest, NextResponse } from "next/server";
 
 const AppLayer = Layer.merge(PortfolioServiceLive, PriceServiceLive);
 
@@ -64,7 +58,7 @@ const fetchPortfolioWithPrices = (accountId: string) =>
                 })),
                 xlmBalance: portfolio.xlmBalance,
               })
-            )
+            ),
           )
         ),
         Effect.flatMap((data) =>
@@ -75,10 +69,12 @@ const fetchPortfolioWithPrices = (accountId: string) =>
               ...data,
               xlmPriceInEURMTL: xlmPrice.price,
             })),
-            Effect.catchAll(() => Effect.succeed({
-              ...data,
-              xlmPriceInEURMTL: null,
-            })), // If XLM price fails, continue without it
+            Effect.catchAll(() =>
+              Effect.succeed({
+                ...data,
+                xlmPriceInEURMTL: null,
+              })
+            ), // If XLM price fails, continue without it
           )
         ),
       )
@@ -88,7 +84,7 @@ const fetchPortfolioWithPrices = (accountId: string) =>
 export async function GET(_request: NextRequest, { params }: RouteParams) {
   const { accountId } = await params;
 
-  if (!accountId) {
+  if (accountId.length === 0) {
     return NextResponse.json({ error: "Account ID is required" }, { status: 400 });
   }
 
@@ -99,13 +95,15 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     Effect.catchAll((error) =>
       pipe(
         Effect.log(`Portfolio API error: ${error}`),
-        Effect.flatMap(() => Effect.fail({
-          error: "Failed to fetch portfolio data",
-          message: error instanceof Error ? error.message : "Unknown error occurred",
-          details: error instanceof Error && error.stack ? error.stack : String(error)
-        }))
+        Effect.flatMap(() =>
+          Effect.fail({
+            error: "Failed to fetch portfolio data",
+            message: error instanceof Error ? error.message : "Unknown error occurred",
+            details: error instanceof Error && error.stack !== undefined ? error.stack : String(error),
+          })
+        ),
       )
-    )
+    ),
   );
 
   return Effect.runPromise(program)

@@ -1,8 +1,8 @@
-import { Horizon } from "@stellar/stellar-sdk";
+import type { Horizon } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig } from "./config";
-import { StellarError, EnvironmentError } from "./errors";
-import { AssetInfo } from "./types";
+import { type EnvironmentError, StellarError } from "./errors";
+import type { AssetInfo } from "./types";
 
 // Stellar account balance interface
 interface BalanceRecord {
@@ -40,7 +40,7 @@ export interface PortfolioService {
   ) => Effect.Effect<AccountPortfolio, StellarError | EnvironmentError>;
 }
 
-export const PortfolioService = Context.GenericTag<PortfolioService>("@dreadnought/PortfolioService");
+export const PortfolioServiceTag = Context.GenericTag<PortfolioService>("@dreadnought/PortfolioService");
 
 const loadAccountBalances = (
   server: Horizon.Server,
@@ -65,7 +65,11 @@ const parseBalances = (
     for (const balance of accountRecord.balances) {
       if (balance.asset_type === "native") {
         xlmBalance = balance.balance;
-      } else if (balance.asset_type !== "liquidity_pool_shares" && "asset_code" in balance && "asset_issuer" in balance && balance.asset_code && balance.asset_issuer) {
+      } else if (
+        balance.asset_type !== "liquidity_pool_shares" && "asset_code" in balance && "asset_issuer" in balance
+        && balance.asset_code !== undefined && balance.asset_code !== ""
+        && balance.asset_issuer !== undefined && balance.asset_issuer !== ""
+      ) {
         // Only include tokens that have both code and issuer
         const assetInfo: AssetInfo = {
           code: balance.asset_code,
@@ -103,6 +107,6 @@ const getAccountPortfolioImpl = (
     ),
   );
 
-export const PortfolioServiceLive = Layer.succeed(PortfolioService, {
+export const PortfolioServiceLive = Layer.succeed(PortfolioServiceTag, {
   getAccountPortfolio: getAccountPortfolioImpl,
 });

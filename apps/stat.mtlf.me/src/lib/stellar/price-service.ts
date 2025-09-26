@@ -1,8 +1,8 @@
-import { Asset, Horizon } from "@stellar/stellar-sdk";
+import { Asset, type Horizon } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig } from "./config";
-import { StellarError, TokenPriceError, EnvironmentError } from "./errors";
-import { AssetInfo, TokenPairPrice, PriceDetails } from "./types";
+import { type EnvironmentError, StellarError, TokenPriceError } from "./errors";
+import type { AssetInfo, PriceDetails, TokenPairPrice } from "./types";
 
 // Horizon API response interfaces
 interface OrderbookRecord {
@@ -59,18 +59,18 @@ export interface PriceService {
   ) => Effect.Effect<readonly TokenPriceWithBalance[], TokenPriceError | StellarError | EnvironmentError>;
 }
 
-export const PriceService = Context.GenericTag<PriceService>("@dreadnought/PriceService");
+export const PriceServiceTag = Context.GenericTag<PriceService>("@dreadnought/PriceService");
 
 const createAsset = (assetInfo: AssetInfo): Effect.Effect<Asset, TokenPriceError> => {
   if (assetInfo.type === "native" || assetInfo.code === "XLM") {
     return Effect.succeed(Asset.native());
   }
 
-  if (!assetInfo.issuer) {
+  if (assetInfo.issuer === "" || assetInfo.issuer === undefined) {
     return Effect.fail(
       new TokenPriceError({
         message: `Asset ${assetInfo.code} has no issuer`,
-      })
+      }),
     );
   }
 
@@ -117,7 +117,7 @@ const calculateAveragePrice = (
       let bestBidString: string | undefined;
       if (bids.length > 0) {
         const bestBid = bids[0]; // Bids are sorted descending
-        if (bestBid) {
+        if (bestBid != null) {
           bestBidPrice = parseFloat(bestBid.price);
           bestBidString = bestBid.price;
         }
@@ -128,7 +128,7 @@ const calculateAveragePrice = (
       let bestAskString: string | undefined;
       if (asks.length > 0) {
         const bestAsk = asks[0]; // Asks are sorted ascending
-        if (bestAsk) {
+        if (bestAsk != null) {
           bestAskPrice = parseFloat(bestAsk.price);
           bestAskString = bestAsk.price;
         }
@@ -139,16 +139,13 @@ const calculateAveragePrice = (
       // If we have both bid and ask, use mid-market price
       if (bestBidPrice > 0 && bestAskPrice > 0) {
         midPrice = (bestBidPrice + bestAskPrice) / 2;
-      }
-      // If only bids available, use best bid
+      } // If only bids available, use best bid
       else if (bestBidPrice > 0) {
         midPrice = bestBidPrice;
-      }
-      // If only asks available, use best ask
+      } // If only asks available, use best ask
       else if (bestAskPrice > 0) {
         midPrice = bestAskPrice;
-      }
-      // No valid prices
+      } // No valid prices
       else {
         return Effect.fail(
           new TokenPriceError({
@@ -161,8 +158,8 @@ const calculateAveragePrice = (
         price: midPrice.toString(),
         details: {
           source: "orderbook" as const,
-          ...(bestBidString ? { bid: bestBidString } : {}),
-          ...(bestAskString ? { ask: bestAskString } : {}),
+          ...(bestBidString != null && bestBidString !== "" ? { bid: bestBidString } : {}),
+          ...(bestAskString != null && bestAskString !== "" ? { ask: bestAskString } : {}),
           midPrice: midPrice.toString(),
         },
       });
@@ -194,7 +191,7 @@ const tryPathFinding = (
       })
     ),
     Effect.flatMap((response: PathResponse) => {
-      const paths = response.records || [];
+      const paths = response.records ?? [];
 
       if (paths.length === 0) {
         return Effect.fail(
@@ -202,18 +199,18 @@ const tryPathFinding = (
             message: "No payment paths found",
             tokenA: tokenA.code,
             tokenB: tokenB.code,
-          })
+          }),
         );
       }
 
       const bestPath = paths[0];
-      if (!bestPath || !bestPath.destination_amount) {
+      if (bestPath?.destination_amount === undefined || bestPath?.destination_amount === "") {
         return Effect.fail(
           new TokenPriceError({
             message: "Invalid path response",
             tokenA: tokenA.code,
             tokenB: tokenB.code,
-          })
+          }),
         );
       }
 
@@ -225,108 +222,130 @@ const tryPathFinding = (
       return pipe(
         Effect.all([
           // Get orderbook data for each step in the path
-          bestPath.path && bestPath.path.length > 0
+          bestPath.path != null && bestPath.path.length > 0
             ? pipe(
-                pipe(
-                  createAsset(tokenA),
-                  Effect.flatMap((startAsset) => {
-                    const hops: Effect.Effect<{
-                      from: string;
-                      to: string;
-                      price?: string;
-                      bid?: string;
-                      ask?: string;
-                      midPrice?: string;
-                    }, TokenPriceError>[] = [];
+              pipe(
+                createAsset(tokenA),
+                Effect.flatMap((startAsset) => {
+                  const hops: Effect.Effect<{
+                    from: string;
+                    to: string;
+                    price?: string;
+                    bid?: string;
+                    ask?: string;
+                    midPrice?: string;
+                  }, TokenPriceError>[] = [];
 
-                    let currentAssetEffect = Effect.succeed(startAsset);
-                    let currentAssetCode = tokenA.code;
+                  let currentAssetEffect = Effect.succeed(startAsset);
+                  let currentAssetCode = tokenA.code;
 
-                    // Process each intermediate hop
-                    for (const hop of bestPath.path) {
-                      const nextAssetCode = (hop as PathHop).asset_code || "XLM";
-                      const nextAssetIssuer = (hop as PathHop).asset_issuer;
+                  // Process each intermediate hop
+                  for (const hop of bestPath.path) {
+                    const nextAssetCode = (hop as PathHop).asset_code ?? "XLM";
+                    const nextAssetIssuer = (hop as PathHop).asset_issuer;
 
-                      const nextAssetInfo: AssetInfo = nextAssetCode === "XLM"
-                        ? { code: "XLM", issuer: "", type: "native" }
-                        : { code: nextAssetCode, issuer: nextAssetIssuer || "", type: "credit_alphanum4" };
+                    const nextAssetInfo: AssetInfo = nextAssetCode === "XLM"
+                      ? { code: "XLM", issuer: "", type: "native" }
+                      : { code: nextAssetCode, issuer: nextAssetIssuer ?? "", type: "credit_alphanum4" };
 
-                      // Get orderbook for this hop
-                      const hopEffect = pipe(
-                        Effect.all({
-                          currentAsset: currentAssetEffect,
-                          nextAsset: createAsset(nextAssetInfo),
-                        }),
-                        Effect.flatMap(({ currentAsset, nextAsset }) =>
-                          pipe(
-                            fetchOrderbook(config.server, currentAsset, nextAsset),
-                            Effect.flatMap(calculateAveragePrice),
-                            Effect.map((result) => ({
+                    // Get orderbook for this hop
+                    const hopEffect = pipe(
+                      Effect.all({
+                        currentAsset: currentAssetEffect,
+                        nextAsset: createAsset(nextAssetInfo),
+                      }),
+                      Effect.flatMap(({ currentAsset, nextAsset }) =>
+                        pipe(
+                          fetchOrderbook(config.server, currentAsset, nextAsset),
+                          Effect.flatMap(calculateAveragePrice),
+                          Effect.map((result) => ({
+                            from: currentAssetCode,
+                            to: nextAssetCode,
+                            ...(result.price !== "" && result.price != null ? { price: result.price } : {}),
+                            ...(result.details.bid != null && result.details.bid !== ""
+                              ? { bid: result.details.bid }
+                              : {}),
+                            ...(result.details.ask != null && result.details.ask !== ""
+                              ? { ask: result.details.ask }
+                              : {}),
+                            ...(result.details.midPrice != null && result.details.midPrice !== ""
+                              ? { midPrice: result.details.midPrice }
+                              : {}),
+                          })),
+                          Effect.catchAll(() =>
+                            Effect.succeed({
                               from: currentAssetCode,
                               to: nextAssetCode,
-                              ...(result.price ? { price: result.price } : {}),
-                              ...(result.details.bid ? { bid: result.details.bid } : {}),
-                              ...(result.details.ask ? { ask: result.details.ask } : {}),
-                              ...(result.details.midPrice ? { midPrice: result.details.midPrice } : {}),
-                            })),
-                            Effect.catchAll(() => Effect.succeed({
-                              from: currentAssetCode,
-                              to: nextAssetCode,
-                            }))
-                          )
+                            })
+                          ),
                         )
-                      );
+                      ),
+                    );
 
-                      hops.push(hopEffect);
-                      currentAssetEffect = createAsset(nextAssetInfo).pipe(Effect.catchAll(() => Effect.succeed(Asset.native())));
-                      currentAssetCode = nextAssetCode;
-                    }
+                    hops.push(hopEffect);
+                    currentAssetEffect = createAsset(nextAssetInfo).pipe(
+                      Effect.catchAll(() => Effect.succeed(Asset.native())),
+                    );
+                    currentAssetCode = nextAssetCode;
+                  }
 
-                    // Add final hop to destination if needed
-                    if (currentAssetCode !== tokenB.code) {
-                      const finalHopEffect = pipe(
-                        Effect.all({
-                          currentAsset: currentAssetEffect,
-                          finalAsset: createAsset(tokenB),
-                        }),
-                        Effect.flatMap(({ currentAsset, finalAsset }) =>
-                          pipe(
-                            fetchOrderbook(config.server, currentAsset, finalAsset),
-                            Effect.flatMap(calculateAveragePrice),
-                            Effect.map((result) => ({
+                  // Add final hop to destination if needed
+                  if (currentAssetCode !== tokenB.code) {
+                    const finalHopEffect = pipe(
+                      Effect.all({
+                        currentAsset: currentAssetEffect,
+                        finalAsset: createAsset(tokenB),
+                      }),
+                      Effect.flatMap(({ currentAsset, finalAsset }) =>
+                        pipe(
+                          fetchOrderbook(config.server, currentAsset, finalAsset),
+                          Effect.flatMap(calculateAveragePrice),
+                          Effect.map((result) => ({
+                            from: currentAssetCode,
+                            to: tokenB.code,
+                            ...(result.price !== "" && result.price != null ? { price: result.price } : {}),
+                            ...(result.details.bid != null && result.details.bid !== ""
+                              ? { bid: result.details.bid }
+                              : {}),
+                            ...(result.details.ask != null && result.details.ask !== ""
+                              ? { ask: result.details.ask }
+                              : {}),
+                            ...(result.details.midPrice != null && result.details.midPrice !== ""
+                              ? { midPrice: result.details.midPrice }
+                              : {}),
+                          })),
+                          Effect.catchAll(() =>
+                            Effect.succeed({
                               from: currentAssetCode,
                               to: tokenB.code,
-                              ...(result.price ? { price: result.price } : {}),
-                              ...(result.details.bid ? { bid: result.details.bid } : {}),
-                              ...(result.details.ask ? { ask: result.details.ask } : {}),
-                              ...(result.details.midPrice ? { midPrice: result.details.midPrice } : {}),
-                            })),
-                            Effect.catchAll(() => Effect.succeed({
-                              from: currentAssetCode,
-                              to: tokenB.code,
-                            }))
-                          )
+                            })
+                          ),
                         )
-                      );
-                      hops.push(finalHopEffect);
-                    }
+                      ),
+                    );
+                    hops.push(finalHopEffect);
+                  }
 
-                    return Effect.succeed(hops);
-                  })
-                ),
-                Effect.flatMap((hops) => Effect.all(hops, { concurrency: 3 }).pipe(
-                  Effect.catchAll(() => Effect.succeed([{
-                    from: tokenA.code,
-                    to: tokenB.code,
-                    price: price,
-                  }]))
-                ))
-              )
+                  return Effect.succeed(hops);
+                }),
+              ),
+              Effect.flatMap((hops) =>
+                Effect.all(hops, { concurrency: 3 }).pipe(
+                  Effect.catchAll(() =>
+                    Effect.succeed([{
+                      from: tokenA.code,
+                      to: tokenB.code,
+                      price,
+                    }])
+                  ),
+                )
+              ),
+            )
             : Effect.succeed([{
-                from: tokenA.code,
-                to: tokenB.code,
-                price: price,
-              }])
+              from: tokenA.code,
+              to: tokenB.code,
+              price,
+            }]),
         ]),
         Effect.map(([pathHops]) => {
           const pathDetails: PriceDetails = {
@@ -335,16 +354,15 @@ const tryPathFinding = (
           };
 
           return {
-            tokenA: `${tokenA.code}${tokenA.issuer ? ":" + tokenA.issuer : ""}`,
-            tokenB: `${tokenB.code}${tokenB.issuer ? ":" + tokenB.issuer : ""}`,
+            tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
+            tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
             price,
             timestamp: new Date(),
             details: pathDetails,
           };
-        })
+        }),
       );
-
-    })
+    }),
   );
 
 const getTokenPriceImpl = (
@@ -365,14 +383,14 @@ const getTokenPriceImpl = (
             fetchOrderbook(config.server, assetA, assetB),
             Effect.flatMap(calculateAveragePrice),
             Effect.map((result) => ({
-              tokenA: `${tokenA.code}${tokenA.issuer ? ":" + tokenA.issuer : ""}`,
-              tokenB: `${tokenB.code}${tokenB.issuer ? ":" + tokenB.issuer : ""}`,
+              tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
+              tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
               price: result.price,
               timestamp: new Date(),
               details: result.details,
-            }))
+            })),
           )
-        )
+        ),
       );
 
       // If direct orderbook fails, try path finding as fallback
@@ -381,7 +399,7 @@ const getTokenPriceImpl = (
         Effect.catchAll(() =>
           pipe(
             tryPathFinding(tokenA, tokenB, config),
-            Effect.tap(() => Effect.log(`Used path finding for ${tokenA.code} -> ${tokenB.code}`))
+            Effect.tap(() => Effect.log(`Used path finding for ${tokenA.code} -> ${tokenB.code}`)),
           )
         ),
         Effect.catchTag("StellarError", (error) => Effect.fail(error)),
@@ -422,8 +440,12 @@ const getTokensWithPricesImpl = (
           }),
           Effect.map(({ eurmtlData, xlmData }) => {
             const balance = parseFloat(token.balance);
-            const valueInEURMTL = eurmtlData.price ? (balance * parseFloat(eurmtlData.price)).toFixed(2) : null;
-            const valueInXLM = xlmData.price ? (balance * parseFloat(xlmData.price)).toFixed(7) : null;
+            const valueInEURMTL = eurmtlData.price != null && eurmtlData.price !== ""
+              ? (balance * parseFloat(eurmtlData.price)).toFixed(2)
+              : null;
+            const valueInXLM = xlmData.price != null && xlmData.price !== ""
+              ? (balance * parseFloat(xlmData.price)).toFixed(7)
+              : null;
 
             return {
               asset: token.asset,
@@ -432,8 +454,8 @@ const getTokensWithPricesImpl = (
               priceInXLM: xlmData.price,
               valueInEURMTL,
               valueInXLM,
-              ...(eurmtlData.details ? { detailsEURMTL: eurmtlData.details } : {}),
-              ...(xlmData.details ? { detailsXLM: xlmData.details } : {}),
+              ...(eurmtlData.details != null ? { detailsEURMTL: eurmtlData.details } : {}),
+              ...(xlmData.details != null ? { detailsXLM: xlmData.details } : {}),
             };
           }),
         )
@@ -442,7 +464,7 @@ const getTokensWithPricesImpl = (
     ),
   );
 
-export const PriceServiceLive = Layer.succeed(PriceService, {
+export const PriceServiceLive = Layer.succeed(PriceServiceTag, {
   getTokenPrice: getTokenPriceImpl,
   getTokensWithPrices: getTokensWithPricesImpl,
 });

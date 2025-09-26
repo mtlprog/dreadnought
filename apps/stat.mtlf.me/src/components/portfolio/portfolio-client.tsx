@@ -1,8 +1,8 @@
 "use client";
 
+import type { TokenPriceWithBalance } from "@/lib/stellar/price-service";
 import { useEffect, useState } from "react";
 import { PortfolioTable } from "./portfolio-table";
-import { TokenPriceWithBalance } from "@/lib/stellar/price-service";
 
 interface PortfolioData {
   accountId: string;
@@ -16,13 +16,13 @@ interface PortfolioClientProps {
 }
 
 export function PortfolioClient({ initialData }: PortfolioClientProps) {
-  const [data, setData] = useState<PortfolioData | null>(initialData || null);
-  const [loading, setLoading] = useState(!initialData);
+  const [data, setData] = useState<PortfolioData | null>(initialData ?? null);
+  const [loading, setLoading] = useState(initialData == null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!initialData) {
-      fetchPortfolioData();
+    if (initialData == null) {
+      void fetchPortfolioData();
     }
   }, [initialData]);
 
@@ -47,7 +47,7 @@ export function PortfolioClient({ initialData }: PortfolioClientProps) {
     }
   }
 
-  if (error) {
+  if (error !== null && error !== "") {
     return (
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
@@ -55,7 +55,7 @@ export function PortfolioClient({ initialData }: PortfolioClientProps) {
           <h1 className="text-4xl font-mono uppercase tracking-wider text-white mb-4">ОШИБКА</h1>
           <p className="text-xl text-steel-gray mb-8">{error}</p>
           <button
-            onClick={fetchPortfolioData}
+            onClick={() => void fetchPortfolioData()}
             className="bg-cyber-green text-black px-8 py-4 font-mono uppercase tracking-wider hover:bg-electric-cyan transition-colors"
           >
             Попробовать снова
@@ -78,7 +78,7 @@ export function PortfolioClient({ initialData }: PortfolioClientProps) {
     );
   }
 
-  if (!data) {
+  if (data == null) {
     return (
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">

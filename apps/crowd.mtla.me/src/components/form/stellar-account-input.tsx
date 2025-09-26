@@ -38,7 +38,7 @@ export function StellarAccountInput({
 }: StellarAccountInputProps) {
   const isEmpty = value === "";
   const isValid = !isEmpty && isValidStellarAccountId(value);
-  const hasError = error !== undefined || (!isEmpty && !isValid)
+  const hasError = error !== undefined || (!isEmpty && isValid === false)
     || (!allowEmpty && isEmpty && required === true);
 
   return (

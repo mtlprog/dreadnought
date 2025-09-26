@@ -1,6 +1,6 @@
 import { Horizon, Networks } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
-import { EnvironmentError } from "./errors";
+import type { EnvironmentError } from "./errors";
 
 export interface StellarConfig {
   readonly network: string;
