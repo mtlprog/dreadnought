@@ -101,7 +101,8 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
               ? (
                 <div className="pl-2 space-y-1">
                   <div className="text-xs">
-                    <span className="text-steel-gray">ТИП:</span> <span className="text-warning-amber">{getPriceTypeLabel(hop.bid, hop.ask)}</span>
+                    <span className="text-steel-gray">ТИП:</span>{" "}
+                    <span className="text-warning-amber">{getPriceTypeLabel(hop.bid, hop.ask)}</span>
                   </div>
                   {hop.bid != null && (
                     <div>

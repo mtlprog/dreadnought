@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, ManagedRuntime, pipe } from "effect";
-import { FundStructureServiceTag, FundStructureServiceLive } from "./fund-structure-service";
+import { FundStructureServiceLive, FundStructureServiceTag } from "./fund-structure-service";
 
 describe("FundStructureService", () => {
   test("should return fund accounts", async () => {

@@ -24,17 +24,20 @@ export const logErrorWithCause = (prefix: string) => (error: unknown) =>
           : Effect.void;
       }
       return Effect.void;
-    })
+    }),
   );
 
 export const handleStateError = (
   setError: (message: string) => void,
-  setLoading?: (loading: boolean) => void
-) => (error: unknown) =>
+  setLoading?: (loading: boolean) => void,
+) =>
+(error: unknown) =>
   pipe(
     Effect.logError(`Operation failed: ${formatError(error)}`),
-    Effect.tap(() => Effect.sync(() => {
-      setError(formatError(error));
-      if (setLoading) setLoading(false);
-    }))
+    Effect.tap(() =>
+      Effect.sync(() => {
+        setError(formatError(error));
+        if (setLoading !== undefined) setLoading(false);
+      })
+    ),
   );

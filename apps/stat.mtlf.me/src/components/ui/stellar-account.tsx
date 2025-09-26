@@ -1,9 +1,9 @@
 "use client";
 
+import * as S from "@effect/schema/Schema";
+import { Effect, pipe } from "effect";
 import { Copy, ExternalLink } from "lucide-react";
 import { useState } from "react";
-import { Effect, pipe } from "effect";
-import * as S from "@effect/schema/Schema";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 // Error definitions
@@ -11,8 +11,8 @@ export class ClipboardError extends S.TaggedError<ClipboardError>()(
   "ClipboardError",
   {
     message: S.String,
-    cause: S.optional(S.Unknown)
-  }
+    cause: S.optional(S.Unknown),
+  },
 ) {}
 
 interface StellarAccountProps {
@@ -32,24 +32,25 @@ export function StellarAccount({ accountId, className = "", showIcon = true }: S
     const program = pipe(
       Effect.tryPromise({
         try: () => window.navigator.clipboard.writeText(text),
-        catch: (error) => new ClipboardError({
-          message: "Failed to copy to clipboard",
-          cause: error
-        })
+        catch: (error) =>
+          new ClipboardError({
+            message: "Failed to copy to clipboard",
+            cause: error,
+          }),
       }),
       Effect.tap(() => Effect.sync(() => setCopied(true))),
       Effect.tap(() =>
         Effect.delay(
           Effect.sync(() => setCopied(false)),
-          "2 seconds"
+          "2 seconds",
         )
       ),
       Effect.catchAll((error) =>
         pipe(
           Effect.logError(`Clipboard operation failed: ${error.message}`),
-          Effect.tap(() => Effect.sync(() => setCopied(false)))
+          Effect.tap(() => Effect.sync(() => setCopied(false))),
         )
-      )
+      ),
     );
 
     Effect.runPromise(program).catch(() => {
@@ -59,10 +60,8 @@ export function StellarAccount({ accountId, className = "", showIcon = true }: S
 
   const openInStellarExpert = () => {
     const program = pipe(
-      Effect.sync(() =>
-        window.open(`https://stellar.expert/explorer/public/account/${accountId}`, "_blank")
-      ),
-      Effect.tap(() => Effect.log(`Opened Stellar Expert for account: ${accountId}`))
+      Effect.sync(() => window.open(`https://stellar.expert/explorer/public/account/${accountId}`, "_blank")),
+      Effect.tap(() => Effect.log(`Opened Stellar Expert for account: ${accountId}`)),
     );
 
     Effect.runSync(program);

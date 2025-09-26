@@ -1,8 +1,8 @@
 import * as S from "@effect/schema/Schema";
 import { Context, Effect, Layer, pipe } from "effect";
 import type { EnvironmentError, StellarError, TokenPriceError } from "./errors";
-import { PortfolioServiceTag } from "./portfolio-service";
-import { PriceServiceTag, type TokenPriceWithBalance } from "./price-service";
+import { type PortfolioService, PortfolioServiceTag } from "./portfolio-service";
+import { type PriceService, PriceServiceTag, type TokenPriceWithBalance } from "./price-service";
 import type { AssetInfo } from "./types";
 
 export interface FundAccount {
@@ -40,7 +40,8 @@ export interface FundStructureData {
 export interface FundStructureService {
   readonly getFundStructure: () => Effect.Effect<
     FundStructureData,
-    TokenPriceError | StellarError | EnvironmentError
+    TokenPriceError | StellarError | EnvironmentError,
+    PortfolioService | PriceService
   >;
   readonly getFundAccounts: () => Effect.Effect<readonly FundAccount[], never>;
 }
@@ -143,7 +144,11 @@ const calculateAccountTotals = (
 
 const getAccountPortfolio = (
   account: FundAccount,
-): Effect.Effect<FundAccountPortfolio, TokenPriceError | StellarError | EnvironmentError> =>
+): Effect.Effect<
+  FundAccountPortfolio,
+  TokenPriceError | StellarError | EnvironmentError,
+  PortfolioService | PriceService
+> =>
   pipe(
     Effect.all({
       portfolioService: PortfolioServiceTag,
@@ -221,7 +226,8 @@ const getAccountPortfolio = (
 
 const getFundStructureImpl = (): Effect.Effect<
   FundStructureData,
-  TokenPriceError | StellarError | EnvironmentError
+  TokenPriceError | StellarError | EnvironmentError,
+  PortfolioService | PriceService
 > =>
   pipe(
     Effect.all(

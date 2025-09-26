@@ -192,7 +192,9 @@ const tryPathFinding = (
             }),
         }),
         Effect.tap((sendResponse) =>
-          Effect.log(`strictSendPaths for ${tokenA.code} -> ${tokenB.code}: found ${sendResponse.records?.length || 0} paths`)
+          Effect.log(
+            `strictSendPaths for ${tokenA.code} -> ${tokenB.code}: found ${sendResponse.records?.length ?? 0} paths`,
+          )
         ),
         // If that fails, try strictReceivePaths as fallback
         Effect.catchAll((sendError) =>
@@ -212,16 +214,20 @@ const tryPathFinding = (
               })
             ),
             Effect.tap((receiveResponse) =>
-              Effect.log(`strictReceivePaths for ${tokenA.code} -> ${tokenB.code}: found ${receiveResponse.records?.length || 0} paths`)
+              Effect.log(
+                `strictReceivePaths for ${tokenA.code} -> ${tokenB.code}: found ${
+                  receiveResponse.records?.length ?? 0
+                } paths`,
+              )
             ),
             Effect.catchAll((receiveError) =>
               pipe(
                 Effect.log(`strictReceivePaths also failed for ${tokenA.code} -> ${tokenB.code}: ${receiveError}`),
-                Effect.flatMap(() => Effect.fail(receiveError))
+                Effect.flatMap(() => Effect.fail(receiveError)),
               )
-            )
+            ),
           )
-        )
+        ),
       )
     ),
     Effect.flatMap((response: PathResponse) => {
@@ -229,7 +235,9 @@ const tryPathFinding = (
 
       if (paths.length === 0) {
         return pipe(
-          Effect.log(`No payment paths found between ${tokenA.code}:${tokenA.issuer} and ${tokenB.code}:${tokenB.issuer}`),
+          Effect.log(
+            `No payment paths found between ${tokenA.code}:${tokenA.issuer} and ${tokenB.code}:${tokenB.issuer}`,
+          ),
           Effect.flatMap(() =>
             Effect.fail(
               new TokenPriceError({
@@ -238,7 +246,7 @@ const tryPathFinding = (
                 tokenB: tokenB.code,
               }),
             )
-          )
+          ),
         );
       }
 
@@ -437,20 +445,28 @@ const getTokenPriceImpl = (
         directPrice,
         Effect.catchAll((directError) =>
           pipe(
-            Effect.log(`Direct orderbook failed for ${tokenA.code} -> ${tokenB.code}, trying path finding: ${directError instanceof Error ? directError.message : String(directError)}`),
+            Effect.log(
+              `Direct orderbook failed for ${tokenA.code} -> ${tokenB.code}, trying path finding: ${
+                directError instanceof Error ? directError.message : String(directError)
+              }`,
+            ),
             Effect.flatMap(() =>
               pipe(
                 tryPathFinding(tokenA, tokenB, config),
                 Effect.tap(() => Effect.log(`Used path finding for ${tokenA.code} -> ${tokenB.code}`)),
               )
-            )
+            ),
           )
         ),
         Effect.catchTag("StellarError", (error) => Effect.fail(error)),
         Effect.catchTag("TokenPriceError", (error) => Effect.fail(error)),
         Effect.catchAll((error) =>
           pipe(
-            Effect.log(`Detailed pricing error for ${tokenA.code} -> ${tokenB.code}: ${error instanceof Error ? error.message : String(error)}`),
+            Effect.log(
+              `Detailed pricing error for ${tokenA.code} -> ${tokenB.code}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            ),
             Effect.flatMap(() =>
               Effect.fail(
                 new TokenPriceError({
@@ -460,7 +476,7 @@ const getTokenPriceImpl = (
                   cause: error,
                 }),
               )
-            )
+            ),
           )
         ),
       );
@@ -479,18 +495,22 @@ const getTokensWithPricesImpl = (
             eurmtlData: pipe(
               getTokenPriceImpl(token.asset, baseTokens.eurmtl),
               Effect.map((result) => ({ price: result.price, details: result.details })),
-              Effect.catchAll((error) => pipe(
-                Effect.logError(`EURMTL pricing failed for ${token.asset.code}: ${error}`),
-                Effect.flatMap(() => Effect.succeed({ price: null, details: undefined }))
-              )),
+              Effect.catchAll((error) =>
+                pipe(
+                  Effect.logError(`EURMTL pricing failed for ${token.asset.code}: ${error}`),
+                  Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
+                )
+              ),
             ),
             xlmData: pipe(
               getTokenPriceImpl(token.asset, baseTokens.xlm),
               Effect.map((result) => ({ price: result.price, details: result.details })),
-              Effect.catchAll((error) => pipe(
-                Effect.logError(`XLM pricing failed for ${token.asset.code}: ${error}`),
-                Effect.flatMap(() => Effect.succeed({ price: null, details: undefined }))
-              )),
+              Effect.catchAll((error) =>
+                pipe(
+                  Effect.logError(`XLM pricing failed for ${token.asset.code}: ${error}`),
+                  Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
+                )
+              ),
             ),
           }),
           Effect.map(({ eurmtlData, xlmData }) => {

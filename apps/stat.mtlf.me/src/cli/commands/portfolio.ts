@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { Effect, pipe } from "effect";
-import { PortfolioService, PortfolioServiceTag } from "../../lib/stellar";
+import { type PortfolioService, PortfolioServiceTag } from "../../lib/stellar";
 import { logErrorWithCause } from "../../lib/utils/error-handling";
 
 export const getPortfolioCommand = (
@@ -32,7 +32,7 @@ export const getPortfolioCommand = (
     Effect.catchAll((error) =>
       pipe(
         Effect.logError(chalk.red("\n❌ Ошибка загрузки портфеля:")),
-        Effect.tap(() => logErrorWithCause(chalk.red("Error"))(error))
+        Effect.tap(() => logErrorWithCause(chalk.red("Error"))(error)),
       )
     ),
   );

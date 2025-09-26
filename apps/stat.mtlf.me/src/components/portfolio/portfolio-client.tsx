@@ -1,11 +1,11 @@
 "use client";
 
 import type { TokenPriceWithBalance } from "@/lib/stellar/price-service";
-import { useEffect, useState } from "react";
-import { Effect, pipe } from "effect";
-import * as S from "@effect/schema/Schema";
-import { PortfolioTable } from "./portfolio-table";
 import { handleStateError } from "@/lib/utils/error-handling";
+import * as S from "@effect/schema/Schema";
+import { Effect, pipe } from "effect";
+import { useEffect, useState } from "react";
+import { PortfolioTable } from "./portfolio-table";
 
 // Error definitions
 export class FetchError extends S.TaggedError<FetchError>()(
@@ -13,8 +13,8 @@ export class FetchError extends S.TaggedError<FetchError>()(
   {
     message: S.String,
     status: S.optional(S.Number),
-    cause: S.optional(S.Unknown)
-  }
+    cause: S.optional(S.Unknown),
+  },
 ) {}
 
 interface PortfolioData {
@@ -46,33 +46,37 @@ export function PortfolioClient({ initialData }: PortfolioClientProps) {
       Effect.flatMap(() =>
         Effect.tryPromise({
           try: () => fetch("/api/portfolio/GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V"),
-          catch: (error) => new FetchError({
-            message: "Network request failed",
-            cause: error
-          })
+          catch: (error) =>
+            new FetchError({
+              message: "Network request failed",
+              cause: error,
+            }),
         })
       ),
       Effect.flatMap((response) =>
         response.ok
           ? Effect.tryPromise({
-              try: () => response.json(),
-              catch: (error) => new FetchError({
+            try: () => response.json(),
+            catch: (error) =>
+              new FetchError({
                 message: "Failed to parse response",
-                cause: error
-              })
-            })
-          : Effect.fail(new FetchError({
+                cause: error,
+              }),
+          })
+          : Effect.fail(
+            new FetchError({
               message: `HTTP error! status: ${response.status}`,
-              status: response.status
-            }))
+              status: response.status,
+            }),
+          )
       ),
       Effect.tap((portfolioData) =>
         pipe(
           Effect.sync(() => setData(portfolioData)),
-          Effect.tap(() => Effect.log("Portfolio data fetched successfully"))
+          Effect.tap(() => Effect.log("Portfolio data fetched successfully")),
         )
       ),
-      Effect.catchAll(handleStateError(setError, setLoading))
+      Effect.catchAll(handleStateError(setError, setLoading)),
     );
 
     Effect.runPromise(program).catch(() => {

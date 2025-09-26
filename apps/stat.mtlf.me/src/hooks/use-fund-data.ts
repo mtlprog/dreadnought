@@ -45,7 +45,7 @@ export function useFundData(): UseFundDataState {
         }),
         Effect.repeat(progressSchedule),
         Effect.timeout("30 seconds"), // Safety timeout
-        Effect.catchAll(() => Effect.void) // Ignore timeout errors
+        Effect.catchAll(() => Effect.void), // Ignore timeout errors
       );
     };
 
@@ -71,27 +71,33 @@ export function useFundData(): UseFundDataState {
             }),
             Effect.tap(() =>
               pipe(
-                Effect.delay(Effect.sync(() => {
-                  if (isMountedRef.current) {
-                    updateState({ progress: 100 });
-                  }
-                }), "300 millis")
+                Effect.delay(
+                  Effect.sync(() => {
+                    if (isMountedRef.current) {
+                      updateState({ progress: 100 });
+                    }
+                  }),
+                  "300 millis",
+                ),
               )
             ),
             Effect.tap((data) =>
               pipe(
-                Effect.delay(Effect.sync(() => {
-                  if (isMountedRef.current) {
-                    updateState({
-                      data,
-                      isLoading: false,
-                      progress: 100,
-                    });
-                  }
-                }), "300 millis")
+                Effect.delay(
+                  Effect.sync(() => {
+                    if (isMountedRef.current) {
+                      updateState({
+                        data,
+                        isLoading: false,
+                        progress: 100,
+                      });
+                    }
+                  }),
+                  "300 millis",
+                ),
               )
-            )
-          )
+            ),
+          ),
         ]),
         Effect.map(([, data]) => data),
         Effect.catchAll((error: FundDataFetchError | FundDataParseError | FundDataNetworkError) =>
