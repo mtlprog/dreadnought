@@ -19,7 +19,7 @@ interface PortfolioTableProps {
   isLoading?: boolean;
 }
 
-function formatTokenName(code: string, _issuer: string): string {
+function formatTokenName(code: string): string {
   if (code === "XLM") return "XLM";
   return `${code}`;
 }
@@ -35,15 +35,20 @@ export function PortfolioTable({
   xlmPriceInEURMTL,
   isLoading = false,
 }: PortfolioTableProps) {
-  // Calculate totals
-  const totalEURMTL = tokens.reduce((sum, token) => {
+  // Filter out tokens that have no price in both XLM and EURMTL (illiquid service tokens)
+  const liquidTokens = tokens.filter(token =>
+    token.priceInXLM !== null || token.priceInEURMTL !== null
+  );
+
+  // Calculate totals using only liquid tokens
+  const totalEURMTL = liquidTokens.reduce((sum, token) => {
     if (token.valueInEURMTL) {
       return sum + parseFloat(token.valueInEURMTL);
     }
     return sum;
   }, 0) + (xlmPriceInEURMTL ? parseFloat(xlmBalance) * parseFloat(xlmPriceInEURMTL) : 0);
 
-  const totalXLM = tokens.reduce((sum, token) => {
+  const totalXLM = liquidTokens.reduce((sum, token) => {
     if (token.valueInXLM) {
       return sum + parseFloat(token.valueInXLM);
     }
@@ -101,10 +106,10 @@ export function PortfolioTable({
               </TableRow>
 
               {/* Other Tokens */}
-              {tokens.map((token, index) => (
+              {liquidTokens.map((token, index) => (
                 <TableRow key={index} className="border-steel-gray hover:bg-steel-gray/10">
                   <TableCell className="font-mono text-cyber-green">
-                    {formatTokenName(token.asset.code, token.asset.issuer)}
+                    {formatTokenName(token.asset.code)}
                   </TableCell>
                   <TableCell className="font-mono text-white">
                     {parseFloat(token.balance).toFixed(token.asset.code === 'EURMTL' ? 2 : 7)}
