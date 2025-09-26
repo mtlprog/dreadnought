@@ -93,7 +93,7 @@ export function useFundData(): UseFundDataState {
             )
           )
         ]),
-        Effect.map(([_progressFiber, data]) => data),
+        Effect.map(([, data]) => data),
         Effect.catchAll((error: FundDataFetchError | FundDataParseError | FundDataNetworkError) =>
           pipe(
             Effect.sync(() => {

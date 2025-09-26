@@ -1,4 +1,4 @@
-import { type AssetInfo, PriceService, PriceServiceLive } from "@/lib/stellar";
+import { type AssetInfo, PriceServiceTag, PriceServiceLive } from "@/lib/stellar";
 import { Effect, Layer, pipe } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
   };
 
   const program = pipe(
-    PriceService,
+    PriceServiceTag,
     Effect.flatMap((service) => service.getTokenPrice(tokenA, tokenB)),
     Effect.provide(AppLayer),
     Effect.tap((result) => Effect.log(`Price fetched: ${tokenA.code}/${tokenB.code} = ${result.price}`)),

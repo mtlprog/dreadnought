@@ -1,4 +1,4 @@
-import { type AssetInfo, PortfolioService, PortfolioServiceLive, PriceService, PriceServiceLive } from "@/lib/stellar";
+import { type AssetInfo, PortfolioServiceTag, PortfolioServiceLive, PriceServiceTag, PriceServiceLive } from "@/lib/stellar";
 import { Effect, Layer, pipe } from "effect";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -23,8 +23,8 @@ const XLM_ASSET: AssetInfo = {
 const fetchPortfolioWithPrices = (accountId: string) =>
   pipe(
     Effect.all({
-      portfolioService: PortfolioService,
-      priceService: PriceService,
+      portfolioService: PortfolioServiceTag,
+      priceService: PriceServiceTag,
     }),
     Effect.flatMap(({ portfolioService, priceService }) =>
       pipe(

@@ -27,7 +27,7 @@ export const logErrorWithCause = (prefix: string) => (error: unknown) =>
     })
   );
 
-export const handleStateError = <T>(
+export const handleStateError = (
   setError: (message: string) => void,
   setLoading?: (loading: boolean) => void
 ) => (error: unknown) =>

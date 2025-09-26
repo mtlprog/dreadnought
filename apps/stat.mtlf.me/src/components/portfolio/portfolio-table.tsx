@@ -24,6 +24,29 @@ function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
+/**
+ * Determines the price type label based on available bid and ask prices.
+ *
+ * @param bid - The bid price (buy order price), if available
+ * @param ask - The ask price (sell order price), if available
+ * @returns A localized label indicating the price calculation method:
+ *   - "СРЕДНЯЯ" when both bid and ask are available (mid-market price)
+ *   - "ТОЛЬКО BID" when only bid price is available (limited liquidity)
+ *   - "ТОЛЬКО ASK" when only ask price is available (limited liquidity)
+ */
+function getPriceTypeLabel(bid?: string, ask?: string): string {
+  const hasBid = bid != null;
+  const hasAsk = ask != null;
+
+  if (hasBid && hasAsk) {
+    return "СРЕДНЯЯ";
+  } else if (hasBid) {
+    return "ТОЛЬКО BID";
+  } else {
+    return "ТОЛЬКО ASK";
+  }
+}
+
 function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
   if (details == null) {
     return (
@@ -35,9 +58,14 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
   }
 
   if (details.source === "orderbook") {
+    const priceType = getPriceTypeLabel(details.bid, details.ask);
+
     return (
       <div className="font-mono space-y-1">
         <div className="text-cyber-green uppercase text-xs">ПРЯМАЯ ТОРГОВЛЯ</div>
+        <div className="text-xs">
+          <span className="text-steel-gray">ТИП:</span> <span className="text-warning-amber">{priceType}</span>
+        </div>
         {details.bid != null && (
           <div className="text-xs">
             <span className="text-steel-gray">BID:</span> {parseFloat(details.bid).toFixed(7)}
@@ -50,7 +78,7 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
         )}
         {details.midPrice != null && (
           <div className="text-xs border-t border-steel-gray/30 pt-1 mt-1">
-            <span className="text-steel-gray">СРЕДНЯЯ:</span> {parseFloat(details.midPrice).toFixed(7)}
+            <span className="text-steel-gray">ИТОГОВАЯ:</span> {parseFloat(details.midPrice).toFixed(7)}
           </div>
         )}
       </div>
@@ -69,18 +97,27 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
             <div className="font-semibold">
               {hop.from} → {hop.to}
             </div>
-            {hop.bid != null && hop.ask != null && hop.midPrice != null
+            {(hop.bid != null || hop.ask != null)
               ? (
                 <div className="pl-2 space-y-1">
-                  <div>
-                    <span className="text-steel-gray">BID:</span> {parseFloat(hop.bid).toFixed(7)}
+                  <div className="text-xs">
+                    <span className="text-steel-gray">ТИП:</span> <span className="text-warning-amber">{getPriceTypeLabel(hop.bid, hop.ask)}</span>
                   </div>
-                  <div>
-                    <span className="text-steel-gray">ASK:</span> {parseFloat(hop.ask).toFixed(7)}
-                  </div>
-                  <div className="border-t border-steel-gray/30 pt-1">
-                    <span className="text-steel-gray">СРЕДНЯЯ:</span> {parseFloat(hop.midPrice).toFixed(7)}
-                  </div>
+                  {hop.bid != null && (
+                    <div>
+                      <span className="text-steel-gray">BID:</span> {parseFloat(hop.bid).toFixed(7)}
+                    </div>
+                  )}
+                  {hop.ask != null && (
+                    <div>
+                      <span className="text-steel-gray">ASK:</span> {parseFloat(hop.ask).toFixed(7)}
+                    </div>
+                  )}
+                  {hop.midPrice != null && (
+                    <div className="border-t border-steel-gray/30 pt-1">
+                      <span className="text-steel-gray">ИТОГОВАЯ:</span> {parseFloat(hop.midPrice).toFixed(7)}
+                    </div>
+                  )}
                 </div>
               )
               : hop.price != null

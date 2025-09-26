@@ -178,28 +178,67 @@ const tryPathFinding = (
       destAsset: createAsset(tokenB),
     }),
     Effect.flatMap(({ sourceAsset, destAsset }) =>
-      Effect.tryPromise({
-        try: () =>
-          config.server
-            .strictSendPaths(sourceAsset, "1", [destAsset])
-            .call() as Promise<PathResponse>,
-        catch: (error) =>
-          new StellarError({
-            operation: "pathFinding",
-            cause: error,
-          }),
-      })
+      pipe(
+        // Try strictSendPaths first with amount "1"
+        Effect.tryPromise({
+          try: () =>
+            config.server
+              .strictSendPaths(sourceAsset, "1", [destAsset])
+              .call() as Promise<PathResponse>,
+          catch: (error) =>
+            new StellarError({
+              operation: "pathFindingSend",
+              cause: error,
+            }),
+        }),
+        Effect.tap((sendResponse) =>
+          Effect.log(`strictSendPaths for ${tokenA.code} -> ${tokenB.code}: found ${sendResponse.records?.length || 0} paths`)
+        ),
+        // If that fails, try strictReceivePaths as fallback
+        Effect.catchAll((sendError) =>
+          pipe(
+            Effect.log(`strictSendPaths failed for ${tokenA.code} -> ${tokenB.code}: ${sendError}`),
+            Effect.flatMap(() =>
+              Effect.tryPromise({
+                try: () =>
+                  config.server
+                    .strictReceivePaths([sourceAsset], destAsset, "1")
+                    .call() as Promise<PathResponse>,
+                catch: (error) =>
+                  new StellarError({
+                    operation: "pathFindingReceive",
+                    cause: error,
+                  }),
+              })
+            ),
+            Effect.tap((receiveResponse) =>
+              Effect.log(`strictReceivePaths for ${tokenA.code} -> ${tokenB.code}: found ${receiveResponse.records?.length || 0} paths`)
+            ),
+            Effect.catchAll((receiveError) =>
+              pipe(
+                Effect.log(`strictReceivePaths also failed for ${tokenA.code} -> ${tokenB.code}: ${receiveError}`),
+                Effect.flatMap(() => Effect.fail(receiveError))
+              )
+            )
+          )
+        )
+      )
     ),
     Effect.flatMap((response: PathResponse) => {
       const paths = response.records ?? [];
 
       if (paths.length === 0) {
-        return Effect.fail(
-          new TokenPriceError({
-            message: "No payment paths found",
-            tokenA: tokenA.code,
-            tokenB: tokenB.code,
-          }),
+        return pipe(
+          Effect.log(`No payment paths found between ${tokenA.code}:${tokenA.issuer} and ${tokenB.code}:${tokenB.issuer}`),
+          Effect.flatMap(() =>
+            Effect.fail(
+              new TokenPriceError({
+                message: "No payment paths found",
+                tokenA: tokenA.code,
+                tokenB: tokenB.code,
+              }),
+            )
+          )
         );
       }
 
@@ -396,22 +435,32 @@ const getTokenPriceImpl = (
       // If direct orderbook fails, try path finding as fallback
       return pipe(
         directPrice,
-        Effect.catchAll(() =>
+        Effect.catchAll((directError) =>
           pipe(
-            tryPathFinding(tokenA, tokenB, config),
-            Effect.tap(() => Effect.log(`Used path finding for ${tokenA.code} -> ${tokenB.code}`)),
+            Effect.log(`Direct orderbook failed for ${tokenA.code} -> ${tokenB.code}, trying path finding: ${directError instanceof Error ? directError.message : String(directError)}`),
+            Effect.flatMap(() =>
+              pipe(
+                tryPathFinding(tokenA, tokenB, config),
+                Effect.tap(() => Effect.log(`Used path finding for ${tokenA.code} -> ${tokenB.code}`)),
+              )
+            )
           )
         ),
         Effect.catchTag("StellarError", (error) => Effect.fail(error)),
         Effect.catchTag("TokenPriceError", (error) => Effect.fail(error)),
         Effect.catchAll((error) =>
-          Effect.fail(
-            new TokenPriceError({
-              message: "Failed to calculate token price",
-              tokenA: tokenA.code,
-              tokenB: tokenB.code,
-              cause: error,
-            }),
+          pipe(
+            Effect.log(`Detailed pricing error for ${tokenA.code} -> ${tokenB.code}: ${error instanceof Error ? error.message : String(error)}`),
+            Effect.flatMap(() =>
+              Effect.fail(
+                new TokenPriceError({
+                  message: "Failed to calculate token price",
+                  tokenA: tokenA.code,
+                  tokenB: tokenB.code,
+                  cause: error,
+                }),
+              )
+            )
           )
         ),
       );
@@ -430,12 +479,18 @@ const getTokensWithPricesImpl = (
             eurmtlData: pipe(
               getTokenPriceImpl(token.asset, baseTokens.eurmtl),
               Effect.map((result) => ({ price: result.price, details: result.details })),
-              Effect.catchAll(() => Effect.succeed({ price: null, details: undefined })),
+              Effect.catchAll((error) => pipe(
+                Effect.logError(`EURMTL pricing failed for ${token.asset.code}: ${error}`),
+                Effect.flatMap(() => Effect.succeed({ price: null, details: undefined }))
+              )),
             ),
             xlmData: pipe(
               getTokenPriceImpl(token.asset, baseTokens.xlm),
               Effect.map((result) => ({ price: result.price, details: result.details })),
-              Effect.catchAll(() => Effect.succeed({ price: null, details: undefined })),
+              Effect.catchAll((error) => pipe(
+                Effect.logError(`XLM pricing failed for ${token.asset.code}: ${error}`),
+                Effect.flatMap(() => Effect.succeed({ price: null, details: undefined }))
+              )),
             ),
           }),
           Effect.map(({ eurmtlData, xlmData }) => {

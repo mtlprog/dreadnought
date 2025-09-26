@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Effect, ManagedRuntime, pipe } from "effect";
-import { FundStructureService, FundStructureServiceLive } from "./fund-structure-service";
+import { FundStructureServiceTag, FundStructureServiceLive } from "./fund-structure-service";
 
 describe("FundStructureService", () => {
   test("should return fund accounts", async () => {
@@ -8,7 +8,7 @@ describe("FundStructureService", () => {
 
     try {
       const program = pipe(
-        FundStructureService,
+        FundStructureServiceTag,
         Effect.flatMap((service) => service.getFundAccounts()),
       );
 
@@ -40,7 +40,7 @@ describe("FundStructureService", () => {
 
     try {
       const program = pipe(
-        FundStructureService,
+        FundStructureServiceTag,
         Effect.flatMap((service) => service.getFundAccounts()),
       );
 
@@ -66,7 +66,7 @@ describe("FundStructureService", () => {
 
     try {
       const program = pipe(
-        FundStructureService,
+        FundStructureServiceTag,
         Effect.flatMap((service) => service.getFundAccounts()),
       );
 

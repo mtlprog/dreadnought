@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { Effect, pipe } from "effect";
-import { PriceService } from "../../lib/stellar";
+import { PriceService, PriceServiceTag } from "../../lib/stellar";
 import type { AssetInfo } from "../../lib/stellar/types";
 import { logErrorWithCause } from "../../lib/utils/error-handling";
 
@@ -12,7 +12,7 @@ export const getTokenPriceCommand = (
 ): Effect.Effect<void, never, PriceService> =>
   pipe(
     Effect.gen(function*() {
-      const priceService = yield* PriceService;
+      const priceService = yield* PriceServiceTag;
 
       // Handle native XLM tokens
       const tokenA: AssetInfo = {

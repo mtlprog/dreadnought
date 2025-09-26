@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { Effect, pipe } from "effect";
-import { PortfolioService } from "../../lib/stellar";
+import { PortfolioService, PortfolioServiceTag } from "../../lib/stellar";
 import { logErrorWithCause } from "../../lib/utils/error-handling";
 
 export const getPortfolioCommand = (
@@ -8,7 +8,7 @@ export const getPortfolioCommand = (
 ): Effect.Effect<void, never, PortfolioService> =>
   pipe(
     Effect.gen(function*() {
-      const portfolioService = yield* PortfolioService;
+      const portfolioService = yield* PortfolioServiceTag;
 
       yield* Effect.log(chalk.cyan("\n🔍 Загружаю портфель...\n"));
       yield* Effect.log(chalk.gray(`Счет: ${accountId}`));
