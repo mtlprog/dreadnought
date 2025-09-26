@@ -38,18 +38,7 @@ export function PortfolioDemo() {
 
   return (
     <div className="container mx-auto px-4 py-16">
-      {/* Content */}
       {fundData != null && <FundStructureTable fundData={fundData} isLoading={false} />}
-
-      {/* Status Indicator */}
-      {fundData != null && (
-        <div className="mt-8 p-6 border border-cyber-green bg-cyber-green/10">
-          <p className="font-mono text-cyber-green uppercase tracking-wider text-center">
-            ✅ РЕАЛЬНЫЕ ДАННЫЕ // STELLAR BLOCKCHAIN // {fundData.aggregatedTotals.accountCount} СЧЕТОВ //{" "}
-            {fundData.aggregatedTotals.tokenCount} ТОКЕНОВ
-          </p>
-        </div>
-      )}
     </div>
   );
 }

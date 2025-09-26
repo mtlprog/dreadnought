@@ -1,6 +1,8 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { StellarAccount } from "@/components/ui/stellar-account";
+import { StellarAsset } from "@/components/ui/stellar-asset";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { FundAccountPortfolio, FundStructureData } from "@/lib/stellar/fund-structure-service";
@@ -10,10 +12,6 @@ import React from "react";
 interface FundStructureTableProps {
   fundData: FundStructureData;
   isLoading?: boolean;
-}
-
-function formatAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
@@ -135,9 +133,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
             <p className="text-sm font-mono text-steel-gray mt-1">
               {account.description}
             </p>
-            <p className="text-xs font-mono text-steel-gray mt-1">
-              {formatAddress(account.id)}
-            </p>
+            <StellarAccount accountId={account.id} className="mt-1" />
           </div>
           <div className="text-right">
             <div className="text-sm font-mono text-steel-gray uppercase">ИТОГО СЧЁТА</div>
@@ -156,7 +152,9 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
         <Table>
           <TableBody>
             <TableRow className="border-steel-gray/30">
-              <TableCell className="font-mono text-cyber-green w-32">XLM</TableCell>
+              <TableCell className="w-32">
+                <StellarAsset assetCode="XLM" />
+              </TableCell>
               <TableCell className="font-mono text-white w-40">
                 {parseFloat(account.xlmBalance).toFixed(7)}
               </TableCell>
@@ -179,8 +177,11 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
             {/* Token Rows */}
             {liquidTokens.map((token, index) => (
               <TableRow key={index} className="border-steel-gray/30">
-                <TableCell className="font-mono text-cyber-green">
-                  {token.asset.code}
+                <TableCell>
+                  <StellarAsset
+                    assetCode={token.asset.code}
+                    assetIssuer={token.asset.issuer}
+                  />
                 </TableCell>
                 <TableCell className="font-mono text-white">
                   {parseFloat(token.balance).toFixed(token.asset.code === "EURMTL" ? 2 : 7)}
@@ -248,23 +249,25 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
           </div>
 
           <div className="p-6">
-            {/* Table Header */}
-            <div className="mb-6">
+            {/* Sticky Table Header */}
+            <div className="sticky top-0 z-10 bg-black border-b border-steel-gray mb-6">
               <Table>
                 <TableHeader>
                   <TableRow className="border-steel-gray">
-                    <TableHead className="text-white font-mono uppercase tracking-wider w-32">ТОКЕН</TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider w-40">БАЛАНС</TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-32">
+                    <TableHead className="text-white font-mono uppercase tracking-wider w-32 bg-black">ТОКЕН</TableHead>
+                    <TableHead className="text-white font-mono uppercase tracking-wider w-40 bg-black">
+                      БАЛАНС
+                    </TableHead>
+                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-32 bg-black">
                       ЦЕНА (EURMTL)
                     </TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-32">
+                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-32 bg-black">
                       ЦЕНА (XLM)
                     </TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-40">
+                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-40 bg-black">
                       СТОИМОСТЬ (EURMTL)
                     </TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-40">
+                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-40 bg-black">
                       СТОИМОСТЬ (XLM)
                     </TableHead>
                   </TableRow>

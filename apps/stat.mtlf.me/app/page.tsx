@@ -1,8 +1,9 @@
+import { Footer } from "@/components/layout/footer";
 import { PortfolioDemo } from "@/components/portfolio/portfolio-demo";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-black flex flex-col">
       <div className="border-b border-steel-gray bg-black p-6">
         <div className="container mx-auto">
           <h1 className="text-6xl font-mono uppercase tracking-wider text-cyber-green mb-2">
@@ -14,17 +15,11 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="py-8">
+      <main className="flex-1 py-8">
         <PortfolioDemo />
-      </div>
+      </main>
 
-      <footer className="border-t border-steel-gray bg-black p-6 mt-16">
-        <div className="container mx-auto text-center">
-          <p className="font-mono text-steel-gray uppercase tracking-wider">
-            STELLAR BLOCKCHAIN // REAL-TIME DATA
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
