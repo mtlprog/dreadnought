@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { Effect, pipe } from "effect";
 import { PortfolioService } from "../../lib/stellar";
+import { logErrorWithCause } from "../../lib/utils/error-handling";
 
 export const getPortfolioCommand = (
   accountId: string,
@@ -29,17 +30,9 @@ export const getPortfolioCommand = (
       }
     }),
     Effect.catchAll((error) =>
-      Effect.sync(() => {
-        console.error(chalk.red("\n❌ Ошибка загрузки портфеля:"));
-        if (error !== null && typeof error === "object") {
-          const errorMessage = "message" in error ? error.message : JSON.stringify(error);
-          console.error(chalk.red(errorMessage));
-          if ("cause" in error && error.cause !== null && error.cause !== undefined) {
-            console.error(chalk.dim("Причина:"), error.cause);
-          }
-        } else {
-          console.error(chalk.red(String(error)));
-        }
-      })
+      pipe(
+        Effect.logError(chalk.red("\n❌ Ошибка загрузки портфеля:")),
+        Effect.tap(() => logErrorWithCause(chalk.red("Error"))(error))
+      )
     ),
   );

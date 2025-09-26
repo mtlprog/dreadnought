@@ -5,7 +5,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t-4 border-cyber-green bg-black mt-24">
+    <footer className="border-t-4 border-cyber-green bg-background mt-24">
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           <div>
@@ -18,7 +18,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xl font-mono text-white uppercase mb-6 tracking-wider">
+            <h4 className="text-xl font-mono text-foreground uppercase mb-6 tracking-wider">
               РЕСУРСЫ
             </h4>
             <div className="space-y-4">
@@ -42,7 +42,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="text-xl font-mono text-white uppercase mb-6 tracking-wider">
+            <h4 className="text-xl font-mono text-foreground uppercase mb-6 tracking-wider">
               СООБЩЕСТВО
             </h4>
             <div className="space-y-4">
@@ -68,7 +68,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="border-t-2 border-steel-gray pt-8 mt-12">
+        <div className="border-t-2 border-border pt-8 mt-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-base font-mono text-steel-gray uppercase tracking-wider">
               STELLAR BLOCKCHAIN // OPEN SOURCE // REAL-TIME DATA

@@ -24,7 +24,7 @@ interface PathRecord {
   readonly destination_asset_type: string;
   readonly destination_asset_code?: string;
   readonly destination_asset_issuer?: string;
-  readonly path: readonly unknown[];
+  readonly path: readonly PathHop[];
 }
 
 interface PathResponse {
@@ -241,8 +241,8 @@ const tryPathFinding = (
 
                   // Process each intermediate hop
                   for (const hop of bestPath.path) {
-                    const nextAssetCode = (hop as PathHop).asset_code ?? "XLM";
-                    const nextAssetIssuer = (hop as PathHop).asset_issuer;
+                    const nextAssetCode = hop.asset_code ?? "XLM";
+                    const nextAssetIssuer = hop.asset_issuer;
 
                     const nextAssetInfo: AssetInfo = nextAssetCode === "XLM"
                       ? { code: "XLM", issuer: "", type: "native" }

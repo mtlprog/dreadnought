@@ -19,7 +19,7 @@ export function LoadingTableSkeleton({ rows = 5, columns = 6 }: LoadingTableSkel
   return (
     <div className="space-y-4">
       {/* Header skeleton */}
-      <div className="grid grid-cols-6 gap-4 pb-4 border-b border-steel-gray/30">
+      <div className="grid grid-cols-6 gap-4 pb-4 border-b border-border">
         {Array.from({ length: columns }).map((_, i) => <LoadingSkeleton key={i} className="h-6 w-full" />)}
       </div>
 
@@ -42,7 +42,7 @@ interface FundStructureLoadingProps {
 export function FundStructureLoading({ accountCount = 3 }: FundStructureLoadingProps) {
   return (
     <div className="space-y-8">
-      <div className="p-0 border-0 bg-black text-white overflow-hidden">
+      <div className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
         {/* Header */}
         <div className="bg-cyber-green/20 border border-cyber-green p-6 animate-pulse">
           <div className="bg-cyber-green/40 h-8 w-96 mb-2"></div>
@@ -52,7 +52,7 @@ export function FundStructureLoading({ accountCount = 3 }: FundStructureLoadingP
         <div className="p-6">
           {/* Table Header */}
           <div className="mb-6">
-            <div className="grid grid-cols-6 gap-4 pb-4 border-b border-steel-gray">
+            <div className="grid grid-cols-6 gap-4 pb-4 border-b border-border">
               {Array.from({ length: 6 }).map((_, i) => <LoadingSkeleton key={i} className="h-6" />)}
             </div>
           </div>
@@ -128,7 +128,7 @@ export function SystemLoading({
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-2xl mx-auto text-center space-y-8">
         {/* Terminal-style loading indicator */}
-        <div className="border-2 border-cyber-green bg-black p-8">
+        <div className="border-2 border-cyber-green bg-card p-8">
           <div className="font-mono text-4xl text-cyber-green uppercase tracking-wider mb-4">
             {title}
           </div>
@@ -138,7 +138,7 @@ export function SystemLoading({
           </div>
 
           {/* Progress bar */}
-          <div className="border border-steel-gray bg-black h-4 mb-6">
+          <div className="border border-border bg-background h-4 mb-6">
             <div
               className="bg-cyber-green h-full transition-all duration-1000 ease-out"
               style={{ width: `${Math.min(progress, 100)}%` }}

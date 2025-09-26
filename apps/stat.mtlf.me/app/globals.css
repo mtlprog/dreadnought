@@ -1,25 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  /* Retrofuturistic black/green design system */
-  --background: #000000;      /* Pure black */
-  --foreground: #FFFFFF;      /* Pure white */
-  --cyber-green: #00FF00;     /* Classic terminal green */
-  --electric-cyan: #00FFFF;   /* Neon accent */
-  --warning-amber: #FFAA00;   /* Alert state */
-  --steel-gray: #404040;      /* Structural elements */
+  /* Light theme design system */
+  --background: #fafbff;      /* Light blue-white background */
+  --foreground: #dd2222;      /* Red foreground */
+  --cyber-green: #2288cc;     /* Blue (hover color) */
+  --electric-cyan: #dd8800;   /* Orange (accent) */
+  --warning-amber: #dd8800;   /* Orange (accent) */
+  --steel-gray: #7722dd;      /* Purple (secondary) */
 
-  --primary: #00FF00;
-  --primary-foreground: #000000;
-  --secondary: #404040;
-  --secondary-foreground: #FFFFFF;
-  --muted: #202020;
-  --muted-foreground: #808080;
-  --border: #404040;
-  --input: #202020;
-  --ring: #00FF00;
-  --card: #000000;
-  --card-foreground: #FFFFFF;
+  --primary: #dd2222;
+  --primary-foreground: #fafbff;
+  --secondary: #7722dd;
+  --secondary-foreground: #fafbff;
+  --muted: #f0f1f6;
+  --muted-foreground: #6b7280;
+  --border: #e5e7eb;
+  --input: #f9fafb;
+  --ring: #dd2222;
+  --card: #ffffff;
+  --card-foreground: #dd2222;
+}
+
+[data-theme="dark"] {
+  /* Dark theme design system */
+  --background: #0f0f1a;      /* Dark blue-black background */
+  --foreground: #ff4444;      /* Bright red foreground */
+  --cyber-green: #44ddff;     /* Cyan (hover color) */
+  --electric-cyan: #ffbb00;   /* Gold (accent) */
+  --warning-amber: #ffbb00;   /* Gold (accent) */
+  --steel-gray: #aa44ff;      /* Purple (secondary) */
+
+  --primary: #ff4444;
+  --primary-foreground: #0f0f1a;
+  --secondary: #aa44ff;
+  --secondary-foreground: #0f0f1a;
+  --muted: #1a1a2e;
+  --muted-foreground: #9ca3af;
+  --border: #374151;
+  --input: #1f2937;
+  --ring: #ff4444;
+  --card: #111827;
+  --card-foreground: #ff4444;
 }
 
 @theme inline {

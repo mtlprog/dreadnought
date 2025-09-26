@@ -125,7 +125,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
         <div className="flex justify-between items-center">
           <div>
             <div className="flex items-center gap-4">
-              <h3 className="text-xl font-mono text-white uppercase tracking-wider">
+              <h3 className="text-xl font-mono text-foreground uppercase tracking-wider">
                 {account.name}
               </h3>
               <AccountTypeIndicator type={account.type} />
@@ -151,19 +151,19 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
       <div className="ml-4">
         <Table>
           <TableBody>
-            <TableRow className="border-steel-gray/30">
+            <TableRow className="border-border">
               <TableCell className="w-32">
                 <StellarAsset assetCode="XLM" />
               </TableCell>
-              <TableCell className="font-mono text-white w-40">
+              <TableCell className="font-mono text-foreground w-40">
                 {parseFloat(account.xlmBalance).toFixed(7)}
               </TableCell>
-              <TableCell className="text-right font-mono text-white w-32">
+              <TableCell className="text-right font-mono text-foreground w-32">
                 {account.xlmPriceInEURMTL !== null && account.xlmPriceInEURMTL !== undefined
                   ? parseFloat(account.xlmPriceInEURMTL).toFixed(4)
                   : "—"}
               </TableCell>
-              <TableCell className="text-right font-mono text-white w-32">1.0000000</TableCell>
+              <TableCell className="text-right font-mono text-foreground w-32">1.0000000</TableCell>
               <TableCell className="text-right font-mono text-electric-cyan w-40">
                 {account.xlmPriceInEURMTL !== null && account.xlmPriceInEURMTL !== undefined
                   ? (parseFloat(account.xlmBalance) * parseFloat(account.xlmPriceInEURMTL)).toFixed(2)
@@ -183,10 +183,10 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                     assetIssuer={token.asset.issuer}
                   />
                 </TableCell>
-                <TableCell className="font-mono text-white">
+                <TableCell className="font-mono text-foreground">
                   {parseFloat(token.balance).toFixed(token.asset.code === "EURMTL" ? 2 : 7)}
                 </TableCell>
-                <TableCell className="text-right font-mono text-white">
+                <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="cursor-help underline-offset-2 hover:underline">
@@ -198,7 +198,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
-                <TableCell className="text-right font-mono text-white">
+                <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="cursor-help underline-offset-2 hover:underline">
@@ -228,7 +228,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
 export function FundStructureTable({ fundData, isLoading = false }: FundStructureTableProps) {
   if (isLoading) {
     return (
-      <Card className="p-8 border-0 bg-black text-white">
+      <Card className="p-8 border-0 bg-background text-white">
         <div className="text-center">
           <div className="text-2xl text-cyber-green mb-4">⏳ ЗАГРУЗКА СТРУКТУРЫ ФОНДА...</div>
           <div className="text-steel-gray">Получение данных по всем счетам...</div>
@@ -240,8 +240,8 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
   return (
     <TooltipProvider>
       <div className="space-y-8">
-        <Card className="p-0 border-0 bg-black text-white overflow-hidden">
-          <div className="bg-cyber-green text-black p-6">
+        <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
+          <div className="bg-cyber-green text-background p-6">
             <h2 className="text-3xl font-mono uppercase tracking-wider">СТРУКТУРА ФОНДА MONTELIBERO</h2>
             <p className="text-lg font-mono mt-2">
               {fundData.aggregatedTotals.accountCount} СЧЕТОВ // {fundData.aggregatedTotals.tokenCount} ТОКЕНОВ
@@ -250,24 +250,26 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
 
           <div className="p-6">
             {/* Sticky Table Header */}
-            <div className="sticky top-0 z-10 bg-black border-b border-steel-gray mb-6">
+            <div className="sticky top-0 z-10 bg-background border-b border-border mb-6">
               <Table>
                 <TableHeader>
                   <TableRow className="border-steel-gray">
-                    <TableHead className="text-white font-mono uppercase tracking-wider w-32 bg-black">ТОКЕН</TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider w-40 bg-black">
+                    <TableHead className="text-foreground font-mono uppercase tracking-wider w-32 bg-background">
+                      ТОКЕН
+                    </TableHead>
+                    <TableHead className="text-foreground font-mono uppercase tracking-wider w-40 bg-background">
                       БАЛАНС
                     </TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-32 bg-black">
+                    <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
                       ЦЕНА (EURMTL)
                     </TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-32 bg-black">
+                    <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
                       ЦЕНА (XLM)
                     </TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-40 bg-black">
+                    <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
                       СТОИМОСТЬ (EURMTL)
                     </TableHead>
-                    <TableHead className="text-white font-mono uppercase tracking-wider text-right w-40 bg-black">
+                    <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
                       СТОИМОСТЬ (XLM)
                     </TableHead>
                   </TableRow>
@@ -282,7 +284,7 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
           </div>
 
           {/* Aggregated Totals */}
-          <div className="border-t-4 border-cyber-green bg-cyber-green/20 p-6">
+          <div className="border-t-4 border-cyber-green bg-cyber-green/10 p-6">
             <div className="flex justify-between items-center">
               <div>
                 <span className="text-3xl font-mono uppercase tracking-wider text-cyber-green">

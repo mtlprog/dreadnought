@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { Effect, pipe } from "effect";
 import { PriceService } from "../../lib/stellar";
 import type { AssetInfo } from "../../lib/stellar/types";
+import { logErrorWithCause } from "../../lib/utils/error-handling";
 
 export const getTokenPriceCommand = (
   tokenACode: string,
@@ -47,17 +48,9 @@ export const getTokenPriceCommand = (
       yield* Effect.log(chalk.dim(`⏰ Timestamp: ${result.timestamp.toISOString()}`));
     }),
     Effect.catchAll((error) =>
-      Effect.sync(() => {
-        console.error(chalk.red("\n❌ Failed to calculate price:"));
-        if (error !== null && typeof error === "object") {
-          const errorMessage = "message" in error ? error.message : JSON.stringify(error);
-          console.error(chalk.red(errorMessage));
-          if ("cause" in error && error.cause !== null && error.cause !== undefined) {
-            console.error(chalk.dim("Cause:"), error.cause);
-          }
-        } else {
-          console.error(chalk.red(String(error)));
-        }
-      })
+      pipe(
+        Effect.logError(chalk.red("\n❌ Failed to calculate price:")),
+        Effect.tap(() => logErrorWithCause(chalk.red("Error"))(error))
+      )
     ),
   );
