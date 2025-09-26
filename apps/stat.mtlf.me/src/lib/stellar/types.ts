@@ -1,5 +1,3 @@
-import * as S from "@effect/schema/Schema";
-
 // Token price calculation types
 export interface TokenPairPrice {
   readonly tokenA: string;

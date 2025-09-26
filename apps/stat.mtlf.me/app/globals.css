@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Retrofuturistic black/green design system */
+  --background: #000000;      /* Pure black */
+  --foreground: #FFFFFF;      /* Pure white */
+  --cyber-green: #00FF00;     /* Classic terminal green */
+  --electric-cyan: #00FFFF;   /* Neon accent */
+  --warning-amber: #FFAA00;   /* Alert state */
+  --steel-gray: #404040;      /* Structural elements */
+
+  --primary: #00FF00;
+  --primary-foreground: #000000;
+  --secondary: #404040;
+  --secondary-foreground: #FFFFFF;
+  --muted: #202020;
+  --muted-foreground: #808080;
+  --border: #404040;
+  --input: #202020;
+  --ring: #00FF00;
+  --card: #000000;
+  --card-foreground: #FFFFFF;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-cyber-green: var(--cyber-green);
+  --color-electric-cyan: var(--electric-cyan);
+  --color-warning-amber: var(--warning-amber);
+  --color-steel-gray: var(--steel-gray);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-mono); /* Monospace by default for terminal aesthetic */
 }
