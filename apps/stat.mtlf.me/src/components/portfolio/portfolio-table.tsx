@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   Table,
   TableBody,
@@ -9,7 +10,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { TokenPriceWithBalance } from "@/lib/stellar/price-service";
+import { PriceDetails } from "@/lib/stellar/types";
 
 interface PortfolioTableProps {
   accountId: string;
@@ -26,6 +34,81 @@ function formatTokenName(code: string): string {
 
 function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
+  if (!details) {
+    return (
+      <div className="font-mono">
+        <div className="text-warning-amber">НЕТ ДАННЫХ</div>
+        <div className="text-xs text-steel-gray mt-1">Цена недоступна</div>
+      </div>
+    );
+  }
+
+  if (details.source === "orderbook") {
+    return (
+      <div className="font-mono space-y-1">
+        <div className="text-cyber-green uppercase text-xs">ПРЯМАЯ ТОРГОВЛЯ</div>
+        {details.bid && (
+          <div className="text-xs">
+            <span className="text-steel-gray">BID:</span> {parseFloat(details.bid).toFixed(7)}
+          </div>
+        )}
+        {details.ask && (
+          <div className="text-xs">
+            <span className="text-steel-gray">ASK:</span> {parseFloat(details.ask).toFixed(7)}
+          </div>
+        )}
+        {details.midPrice && (
+          <div className="text-xs border-t border-steel-gray/30 pt-1 mt-1">
+            <span className="text-steel-gray">СРЕДНЯЯ:</span> {parseFloat(details.midPrice).toFixed(7)}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (details.source === "path" && details.path) {
+    return (
+      <div className="font-mono space-y-1">
+        <div className="text-electric-cyan uppercase text-xs">ПОИСК ПУТИ</div>
+        <div className="text-xs">
+          <span className="text-steel-gray">ПУТЬ:</span>
+        </div>
+        {details.path.map((hop, index) => (
+          <div key={index} className="text-xs pl-2 space-y-1 border-l border-steel-gray/50 ml-1">
+            <div className="font-semibold">
+              {hop.from} → {hop.to}
+            </div>
+            {hop.bid && hop.ask && hop.midPrice ? (
+              <div className="pl-2 space-y-1">
+                <div>
+                  <span className="text-steel-gray">BID:</span> {parseFloat(hop.bid).toFixed(7)}
+                </div>
+                <div>
+                  <span className="text-steel-gray">ASK:</span> {parseFloat(hop.ask).toFixed(7)}
+                </div>
+                <div className="border-t border-steel-gray/30 pt-1">
+                  <span className="text-steel-gray">СРЕДНЯЯ:</span> {parseFloat(hop.midPrice).toFixed(7)}
+                </div>
+              </div>
+            ) : hop.price ? (
+              <div className="pl-2">
+                <span className="text-steel-gray">ЦЕНА:</span> {parseFloat(hop.price).toFixed(7)}
+              </div>
+            ) : (
+              <div className="pl-2 text-warning-amber text-xs">
+                НЕТ ДАННЫХ
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
 }
 
 export function PortfolioTable({
@@ -67,15 +150,16 @@ export function PortfolioTable({
   }
 
   return (
-    <div className="space-y-8">
-      <Card className="p-0 border-0 bg-black text-white overflow-hidden">
-        <div className="bg-cyber-green text-black p-6">
-          <h2 className="text-3xl font-mono uppercase tracking-wider">ПОРТФЕЛЬ</h2>
-          <p className="text-lg font-mono mt-2">СЧЕТ: {formatAddress(accountId)}</p>
-        </div>
+    <TooltipProvider>
+      <div className="space-y-8">
+        <Card className="p-0 border-0 bg-black text-white overflow-hidden">
+          <div className="bg-cyber-green text-black p-6">
+            <h2 className="text-3xl font-mono uppercase tracking-wider">ПОРТФЕЛЬ</h2>
+            <p className="text-lg font-mono mt-2">СЧЕТ: {formatAddress(accountId)}</p>
+          </div>
 
-        <div className="p-6">
-          <Table>
+          <div className="p-6">
+            <Table>
             <TableHeader>
               <TableRow className="border-steel-gray hover:bg-steel-gray/20">
                 <TableHead className="text-white font-mono uppercase tracking-wider">ТОКЕН</TableHead>
@@ -115,10 +199,28 @@ export function PortfolioTable({
                     {parseFloat(token.balance).toFixed(token.asset.code === 'EURMTL' ? 2 : 7)}
                   </TableCell>
                   <TableCell className="text-right font-mono text-white">
-                    {token.priceInEURMTL ? parseFloat(token.priceInEURMTL).toFixed(4) : "—"}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help underline-offset-2 hover:underline">
+                          {token.priceInEURMTL ? parseFloat(token.priceInEURMTL).toFixed(4) : "—"}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        {formatPriceTooltip(token.detailsEURMTL)}
+                      </TooltipContent>
+                    </Tooltip>
                   </TableCell>
                   <TableCell className="text-right font-mono text-white">
-                    {token.priceInXLM ? parseFloat(token.priceInXLM).toFixed(7) : "—"}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help underline-offset-2 hover:underline">
+                          {token.priceInXLM ? parseFloat(token.priceInXLM).toFixed(7) : "—"}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-xs">
+                        {formatPriceTooltip(token.detailsXLM)}
+                      </TooltipContent>
+                    </Tooltip>
                   </TableCell>
                   <TableCell className="text-right font-mono text-electric-cyan">
                     {token.valueInEURMTL || "—"}
@@ -152,6 +254,7 @@ export function PortfolioTable({
           </div>
         </div>
       </Card>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

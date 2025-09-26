@@ -51,7 +51,7 @@ const fetchPortfolioWithPrices = (accountId: string) =>
               xlmBalance: portfolio.xlmBalance,
             })),
             // If token pricing fails, still return basic portfolio data
-            Effect.catchAll((_error) =>
+            Effect.catchAll(() =>
               Effect.succeed({
                 accountId: portfolio.accountId,
                 tokens: portfolio.tokens.map(token => ({
@@ -95,7 +95,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   const program = pipe(
     fetchPortfolioWithPrices(accountId),
     Effect.provide(AppLayer),
-    Effect.tap((_result) => Effect.log(`Portfolio data fetched for account: ${accountId}`)),
+    Effect.tap(() => Effect.log(`Portfolio data fetched for account: ${accountId}`)),
     Effect.catchAll((error) =>
       pipe(
         Effect.log(`Portfolio API error: ${error}`),

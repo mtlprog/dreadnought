@@ -4,6 +4,24 @@ import { getStellarConfig } from "./config";
 import { StellarError, EnvironmentError } from "./errors";
 import { AssetInfo } from "./types";
 
+// Stellar account balance interface
+interface BalanceRecord {
+  readonly balance: string;
+  readonly limit?: string;
+  readonly buying_liabilities?: string;
+  readonly selling_liabilities?: string;
+  readonly asset_type: string;
+  readonly asset_code?: string;
+  readonly asset_issuer?: string;
+}
+
+// Stellar account response interface
+interface AccountResponse {
+  readonly id: string;
+  readonly sequence: string;
+  readonly balances: readonly BalanceRecord[];
+}
+
 export interface TokenBalance {
   readonly asset: AssetInfo;
   readonly balance: string;
@@ -27,9 +45,9 @@ export const PortfolioService = Context.GenericTag<PortfolioService>("@dreadnoug
 const loadAccountBalances = (
   server: Horizon.Server,
   accountId: string,
-): Effect.Effect<any, StellarError> =>
+): Effect.Effect<AccountResponse, StellarError> =>
   Effect.tryPromise({
-    try: () => server.loadAccount(accountId),
+    try: () => server.loadAccount(accountId) as Promise<AccountResponse>,
     catch: (error) =>
       new StellarError({
         operation: "loadAccount",
@@ -38,7 +56,7 @@ const loadAccountBalances = (
   });
 
 const parseBalances = (
-  accountRecord: any,
+  accountRecord: AccountResponse,
 ): Effect.Effect<{ tokens: readonly TokenBalance[]; xlmBalance: string }, never> =>
   Effect.sync(() => {
     const tokens: TokenBalance[] = [];

@@ -19,7 +19,13 @@
       "Bash(STELLAR_NETWORK=mainnet node test-account.js)",
       "Read(//tmp/**)",
       "Bash(grep:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "WebSearch",
+      "WebFetch(domain:developers.stellar.org)",
+      "WebFetch(domain:stellar.github.io)",
+      "Bash(STELLAR_NETWORK=mainnet bun run src/test-path.ts)",
+      "Bash(STELLAR_NETWORK=mainnet bun run dev)",
+      "SlashCommand(/review)"
     ],
     "deny": [],
     "ask": []
