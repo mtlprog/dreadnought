@@ -22,20 +22,19 @@
     ]
   },
   "env": {
-    "EDITOR": "code",
+    "EDITOR": "nvim",
     "NODE_ENV": "development"
   },
   "hooks": {
-    "beforeEdit": [
-      {
-        "pattern": "*.{ts,tsx}",
-        "command": "bunx prettier --write ${file}"
-      }
-    ],
+    "beforeEdit": [],
     "afterEdit": [
       {
         "pattern": "*.{ts,tsx}",
         "command": "bunx tsc --noEmit ${file}"
+      },
+      {
+        "pattern": "*.{ts,tsx}",
+        "command": "bunx eslint . --fix ${file}"
       },
       {
         "pattern": "packages/**/*.{ts,tsx}",

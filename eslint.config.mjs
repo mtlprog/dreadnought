@@ -11,38 +11,38 @@ export default [
       "node_modules/**",
       "**/node_modules/**",
       "bun.lock",
-      
+
       // Build outputs
       "dist/**",
       "build/**",
       ".next/**",
       "**/.next/**",
       "out/**",
-      
+
       // Coverage and testing
       "coverage/**",
       ".nyc_output/**",
-      
+
       // IDE and system files
       ".vscode/**",
       ".idea/**",
       ".DS_Store",
       "Thumbs.db",
-      
+
       // Configuration files
       "*.config.js",
       "*.config.mjs",
       "eslint.config.mjs",
-      
+
       // Logs
       "*.log",
       "logs/**",
-      
+
       // Cache and temp files
       ".cache/**",
       "temp/**",
       "tmp/**",
-      
+
       // Minified files
       "*.min.js",
       "*.min.css",
@@ -68,12 +68,12 @@ export default [
         setInterval: "readonly",
         clearTimeout: "readonly",
         clearInterval: "readonly",
-        
+
         // Browser globals
         document: "readonly",
         window: "readonly",
         fetch: "readonly",
-        
+
         // HTML element types
         HTMLElement: "readonly",
         HTMLDivElement: "readonly",
@@ -81,7 +81,7 @@ export default [
         HTMLInputElement: "readonly",
         HTMLParagraphElement: "readonly",
         HTMLHeadingElement: "readonly",
-        
+
         // React types
         React: "readonly",
         JSX: "readonly",
@@ -119,9 +119,9 @@ export default [
       "@effect/no-import-from-barrel-package": "error",
 
       // Additional TypeScript rules beneficial for Effect-TS
-      "@typescript-eslint/consistent-type-imports": ["error", { 
+      "@typescript-eslint/consistent-type-imports": ["error", {
         "prefer": "type-imports",
-        "disallowTypeAnnotations": false 
+        "disallowTypeAnnotations": false
       }],
       "@typescript-eslint/no-unnecessary-type-assertion": "error",
       "@typescript-eslint/prefer-nullish-coalescing": "error",
@@ -191,5 +191,12 @@ export default [
     },
   },
 
+  // Configuration for Next.js generated files
+  {
+    files: ["**/next-env.d.ts"],
+    rules: {
+      "@typescript-eslint/triple-slash-reference": "off",
+    },
+  },
 
 ]

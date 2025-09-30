@@ -276,7 +276,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 }}
                 disabled={isLoadingBalance}
               >
-                {isLoadingBalance === true ? t("common.loading") : t("project.support.refreshBalance")}
+                {isLoadingBalance ? t("common.loading") : t("project.support.refreshBalance")}
               </Button>
             </div>
           </div>
