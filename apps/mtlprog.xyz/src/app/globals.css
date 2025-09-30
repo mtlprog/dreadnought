@@ -3,37 +3,38 @@
 @tailwind utilities;
 
 :root {
-  /* Base colors */
-  --background: #000000;
-  --foreground: #ffffff;
+  /* Base colors - Deep blue-black background inspired by Ghost in the Shell */
+  --background: #0a0e1a;
+  --foreground: #e8f4f8;
 
-  /* Semantic colors */
-  --primary: #00ff00;
-  --primary-foreground: #000000;
-  --secondary: #00ffff;
-  --secondary-foreground: #000000;
+  /* Semantic colors - Refined teal/cyan palette */
+  --primary: #00d9ff;
+  --primary-foreground: #0a0e1a;
+  --secondary: #00ff88;
+  --secondary-foreground: #0a0e1a;
 
   /* Component colors */
-  --card: #0a0a0a;
-  --card-foreground: #ffffff;
-  --border: #404040;
-  --input: #1a1a1a;
-  --ring: #00ff00;
+  --card: #111827;
+  --card-foreground: #e8f4f8;
+  --border: #1e3a5f;
+  --input: #1a2332;
+  --ring: #00d9ff;
 
   /* State colors */
-  --muted: #1a1a1a;
-  --muted-foreground: #808080;
-  --destructive: #ff0066;
+  --muted: #1a2332;
+  --muted-foreground: #94a3b8;
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --accent: #00ffff;
-  --accent-foreground: #000000;
-  --hover: #1a1a1a;
+  --accent: #8b5cf6;
+  --accent-foreground: #ffffff;
+  --hover: #1e293b;
 
-  /* Retrofuturistic accents */
-  --cyber-green: #00ff00;
-  --electric-cyan: #00ffff;
-  --warning-amber: #ffaa00;
-  --steel-gray: #404040;
+  /* Retrofuturistic accents - More sophisticated palette */
+  --cyber-green: #00ff88;
+  --electric-cyan: #00d9ff;
+  --warning-amber: #fbbf24;
+  --steel-gray: #64748b;
+  --neon-purple: #a855f7;
 }
 
 @layer base {
@@ -88,6 +89,29 @@
   ::selection {
     background: var(--cyber-green);
     color: var(--background);
+  }
+}
+
+/* Subtle grid background effect */
+@layer base {
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+      linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px, 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
   }
 }
 

@@ -70,6 +70,10 @@ const config: Config = {
           "50%": { boxShadow: "0 0 40px rgba(0, 255, 0, 0.8)" },
         },
       },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-radial-at-t": "radial-gradient(ellipse at top, var(--tw-gradient-stops))",
+      },
     },
   },
   plugins: [],

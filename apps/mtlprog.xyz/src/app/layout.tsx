@@ -24,13 +24,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "MTL Programmers Guild",
+  title: "Montelibero Programmers Guild",
   description: "Гильдия программистов — проекты и программы для IT-специалистов",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "MTL Programmers Guild",
+    title: "Montelibero Programmers Guild",
   },
 };
 

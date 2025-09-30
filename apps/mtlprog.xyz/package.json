@@ -10,9 +10,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "effect": "latest",
     "@effect/platform": "latest",
     "@effect/schema": "latest",
+    "effect": "latest",
+    "lucide-react": "^0.544.0",
     "next": "15.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
