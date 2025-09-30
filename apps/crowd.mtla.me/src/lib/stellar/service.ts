@@ -69,6 +69,51 @@ const checkTokenExists = (
     }),
   );
 
+const checkActiveSellOffer = (
+  server: Readonly<Horizon.Server>,
+  publicKey: Readonly<string>,
+  crowdfundingTokenCode: Readonly<string>,
+): Effect.Effect<boolean, StellarError> =>
+  pipe(
+    Effect.tryPromise({
+      try: async () => {
+        const allRecords: Horizon.ServerApi.OfferRecord[] = [];
+        let callBuilder = server.offers()
+          .forAccount(publicKey)
+          .limit(200);
+
+        while (true) {
+          const response = await callBuilder.call();
+          allRecords.push(...response.records);
+
+          if (response.records.length < 200) {
+            break;
+          }
+
+          const lastRecord = response.records[response.records.length - 1];
+          if (lastRecord === undefined) break;
+
+          callBuilder = server.offers()
+            .forAccount(publicKey)
+            .cursor(lastRecord.paging_token)
+            .limit(200);
+        }
+
+        // Check if there's an active sell offer for this C-token
+        return allRecords.some(offer =>
+          offer.selling.asset_type !== "native"
+          && offer.selling.asset_code === crowdfundingTokenCode
+          && offer.selling.asset_issuer === publicKey
+        );
+      },
+      catch: (error) =>
+        new StellarError({
+          cause: error,
+          operation: "check_active_sell_offer",
+        }),
+    }),
+  );
+
 const getClaimableBalances = (
   server: Readonly<Horizon.Server>,
   publicKey: Readonly<string>,
@@ -167,14 +212,21 @@ export const StellarServiceLive = Layer.succeed(
                   getClaimableBalances(config.server, config.publicKey)
                 ),
               ),
+              pipe(
+                getStellarConfig(),
+                Effect.flatMap((config: Readonly<StellarConfig>) =>
+                  checkActiveSellOffer(config.server, config.publicKey, `C${projectEntry.code}`)
+                ),
+              ),
               getStellarConfig(),
             ]),
             Effect.map(
               (
-                [projectData, tokenExists, claimableBalances, config]: readonly [
+                [projectData, tokenExists, claimableBalances, hasActiveSellOffer, config]: readonly [
                   ProjectData,
                   boolean,
                   readonly Horizon.ServerApi.ClaimableBalanceRecord[],
+                  boolean,
                   StellarConfig,
                 ],
               ) => {
@@ -186,6 +238,11 @@ export const StellarServiceLive = Layer.succeed(
                 const currentAmount = calculateRaisedAmount(claimableBalances, projectEntry.code, config.publicKey);
                 const isExpired = isProjectExpired(projectData.deadline);
                 const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
+
+                // Project is completed if:
+                // 1. Expired OR fully funded OR
+                // 2. No active sell offer (offer was closed, meaning project was finalized)
+                const isCompleted = isExpired || isFullyFunded || !hasActiveSellOffer;
 
                 const projectInfo: ProjectInfo = {
                   name: projectData.name,
@@ -199,7 +256,7 @@ export const StellarServiceLive = Layer.succeed(
                   current_amount: currentAmount,
                   supporters_count: supportersCount,
                   ipfsUrl: `https://ipfs.io/ipfs/${projectEntry.cid}`,
-                  status: isExpired || isFullyFunded ? "completed" : "active",
+                  status: isCompleted ? "completed" : "active",
                 };
 
                 return projectInfo;
@@ -257,14 +314,21 @@ export const StellarServiceLive = Layer.succeed(
                       getClaimableBalances(config.server, config.publicKey)
                     ),
                   ),
-                  getStellarConfig(), // Add config to the Effect.all result
+                  pipe(
+                    getStellarConfig(),
+                    Effect.flatMap((config: Readonly<StellarConfig>) =>
+                      checkActiveSellOffer(config.server, config.publicKey, `C${entry.code}`)
+                    ),
+                  ),
+                  getStellarConfig(),
                 ]),
                 Effect.map(
                   (
-                    [projectData, tokenExists, claimableBalances, config]: readonly [
+                    [projectData, tokenExists, claimableBalances, hasActiveSellOffer, config]: readonly [
                       ProjectData,
                       boolean,
                       readonly Horizon.ServerApi.ClaimableBalanceRecord[],
+                      boolean,
                       StellarConfig,
                     ],
                   ) => {
@@ -278,6 +342,11 @@ export const StellarServiceLive = Layer.succeed(
                     const isExpired = isProjectExpired(projectData.deadline);
                     const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
 
+                    // Project is completed if:
+                    // 1. Expired OR fully funded OR
+                    // 2. No active sell offer (offer was closed, meaning project was finalized)
+                    const isCompleted = isExpired || isFullyFunded || !hasActiveSellOffer;
+
                     const projectInfo: ProjectInfo = {
                       name: projectData.name,
                       code: projectData.code,
@@ -290,7 +359,7 @@ export const StellarServiceLive = Layer.succeed(
                       current_amount: currentAmount,
                       supporters_count: supportersCount,
                       ipfsUrl: `https://ipfs.io/ipfs/${entry.cid}`,
-                      status: isExpired || isFullyFunded ? "completed" : "active",
+                      status: isCompleted ? "completed" : "active",
                     };
 
                     return projectInfo;

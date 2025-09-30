@@ -37,10 +37,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<FundingRe
       });
 
       // Validate request schema
-      const validatedRequest = yield* pipe(
-        S.decodeUnknown(FundingRequestSchema)(body),
-        Effect.mapError(() => new Error("Invalid request format")),
-      );
+      const validatedRequest = yield* Effect.try({
+        try: () => S.decodeUnknownSync(FundingRequestSchema)(body),
+        catch: () => new Error("Invalid request format"),
+      });
 
       // Create funding transaction
       const transactionXDR = yield* pipe(

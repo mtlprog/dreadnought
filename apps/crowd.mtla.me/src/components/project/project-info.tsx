@@ -56,10 +56,16 @@ const decodeFullDescription = (base64String: string): string => {
 
 export function ProjectInfo({ project }: ProjectInfoProps) {
   const { t } = useLocale();
-  const progressPercentage = Math.min(
-    (parseFloat(project.current_amount) / parseFloat(project.target_amount)) * 100,
-    100,
-  );
+
+  const isCompleted = project.status === "completed";
+
+  // If project is completed and current_amount is 0, it means it was fully funded
+  // (funds were distributed and tokens were clawed back)
+  const currentAmount = parseFloat(project.current_amount);
+  const targetAmount = parseFloat(project.target_amount);
+  const progressPercentage = isCompleted && currentAmount === 0 && targetAmount > 0
+    ? 100
+    : Math.min((currentAmount / targetAmount) * 100, 100);
 
   return (
     <div className="space-y-6">

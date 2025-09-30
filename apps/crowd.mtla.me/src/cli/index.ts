@@ -1,6 +1,5 @@
 #!/usr/bin/env bun
 
-import { BunRuntime } from "@effect/platform-bun";
 import { Command } from "commander";
 import { Effect, pipe } from "effect";
 import { checkProjects } from "./commands/check-projects";
@@ -23,37 +22,37 @@ const projectCommand = program
 projectCommand
   .command("new")
   .description("Create a new project")
-  .action(() => {
-    const program = pipe(
+  .action(async () => {
+    const effectProgram = pipe(
       createProject(),
       Effect.provide(AppLayer),
     );
 
-    BunRuntime.runMain(program);
+    await Effect.runPromise(effectProgram);
   });
 
 projectCommand
   .command("list")
   .description("List all projects")
-  .action(() => {
-    const program = pipe(
+  .action(async () => {
+    const effectProgram = pipe(
       listProjects(),
       Effect.provide(AppLayer),
     );
 
-    BunRuntime.runMain(program);
+    await Effect.runPromise(effectProgram);
   });
 
 projectCommand
   .command("check")
   .description("Check project deadlines and process expired projects")
-  .action(() => {
-    const program = pipe(
+  .action(async () => {
+    const effectProgram = pipe(
       checkProjects(),
       Effect.provide(AppLayer),
     );
 
-    BunRuntime.runMain(program);
+    await Effect.runPromise(effectProgram);
   });
 
 program.parse();

@@ -35,10 +35,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<BalanceRe
       });
 
       // Validate request schema
-      const validatedRequest = yield* pipe(
-        S.decodeUnknown(BalanceRequestSchema)(body),
-        Effect.mapError(() => new Error("Invalid request format")),
-      );
+      const validatedRequest = yield* Effect.try({
+        try: () => S.decodeUnknownSync(BalanceRequestSchema)(body),
+        catch: () => new Error("Invalid request format"),
+      });
 
       // Get both MTLCrowd and EURMTL balances
       const balances = yield* pipe(
