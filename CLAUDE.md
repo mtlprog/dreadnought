@@ -624,7 +624,9 @@ export const MockStellarServiceLive = Layer.succeed(StellarService, {
 - ❌ **Not using pipe() for Effect chains** - обязательно используй pipe
 - ❌ **Mixing async/await with Effect** - только Effect.tryPromise
 
-## 📚 Package Documentation
+## 📚 Documentation
+
+### Package Documentation
 
 All packages must be documented in `/packages/README.md`:
 
@@ -636,6 +638,20 @@ All packages must be documented in `/packages/README.md`:
 **Dependencies**: Other packages
 **Used By**: Apps/packages using this
 ```
+
+### Implementation Guides
+
+Comprehensive guides for common patterns:
+
+- **[Design System](/docs/guides/design-system.md)** - Retrofuturistic UI/UX guidelines
+- **[i18n Implementation](/docs/guides/i18n.md)** - Internationalization with Effect-TS and SSR
+- **[Theme Switching](/docs/guides/theme-switching.md)** - Theme management with smooth animations
+- **[Effect-TS Testing](/docs/guides/effect-ts-testing.md)** - Testing patterns with ManagedRuntime
+
+**Quick Start for New Apps**:
+- For internationalization: `/docs/guides/i18n.md` - Complete SSR implementation with cookies and Effect-TS
+- For theme switching: `/docs/guides/theme-switching.md` - Smooth animations with View Transitions API
+- Both guides include Effect-TS compliant implementation with full SSR support
 
 ## 🎯 Priority Rules Summary
 
