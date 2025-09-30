@@ -4,7 +4,7 @@ import { Projects } from "@/components/Projects";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="h-screen overflow-y-scroll snap-y snap-mandatory bg-background">
       <Hero />
       <Projects />
       <Programs />
