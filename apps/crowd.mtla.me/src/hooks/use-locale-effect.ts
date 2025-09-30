@@ -1,7 +1,7 @@
 "use client";
 
 import { type Locale, LocaleServiceLive, LocaleServiceTag } from "@/services/locale";
-import { Effect, pipe } from "effect";
+import { Effect, ManagedRuntime, pipe } from "effect";
 import { useEffect, useState } from "react";
 import enMessages from "../../messages/en.json";
 import ruMessages from "../../messages/ru.json";
@@ -18,6 +18,8 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const runtime = ManagedRuntime.make(LocaleServiceLive);
+
     if (initialLocale !== undefined) {
       // If initial locale is provided from server, use it and set cookie
       const program = pipe(
@@ -35,9 +37,11 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
             setIsLoading(false);
           })
         ),
-        Effect.provide(LocaleServiceLive),
       );
-      void Effect.runPromise(program);
+
+      runtime.runPromise(program).catch((error: unknown) => {
+        void Effect.runSync(Effect.logError("Failed to set initial locale", error));
+      });
     } else {
       // Detect browser locale
       const program = pipe(
@@ -50,28 +54,50 @@ export function useLocaleEffect(initialLocale?: Locale): UseLocaleResult {
           })
         ),
         Effect.catchAll(error =>
-          Effect.sync(() => {
-            console.error("Failed to detect locale:", error);
-            setLocaleState("en");
-            setIsLoading(false);
-          })
+          pipe(
+            Effect.logError("Failed to detect locale", error),
+            Effect.flatMap(() =>
+              Effect.sync(() => {
+                setLocaleState("en");
+                setIsLoading(false);
+              })
+            ),
+          )
         ),
-        Effect.provide(LocaleServiceLive),
       );
-      void Effect.runPromise(program);
+
+      runtime.runPromise(program).catch((error: unknown) => {
+        void Effect.runSync(Effect.logError("Failed to detect locale", error));
+      });
     }
+
+    return () => {
+      void runtime.dispose();
+    };
   }, [initialLocale]);
 
   const setLocale = (newLocale: Locale) => {
+    const runtime = ManagedRuntime.make(LocaleServiceLive);
+
     const program = pipe(
       LocaleServiceTag,
       Effect.flatMap(service => service.setLocale(newLocale)),
       Effect.tap(() => Effect.sync(() => setLocaleState(newLocale))),
-      Effect.catchAll(error => Effect.sync(() => console.error("Failed to set locale:", error))),
-      Effect.provide(LocaleServiceLive),
+      Effect.catchAll(error =>
+        pipe(
+          Effect.logError("Failed to set locale", error),
+          Effect.flatMap(() => Effect.void),
+        )
+      ),
     );
 
-    void Effect.runPromise(program);
+    runtime.runPromise(program)
+      .catch((error: unknown) => {
+        void Effect.runSync(Effect.logError("Failed to set locale", error));
+      })
+      .finally(() => {
+        void runtime.dispose();
+      });
   };
 
   const t = (key: string): string => {

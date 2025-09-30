@@ -27,10 +27,15 @@ export const fetchProjectDataFromIPFS = (cid: string): Effect.Effect<ProjectData
 
 /**
  * Check if a project deadline has expired
+ * A project is expired when the deadline date is in the past (before today)
+ * If today is the deadline, the project is still active
  */
 export const isProjectExpired = (deadline: string): boolean => {
-  const deadlineDate = new Date(deadline);
-  return deadlineDate <= new Date();
+  // Extract date part only (YYYY-MM-DD) for comparison
+  const deadlineDay = deadline.split("T")[0] ?? deadline;
+  const todayDay = new Date().toISOString().split("T")[0] ?? "";
+
+  return deadlineDay < todayDay;
 };
 
 /**
