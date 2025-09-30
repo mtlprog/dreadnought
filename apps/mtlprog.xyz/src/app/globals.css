@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* Base colors - Deep blue-black background inspired by Ghost in the Shell */
+  /* Dark theme (default) - Deep blue-black background inspired by Ghost in the Shell */
   --background: #0a0e1a;
   --foreground: #e8f4f8;
 
@@ -37,6 +37,41 @@
   --neon-purple: #a855f7;
 }
 
+.light {
+  /* Light theme - Clean, high contrast */
+  --background: #ffffff;
+  --foreground: #0a0e1a;
+
+  /* Semantic colors - Inverted for light mode */
+  --primary: #0066cc;
+  --primary-foreground: #ffffff;
+  --secondary: #00a868;
+  --secondary-foreground: #ffffff;
+
+  /* Component colors */
+  --card: #f8f9fa;
+  --card-foreground: #0a0e1a;
+  --border: #cbd5e1;
+  --input: #f1f5f9;
+  --ring: #0066cc;
+
+  /* State colors */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+  --hover: #e2e8f0;
+
+  /* Retrofuturistic accents - Adjusted for light mode */
+  --cyber-green: #00a868;
+  --electric-cyan: #0066cc;
+  --warning-amber: #f59e0b;
+  --steel-gray: #475569;
+  --neon-purple: #9333ea;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -47,6 +82,24 @@
 
   html {
     scroll-behavior: smooth;
+  }
+
+  /* Smooth theme transitions for all color-related properties */
+  html,
+  html * {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease,
+                opacity 0.3s ease;
+  }
+
+  /* Disable transitions for reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    html,
+    html * {
+      transition: none !important;
+    }
   }
 
   html,

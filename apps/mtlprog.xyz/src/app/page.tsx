@@ -1,13 +1,20 @@
 import { Hero } from "@/components/Hero";
 import { Footer } from "@/components/layout/Footer";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { ThemeSelector } from "@/components/ThemeSelector";
 import { Programs } from "@/components/Programs";
 import { Projects } from "@/components/Projects";
 import { ContentServiceTag, ContentServiceLive } from "@/constants/content";
 import { LinksServiceTag, LinksServiceLive } from "@/constants/links";
+import { LocaleServiceServerLive } from "@/services/locale-server";
 import { Effect, Layer, pipe } from "effect";
 
 // Create the application layer
-const AppLayer = Layer.merge(ContentServiceLive, LinksServiceLive);
+// ContentServiceLive depends on LocaleServiceServerLive
+const AppLayer = Layer.merge(
+  Layer.provide(ContentServiceLive, LocaleServiceServerLive),
+  LinksServiceLive,
+);
 
 // Server component that fetches data
 export default async function Home() {
@@ -38,11 +45,17 @@ export default async function Home() {
   const linksPromise = Promise.resolve(links);
 
   return (
-    <main className="h-screen overflow-y-scroll snap-y snap-mandatory bg-background">
-      <Hero contentPromise={contentPromise} linksPromise={linksPromise} />
-      <Projects contentPromise={contentPromise} linksPromise={linksPromise} />
-      <Programs contentPromise={contentPromise} linksPromise={linksPromise} />
-      <Footer contentPromise={contentPromise} linksPromise={linksPromise} />
-    </main>
+    <>
+      <div className="fixed top-6 right-6 z-50 flex gap-2">
+        <LanguageSelector />
+        <ThemeSelector />
+      </div>
+      <main className="h-screen overflow-y-scroll snap-y snap-mandatory bg-background">
+        <Hero contentPromise={contentPromise} linksPromise={linksPromise} />
+        <Projects contentPromise={contentPromise} linksPromise={linksPromise} />
+        <Programs contentPromise={contentPromise} linksPromise={linksPromise} />
+        <Footer contentPromise={contentPromise} linksPromise={linksPromise} />
+      </main>
+    </>
   );
 }

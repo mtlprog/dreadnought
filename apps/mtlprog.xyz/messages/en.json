@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "title": "Montelibero Programmers Guild",
+    "description": "Programmers Guild - projects and programs for IT professionals"
+  },
+  "site": {
+    "name": "Montelibero Programmers Guild",
+    "shortName": "MONTELIBERO",
+    "description": "Programmers Guild - projects and programs for IT professionals",
+    "copyright": "MONTELIBERO PROGRAMMERS GUILD © 2025"
+  },
+  "hero": {
+    "title": {
+      "line1": "MONTELIBERO",
+      "line2": "PROGRAMMERS",
+      "line3": "GUILD"
+    },
+    "subtitle": "Programmers Guild - projects and programs for IT professionals",
+    "cta": {
+      "primary": "JOIN DISCORD",
+      "secondary": "EMAIL US"
+    },
+    "scroll": "SCROLL FOR MORE"
+  },
+  "projects": {
+    "sectionLabel": "Featured Work",
+    "title": "PROJECTS",
+    "cta": "VISIT PROJECT",
+    "comingSoon": "MORE PROJECTS COMING SOON...",
+    "items": {
+      "mtl-crowd": {
+        "title": "MTL CROWD",
+        "description": "Blockchain-based crowdfunding platform on Stellar. Transparency, security, and decentralization.",
+        "status": "ACTIVE",
+        "tech": ["STELLAR", "NEXT.JS", "EFFECT-TS"]
+      }
+    }
+  },
+  "programs": {
+    "sectionLabel": "Learning Paths",
+    "title": "PROGRAMS",
+    "cta": {
+      "apply": "APPLY NOW",
+      "comingSoon": "COMING SOON"
+    },
+    "footer": {
+      "label": "Join Us",
+      "title": "READY TO JOIN?",
+      "button": "JOIN COMMUNITY"
+    },
+    "items": {
+      "it-acceleration": {
+        "title": "IT ACCELERATION",
+        "tagline": "ACCELERATE YOUR TECH CAREER",
+        "description": "Acceleration program for IT professionals. Mentoring, practical projects, team skills development, and preparation for real industry challenges.",
+        "status": "OPEN",
+        "features": {
+          "0": "MENTORING FROM EXPERIENCED DEVELOPERS",
+          "1": "REAL PRODUCTION PROJECTS",
+          "2": "CODE REVIEW AND BEST PRACTICES",
+          "3": "CAREER CONSULTING"
+        }
+      },
+      "sdf-integration": {
+        "title": "SDF INTEGRATION",
+        "tagline": "BUILD ON STELLAR BLOCKCHAIN",
+        "description": "Integration with Stellar Development Foundation. Learning Stellar blockchain development, ecosystem participation, grant support for projects.",
+        "status": "COMING SOON",
+        "features": {
+          "0": "STELLAR SDK TRAINING",
+          "1": "GRANT PROGRAM",
+          "2": "ACCESS TO SDF RESOURCES",
+          "3": "COMMUNITY SUPPORT"
+        }
+      }
+    }
+  },
+  "footer": {
+    "columns": {
+      "about": {
+        "title": "MONTELIBERO PROGRAMMERS GUILD",
+        "description": "Programmers Guild - projects and programs for IT professionals"
+      },
+      "resources": {
+        "title": "RESOURCES",
+        "links": {
+          "github": {
+            "label": "GITHUB",
+            "icon": "Github"
+          },
+          "docs": {
+            "label": "DOCUMENTATION",
+            "icon": "ExternalLink"
+          }
+        }
+      },
+      "community": {
+        "title": "COMMUNITY",
+        "links": {
+          "discord": {
+            "label": "DISCORD",
+            "icon": "MessageCircle"
+          },
+          "email": {
+            "label": "EMAIL",
+            "icon": "Mail"
+          },
+          "montelibero": {
+            "label": "MONTELIBERO",
+            "icon": "MessageCircle"
+          },
+          "guild": {
+            "label": "PROGRAMMERS GUILD",
+            "icon": "MessageCircle"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "title": "Гильдия программистов Монтелиберо",
+    "description": "Гильдия программистов — проекты и программы для IT-специалистов"
+  },
+  "site": {
+    "name": "Гильдия программистов Монтелиберо",
+    "shortName": "МОНТЕЛИБЕРО",
+    "description": "Гильдия программистов — проекты и программы для IT-специалистов",
+    "copyright": "ГИЛЬДИЯ ПРОГРАММИСТОВ МОНТЕЛИБЕРО © 2025"
+  },
+  "hero": {
+    "title": {
+      "line1": "MONTELIBERO",
+      "line2": "PROGRAMMERS",
+      "line3": "GUILD"
+    },
+    "subtitle": "Гильдия программистов — проекты и программы для IT-специалистов",
+    "cta": {
+      "primary": "ПРИСОЕДИНИТЬСЯ В DISCORD",
+      "secondary": "НАПИСАТЬ НАМ"
+    },
+    "scroll": "ЛИСТАЙТЕ ДАЛЬШЕ"
+  },
+  "projects": {
+    "sectionLabel": "Избранные работы",
+    "title": "ПРОЕКТЫ",
+    "cta": "ПОСЕТИТЬ ПРОЕКТ",
+    "comingSoon": "СКОРО ПОЯВЯТСЯ НОВЫЕ ПРОЕКТЫ...",
+    "items": {
+      "mtl-crowd": {
+        "title": "MTL CROWD",
+        "description": "Платформа для коллективного финансирования проектов на блокчейне Stellar. Прозрачность, безопасность и децентрализация.",
+        "status": "АКТИВЕН",
+        "tech": ["STELLAR", "NEXT.JS", "EFFECT-TS"]
+      }
+    }
+  },
+  "programs": {
+    "sectionLabel": "Образовательные треки",
+    "title": "ПРОГРАММЫ",
+    "cta": {
+      "apply": "ПОДАТЬ ЗАЯВКУ",
+      "comingSoon": "СКОРО"
+    },
+    "footer": {
+      "label": "Присоединяйтесь",
+      "title": "ГОТОВЫ ПРИСОЕДИНИТЬСЯ?",
+      "button": "ПРИСОЕДИНИТЬСЯ К СООБЩЕСТВУ"
+    },
+    "items": {
+      "it-acceleration": {
+        "title": "IT ACCELERATION",
+        "tagline": "УСКОРЬТЕ СВОЮ TECH-КАРЬЕРУ",
+        "description": "Программа акселерации для IT-специалистов. Менторинг, практические проекты, развитие навыков работы в команде и подготовка к реальным вызовам индустрии.",
+        "status": "ОТКРЫТА",
+        "features": {
+          "0": "МЕНТОРИНГ ОТ ОПЫТНЫХ РАЗРАБОТЧИКОВ",
+          "1": "РЕАЛЬНЫЕ ПРОЕКТЫ НА PRODUCTION",
+          "2": "CODE REVIEW И BEST PRACTICES",
+          "3": "КАРЬЕРНОЕ КОНСУЛЬТИРОВАНИЕ"
+        }
+      },
+      "sdf-integration": {
+        "title": "SDF INTEGRATION",
+        "tagline": "РАЗРАБАТЫВАЙТЕ НА БЛОКЧЕЙНЕ STELLAR",
+        "description": "Интеграция с Stellar Development Foundation. Обучение разработке на блокчейне Stellar, участие в экосистеме, грантовая поддержка проектов.",
+        "status": "СКОРО",
+        "features": {
+          "0": "ОБУЧЕНИЕ STELLAR SDK",
+          "1": "ГРАНТОВАЯ ПРОГРАММА",
+          "2": "ДОСТУП К SDF РЕСУРСАМ",
+          "3": "COMMUNITY SUPPORT"
+        }
+      }
+    }
+  },
+  "footer": {
+    "columns": {
+      "about": {
+        "title": "ГИЛЬДИЯ ПРОГРАММИСТОВ МОНТЕЛИБЕРО",
+        "description": "Гильдия программистов — проекты и программы для IT-специалистов"
+      },
+      "resources": {
+        "title": "РЕСУРСЫ",
+        "links": {
+          "github": {
+            "label": "GITHUB",
+            "icon": "Github"
+          },
+          "docs": {
+            "label": "ДОКУМЕНТАЦИЯ",
+            "icon": "ExternalLink"
+          }
+        }
+      },
+      "community": {
+        "title": "СООБЩЕСТВО",
+        "links": {
+          "discord": {
+            "label": "DISCORD",
+            "icon": "MessageCircle"
+          },
+          "email": {
+            "label": "EMAIL",
+            "icon": "Mail"
+          },
+          "montelibero": {
+            "label": "MONTELIBERO",
+            "icon": "MessageCircle"
+          },
+          "guild": {
+            "label": "ГИЛЬДИЯ ПРОГРАММИСТОВ",
+            "icon": "MessageCircle"
+          }
+        }
+      }
+    }
+  }
+}
