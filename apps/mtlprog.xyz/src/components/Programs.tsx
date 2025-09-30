@@ -91,15 +91,17 @@ export function Programs() {
               </ul>
 
               {/* Action */}
-              {program.status === "OPEN" ? (
-                <button className="w-full px-8 py-4 bg-electric-cyan text-background text-lg font-bold uppercase tracking-wider transition-all duration-300 hover:bg-foreground">
-                  APPLY NOW
-                </button>
-              ) : (
-                <div className="w-full px-8 py-4 border-2 border-dashed border-steel-gray text-steel-gray text-center text-lg font-bold uppercase tracking-wider">
-                  COMING SOON
-                </div>
-              )}
+              {program.status === "OPEN"
+                ? (
+                  <button className="w-full px-8 py-4 bg-electric-cyan text-background text-lg font-bold uppercase tracking-wider transition-all duration-300 hover:bg-foreground">
+                    APPLY NOW
+                  </button>
+                )
+                : (
+                  <div className="w-full px-8 py-4 border-2 border-dashed border-steel-gray text-steel-gray text-center text-lg font-bold uppercase tracking-wider">
+                    COMING SOON
+                  </div>
+                )}
             </article>
           ))}
         </div>

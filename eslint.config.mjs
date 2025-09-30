@@ -18,6 +18,7 @@ export default [
       ".next/**",
       "**/.next/**",
       "out/**",
+      "**/out/**",
 
       // Coverage and testing
       "coverage/**",
