@@ -74,42 +74,41 @@ dreadnought/
 - Use kebab-case
 - Be specific: `stellar-auth` not just `auth`
 
-## 🎨 Design System: Retrofuturistic
+## 🎨 Design System: Retrofuturistic Brutalism
 
-### Core Design Philosophy
-1. **Large & Bold** - Oversized elements that command attention
-2. **Angular & Sharp** - NO rounded corners (except loaders)
-3. **High Contrast** - Stark color relationships
-4. **Deliberate Roughness** - Intentional imperfections
-5. **Functional Brutalism** - Every element serves a purpose
-6. **Cathode Display** - Terminal-like, monospace fonts
+The Dreadnought design system draws inspiration from 90s anime interfaces (Evangelion, Serial Experiments Lain, Ghost in the Shell, Bubblegum Crisis, Gundam) combined with modern cyberpunk aesthetics. Every visual decision serves both aesthetic cohesion and user needs.
 
-### Color Palette
-```css
---background: #000000      /* Pure black */
---foreground: #FFFFFF      /* Pure white */
---cyber-green: #00FF00     /* Classic terminal */
---electric-cyan: #00FFFF   /* Neon accent */
---warning-amber: #FFAA00   /* Alert state */
---steel-gray: #404040      /* Structural */
-```
+**📘 Full Design System**: See `/docs/guides/design-system.md` for comprehensive guidelines including:
+- Anime-inspired color palettes (Evangelion, Lain, Ghost in the Shell, etc.)
+- Typography system with fluid scaling
+- Visual effects (glitch, scanlines, CRT glow, holographic)
+- Component patterns (buttons, panels, forms, navigation)
+- Animation principles and timing
+- Responsive design and accessibility
 
-### Typography Scale
-```
-Hero: text-8xl md:text-9xl (128-144px)
-H1: text-6xl md:text-7xl (96-112px)
-H2: text-4xl md:text-5xl (48-60px)
-H3: text-2xl md:text-3xl (24-30px)
-Body: text-base (16px)
-Code: font-mono
-```
+### Quick Reference
 
-### Component Rules
-- **Zero border-radius** (except loaders)
-- **Large interactive elements** (min 48px touch targets)
-- **High contrast only** (no low contrast combinations)
-- **Monospace for data/code**
-- **Uppercase for system messages**
+**Core Principles:**
+1. **Functional Brutalism** - Every element serves a purpose
+2. **Cathode Display Aesthetic** - Terminal-like interfaces with phosphor glow
+3. **Angular Geometry** - Zero border-radius (except loading states)
+4. **High Contrast Clarity** - 7:1 minimum contrast ratio
+5. **Oversized Elements** - Large, bold, commanding presence
+6. **Information Dense** - Complex layouts inspired by anime HUDs
+
+**Color Philosophy:**
+- Create context-specific palettes inspired by 90s anime interfaces
+- Background: Pure black (#000000) or near-black
+- Text: High contrast white or tinted grays
+- Accents: Electric, saturated colors (cyan, green, red, pink, orange)
+
+**Component Checklist:**
+- ✅ Zero border-radius (except loaders)
+- ✅ Minimum 48px touch targets
+- ✅ High contrast (7:1 minimum)
+- ✅ Monospace for technical data
+- ✅ UPPERCASE for labels/system messages
+- ✅ Scanlines or CRT effects where appropriate
 
 ## 💻 Technical Stack
 
