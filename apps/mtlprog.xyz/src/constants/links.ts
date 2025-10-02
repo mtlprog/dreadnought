@@ -40,7 +40,7 @@ export const LinksServiceTag = Context.GenericTag<LinksService>(
 // Service implementation
 const LINKS_DATA: Links = {
   social: {
-    discord: "https://discord.gg/mkPAZrkj",
+    discord: "https://discord.gg/Mmt4NAPb",
     github: "https://github.com/mtlprog",
     email: "mailto:stas@mtlprog.xyz",
     telegram: {
