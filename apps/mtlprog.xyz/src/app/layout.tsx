@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Montelibero Programmers Guild",
-  description: "Гильдия программистов — проекты и программы для IT-специалистов",
+  description: "Programmers Guild — projects and programs for IT professionals",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
