@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { TokenPriceWithBalance } from "@/lib/stellar/price-service";
 import type { PriceDetails } from "@/lib/stellar/types";
+import { formatNumber } from "@/lib/utils";
 import React from "react";
 
 interface PortfolioTableProps {
@@ -68,17 +69,17 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
         </div>
         {details.bid != null && (
           <div className="text-xs">
-            <span className="text-steel-gray">BID:</span> {parseFloat(details.bid).toFixed(7)}
+            <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(details.bid), 7)}
           </div>
         )}
         {details.ask != null && (
           <div className="text-xs">
-            <span className="text-steel-gray">ASK:</span> {parseFloat(details.ask).toFixed(7)}
+            <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(details.ask), 7)}
           </div>
         )}
         {details.midPrice != null && (
           <div className="text-xs border-t border-steel-gray/30 pt-1 mt-1">
-            <span className="text-steel-gray">ИТОГОВАЯ:</span> {parseFloat(details.midPrice).toFixed(7)}
+            <span className="text-steel-gray">ИТОГОВАЯ:</span> {formatNumber(parseFloat(details.midPrice), 7)}
           </div>
         )}
       </div>
@@ -106,17 +107,17 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
                   </div>
                   {hop.bid != null && (
                     <div>
-                      <span className="text-steel-gray">BID:</span> {parseFloat(hop.bid).toFixed(7)}
+                      <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(hop.bid), 7)}
                     </div>
                   )}
                   {hop.ask != null && (
                     <div>
-                      <span className="text-steel-gray">ASK:</span> {parseFloat(hop.ask).toFixed(7)}
+                      <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(hop.ask), 7)}
                     </div>
                   )}
                   {hop.midPrice != null && (
                     <div className="border-t border-steel-gray/30 pt-1">
-                      <span className="text-steel-gray">ИТОГОВАЯ:</span> {parseFloat(hop.midPrice).toFixed(7)}
+                      <span className="text-steel-gray">ИТОГОВАЯ:</span> {formatNumber(parseFloat(hop.midPrice), 7)}
                     </div>
                   )}
                 </div>
@@ -124,7 +125,7 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
               : hop.price != null
               ? (
                 <div className="pl-2">
-                  <span className="text-steel-gray">ЦЕНА:</span> {parseFloat(hop.price).toFixed(7)}
+                  <span className="text-steel-gray">ЦЕНА:</span> {formatNumber(parseFloat(hop.price), 7)}
                 </div>
               )
               : (
@@ -208,20 +209,20 @@ export function PortfolioTable({
                 {/* XLM Balance */}
                 <TableRow className="border-steel-gray hover:bg-steel-gray/10">
                   <TableCell className="font-mono text-cyber-green">XLM</TableCell>
-                  <TableCell className="font-mono text-white">{parseFloat(xlmBalance).toFixed(7)}</TableCell>
+                  <TableCell className="font-mono text-white">{formatNumber(parseFloat(xlmBalance), 7)}</TableCell>
                   <TableCell className="text-right font-mono text-white">
                     {xlmPriceInEURMTL != null && xlmPriceInEURMTL !== ""
-                      ? parseFloat(xlmPriceInEURMTL).toFixed(4)
+                      ? formatNumber(parseFloat(xlmPriceInEURMTL), 4)
                       : "—"}
                   </TableCell>
                   <TableCell className="text-right font-mono text-white">1.0000000</TableCell>
                   <TableCell className="text-right font-mono text-electric-cyan">
                     {xlmPriceInEURMTL != null && xlmPriceInEURMTL !== ""
-                      ? (parseFloat(xlmBalance) * parseFloat(xlmPriceInEURMTL)).toFixed(2)
+                      ? formatNumber(parseFloat(xlmBalance) * parseFloat(xlmPriceInEURMTL), 2)
                       : "—"}
                   </TableCell>
                   <TableCell className="text-right font-mono text-electric-cyan">
-                    {parseFloat(xlmBalance).toFixed(7)}
+                    {formatNumber(parseFloat(xlmBalance), 7)}
                   </TableCell>
                 </TableRow>
 
@@ -232,13 +233,13 @@ export function PortfolioTable({
                       {formatTokenName(token.asset.code)}
                     </TableCell>
                     <TableCell className="font-mono text-white">
-                      {parseFloat(token.balance).toFixed(token.asset.code === "EURMTL" ? 2 : 7)}
+                      {formatNumber(parseFloat(token.balance), token.asset.code === "EURMTL" ? 2 : 7)}
                     </TableCell>
                     <TableCell className="text-right font-mono text-white">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help underline-offset-2 hover:underline">
-                            {token.priceInEURMTL != null ? parseFloat(token.priceInEURMTL).toFixed(4) : "—"}
+                            {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 4) : "—"}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
@@ -250,7 +251,7 @@ export function PortfolioTable({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help underline-offset-2 hover:underline">
-                            {token.priceInXLM != null ? parseFloat(token.priceInXLM).toFixed(7) : "—"}
+                            {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
@@ -259,10 +260,10 @@ export function PortfolioTable({
                       </Tooltip>
                     </TableCell>
                     <TableCell className="text-right font-mono text-electric-cyan">
-                      {token.valueInEURMTL ?? "—"}
+                      {token.valueInEURMTL != null ? formatNumber(parseFloat(token.valueInEURMTL), 2) : "—"}
                     </TableCell>
                     <TableCell className="text-right font-mono text-electric-cyan">
-                      {token.valueInXLM ?? "—"}
+                      {token.valueInXLM != null ? formatNumber(parseFloat(token.valueInXLM), 7) : "—"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -277,13 +278,13 @@ export function PortfolioTable({
                 <div className="text-right">
                   <div className="text-sm font-mono text-steel-gray uppercase">EURMTL</div>
                   <div className="text-2xl font-mono text-warning-amber">
-                    {totalEURMTL.toFixed(2)}
+                    {formatNumber(totalEURMTL, 2)}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-mono text-steel-gray uppercase">XLM</div>
                   <div className="text-2xl font-mono text-warning-amber">
-                    {totalXLM.toFixed(7)}
+                    {formatNumber(totalXLM, 7)}
                   </div>
                 </div>
               </div>

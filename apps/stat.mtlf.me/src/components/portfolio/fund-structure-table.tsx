@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { FundAccountPortfolio, FundStructureData } from "@/lib/stellar/fund-structure-service";
 import type { PriceDetails } from "@/lib/stellar/types";
+import { formatNumber } from "@/lib/utils";
 import React from "react";
 
 interface FundStructureTableProps {
@@ -30,17 +31,17 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
         <div className="text-cyber-green uppercase text-xs">ПРЯМАЯ ТОРГОВЛЯ</div>
         {details.bid !== null && details.bid !== undefined && (
           <div className="text-xs">
-            <span className="text-steel-gray">BID:</span> {parseFloat(details.bid).toFixed(7)}
+            <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(details.bid), 7)}
           </div>
         )}
         {details.ask !== null && details.ask !== undefined && (
           <div className="text-xs">
-            <span className="text-steel-gray">ASK:</span> {parseFloat(details.ask).toFixed(7)}
+            <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(details.ask), 7)}
           </div>
         )}
         {details.midPrice !== null && details.midPrice !== undefined && (
           <div className="text-xs border-t border-steel-gray/30 pt-1 mt-1">
-            <span className="text-steel-gray">СРЕДНЯЯ:</span> {parseFloat(details.midPrice).toFixed(7)}
+            <span className="text-steel-gray">СРЕДНЯЯ:</span> {formatNumber(parseFloat(details.midPrice), 7)}
           </div>
         )}
       </div>
@@ -64,20 +65,20 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
               ? (
                 <div className="pl-2 space-y-1">
                   <div>
-                    <span className="text-steel-gray">BID:</span> {parseFloat(hop.bid).toFixed(7)}
+                    <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(hop.bid), 7)}
                   </div>
                   <div>
-                    <span className="text-steel-gray">ASK:</span> {parseFloat(hop.ask).toFixed(7)}
+                    <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(hop.ask), 7)}
                   </div>
                   <div className="border-t border-steel-gray/30 pt-1">
-                    <span className="text-steel-gray">СРЕДНЯЯ:</span> {parseFloat(hop.midPrice).toFixed(7)}
+                    <span className="text-steel-gray">СРЕДНЯЯ:</span> {formatNumber(parseFloat(hop.midPrice), 7)}
                   </div>
                 </div>
               )
               : hop.price !== null && hop.price !== undefined
               ? (
                 <div className="pl-2">
-                  <span className="text-steel-gray">ЦЕНА:</span> {parseFloat(hop.price).toFixed(7)}
+                  <span className="text-steel-gray">ЦЕНА:</span> {formatNumber(parseFloat(hop.price), 7)}
                 </div>
               )
               : (
@@ -139,10 +140,10 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
           <div className="text-right">
             <div className="text-sm font-mono text-steel-gray uppercase">ИТОГО СЧЁТА</div>
             <div className="text-lg font-mono text-warning-amber">
-              {account.totalEURMTL.toFixed(2)} EURMTL
+              {formatNumber(account.totalEURMTL, 2)} EURMTL
             </div>
             <div className="text-sm font-mono text-steel-gray">
-              {account.totalXLM.toFixed(7)} XLM
+              {formatNumber(account.totalXLM, 7)} XLM
             </div>
           </div>
         </div>
@@ -157,21 +158,21 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                 <StellarAsset assetCode="XLM" />
               </TableCell>
               <TableCell className="font-mono text-foreground w-40">
-                {parseFloat(account.xlmBalance).toFixed(7)}
+                {formatNumber(parseFloat(account.xlmBalance), 7)}
               </TableCell>
               <TableCell className="text-right font-mono text-foreground w-32">
                 {account.xlmPriceInEURMTL !== null && account.xlmPriceInEURMTL !== undefined
-                  ? parseFloat(account.xlmPriceInEURMTL).toFixed(4)
+                  ? formatNumber(parseFloat(account.xlmPriceInEURMTL), 4)
                   : "—"}
               </TableCell>
               <TableCell className="text-right font-mono text-foreground w-32">1.0000000</TableCell>
               <TableCell className="text-right font-mono text-electric-cyan w-40">
                 {account.xlmPriceInEURMTL !== null && account.xlmPriceInEURMTL !== undefined
-                  ? (parseFloat(account.xlmBalance) * parseFloat(account.xlmPriceInEURMTL)).toFixed(2)
+                  ? formatNumber(parseFloat(account.xlmBalance) * parseFloat(account.xlmPriceInEURMTL), 2)
                   : "—"}
               </TableCell>
               <TableCell className="text-right font-mono text-electric-cyan w-40">
-                {parseFloat(account.xlmBalance).toFixed(7)}
+                {formatNumber(parseFloat(account.xlmBalance), 7)}
               </TableCell>
             </TableRow>
 
@@ -185,13 +186,13 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                   />
                 </TableCell>
                 <TableCell className="font-mono text-foreground">
-                  {parseFloat(token.balance).toFixed(token.asset.code === "EURMTL" ? 2 : 7)}
+                  {formatNumber(parseFloat(token.balance), token.asset.code === "EURMTL" ? 2 : 7)}
                 </TableCell>
                 <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="cursor-help underline-offset-2 hover:underline">
-                        {token.priceInEURMTL != null ? parseFloat(token.priceInEURMTL).toFixed(4) : "—"}
+                        {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 4) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
@@ -203,7 +204,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="cursor-help underline-offset-2 hover:underline">
-                        {token.priceInXLM != null ? parseFloat(token.priceInXLM).toFixed(7) : "—"}
+                        {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
@@ -212,10 +213,10 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
-                  {token.valueInEURMTL ?? "—"}
+                  {token.valueInEURMTL != null ? formatNumber(parseFloat(token.valueInEURMTL), 2) : "—"}
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
-                  {token.valueInXLM ?? "—"}
+                  {token.valueInXLM != null ? formatNumber(parseFloat(token.valueInXLM), 7) : "—"}
                 </TableCell>
               </TableRow>
             ))}
@@ -299,13 +300,13 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
                 <div className="text-right">
                   <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО EURMTL</div>
                   <div className="text-4xl font-mono text-warning-amber">
-                    {fundData.aggregatedTotals.totalEURMTL.toFixed(2)}
+                    {formatNumber(fundData.aggregatedTotals.totalEURMTL, 2)}
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО XLM</div>
                   <div className="text-4xl font-mono text-warning-amber">
-                    {fundData.aggregatedTotals.totalXLM.toFixed(7)}
+                    {formatNumber(fundData.aggregatedTotals.totalXLM, 7)}
                   </div>
                 </div>
               </div>
