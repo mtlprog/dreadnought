@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types
 export function middleware(request: NextRequest) {

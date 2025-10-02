@@ -37,6 +37,9 @@ interface FooterProps {
     docs: {
       main: string;
     };
+    organizations: {
+      montelibero: string;
+    };
   }>;
 }
 
@@ -63,6 +66,7 @@ export function Footer({ contentPromise, linksPromise }: FooterProps) {
     switch (label) {
       case "GITHUB":
         return links.social.github;
+      case "DOCUMENTATION":
       case "ДОКУМЕНТАЦИЯ":
         return links.docs.main;
       case "DISCORD":
@@ -70,7 +74,9 @@ export function Footer({ contentPromise, linksPromise }: FooterProps) {
       case "EMAIL":
         return links.social.email;
       case "MONTELIBERO":
-        return links.social.telegram.montelibero;
+      case "МОНТЕЛИБЕРО":
+        return links.organizations.montelibero;
+      case "PROGRAMMERS GUILD":
       case "ГИЛЬДИЯ ПРОГРАММИСТОВ":
         return links.social.telegram.guild;
       default:

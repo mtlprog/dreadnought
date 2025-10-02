@@ -1,14 +1,10 @@
 "use client";
 
+import { runClientEffect } from "@/lib/runtime";
+import { getThemeEffect, setThemeEffect, type Theme } from "@/services/settings-client";
+import { Effect, pipe } from "effect";
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Effect, pipe } from "effect";
-import {
-  getThemeEffect,
-  setThemeEffect,
-  type Theme,
-} from "@/services/settings-client";
-import { runClientEffect } from "@/lib/runtime";
 
 const THEMES: { value: Theme; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "LIGHT", icon: Sun },
@@ -23,7 +19,7 @@ export function ThemeSelector() {
   useEffect(() => {
     const program = pipe(
       getThemeEffect(),
-      Effect.tap((theme) => Effect.sync(() => setCurrentTheme(theme)))
+      Effect.tap((theme) => Effect.sync(() => setCurrentTheme(theme))),
     );
 
     void runClientEffect(program);
@@ -35,7 +31,7 @@ export function ThemeSelector() {
 
     const program = pipe(
       setThemeEffect(theme),
-      Effect.tap(() => Effect.log(`Theme changed to: ${theme}`))
+      Effect.tap(() => Effect.log(`Theme changed to: ${theme}`)),
     );
 
     // Use View Transitions API if available for smooth animation

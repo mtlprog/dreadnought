@@ -18,6 +18,12 @@ export const LinksSchema = S.Struct({
   docs: S.Struct({
     main: S.String,
   }),
+  programs: S.Struct({
+    itAcceleration: S.String,
+  }),
+  organizations: S.Struct({
+    montelibero: S.String,
+  }),
 });
 
 export type Links = S.Schema.Type<typeof LinksSchema>;
@@ -34,9 +40,9 @@ export const LinksServiceTag = Context.GenericTag<LinksService>(
 // Service implementation
 const LINKS_DATA: Links = {
   social: {
-    discord: "https://discord.gg/YOUR_DISCORD_INVITE",
+    discord: "https://discord.gg/mkPAZrkj",
     github: "https://github.com/mtlprog",
-    email: "mailto:contact@mtlprog.xyz",
+    email: "mailto:stas@mtlprog.xyz",
     telegram: {
       montelibero: "https://t.me/Montelibero_ru",
       guild: "https://t.me/montelibero_agora/43852",
@@ -46,7 +52,13 @@ const LINKS_DATA: Links = {
     mtlCrowd: "https://crowd.mtla.me",
   },
   docs: {
-    main: "https://github.com/mtlprog/dreadnought",
+    main: "https://github.com/mtlprog/dreadnought/tree/master/docs",
+  },
+  programs: {
+    itAcceleration: "https://forms.gle/5nYVN2bEBNxhnCpP9",
+  },
+  organizations: {
+    montelibero: "https://montelibero.org",
   },
 };
 

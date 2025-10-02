@@ -1,12 +1,12 @@
 {
   "metadata": {
     "title": "Montelibero Programmers Guild",
-    "description": "Programmers Guild - projects and programs for IT professionals"
+    "description": "Decentralized autonomous organization for developing software for Montelibero Association"
   },
   "site": {
     "name": "Montelibero Programmers Guild",
     "shortName": "MONTELIBERO",
-    "description": "Programmers Guild - projects and programs for IT professionals",
+    "description": "Decentralized autonomous organization for developing software for Montelibero Association",
     "copyright": "MONTELIBERO PROGRAMMERS GUILD © 2025"
   },
   "hero": {
@@ -15,7 +15,7 @@
       "line2": "PROGRAMMERS",
       "line3": "GUILD"
     },
-    "subtitle": "Programmers Guild - projects and programs for IT professionals",
+    "subtitle": "Decentralized autonomous organization for developing software for Montelibero Association",
     "cta": {
       "primary": "JOIN DISCORD",
       "secondary": "EMAIL US"
@@ -23,7 +23,7 @@
     "scroll": "SCROLL FOR MORE"
   },
   "projects": {
-    "sectionLabel": "Featured Work",
+    "sectionLabel": "Our Projects",
     "title": "PROJECTS",
     "cta": "VISIT PROJECT",
     "comingSoon": "MORE PROJECTS COMING SOON...",
@@ -32,12 +32,16 @@
         "title": "MTL CROWD",
         "description": "Blockchain-based crowdfunding platform on Stellar. Transparency, security, and decentralization.",
         "status": "ACTIVE",
-        "tech": ["STELLAR", "NEXT.JS", "EFFECT-TS"]
+        "tech": [
+          "STELLAR",
+          "NEXT.JS",
+          "EFFECT-TS"
+        ]
       }
     }
   },
   "programs": {
-    "sectionLabel": "Learning Paths",
+    "sectionLabel": "Development Programs",
     "title": "PROGRAMS",
     "cta": {
       "apply": "APPLY NOW",
@@ -51,9 +55,9 @@
     "items": {
       "it-acceleration": {
         "title": "IT ACCELERATION",
-        "tagline": "ACCELERATE YOUR TECH CAREER",
-        "description": "Acceleration program for IT professionals. Mentoring, practical projects, team skills development, and preparation for real industry challenges.",
-        "status": "OPEN",
+        "tagline": "UNITING IT PROFESSIONALS",
+        "description": "Acceleration program for IT professionals and their developments. Creating unified vision of tools, quality standards and order system. Issuing NUYEN token for Guild members.",
+        "status": "ACTIVE",
         "features": {
           "0": "MENTORING FROM EXPERIENCED DEVELOPERS",
           "1": "REAL PRODUCTION PROJECTS",
@@ -79,7 +83,7 @@
     "columns": {
       "about": {
         "title": "MONTELIBERO PROGRAMMERS GUILD",
-        "description": "Programmers Guild - projects and programs for IT professionals"
+        "description": "Decentralized autonomous organization for developing software for Montelibero Association"
       },
       "resources": {
         "title": "RESOURCES",

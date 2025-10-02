@@ -1,5 +1,5 @@
-import { Effect, pipe } from "effect";
 import * as S from "@effect/schema/Schema";
+import { Effect, pipe } from "effect";
 
 export type Locale = "en" | "ru";
 export type Theme = "system" | "light" | "dark";
@@ -9,7 +9,7 @@ export class ServerActionError extends S.TaggedError<ServerActionError>()(
   {
     message: S.String,
     cause: S.optional(S.Unknown),
-  }
+  },
 ) {}
 
 // Client-side Effect wrappers for Server Actions
@@ -26,7 +26,7 @@ export const setLocaleEffect = (locale: Locale) =>
           cause: error,
         }),
     }),
-    Effect.tap(() => Effect.log(`Locale set to: ${locale}`))
+    Effect.tap(() => Effect.log(`Locale set to: ${locale}`)),
   );
 
 export const setThemeEffect = (theme: Theme) =>
@@ -42,7 +42,7 @@ export const setThemeEffect = (theme: Theme) =>
           cause: error,
         }),
     }),
-    Effect.tap(() => Effect.log(`Theme set to: ${theme}`))
+    Effect.tap(() => Effect.log(`Theme set to: ${theme}`)),
   );
 
 export const getLocaleEffect = () =>
@@ -58,7 +58,7 @@ export const getLocaleEffect = () =>
           cause: error,
         }),
     }),
-    Effect.tap((locale) => Effect.log(`Locale retrieved: ${locale}`))
+    Effect.tap((locale) => Effect.log(`Locale retrieved: ${locale}`)),
   );
 
 export const getThemeEffect = () =>
@@ -74,5 +74,5 @@ export const getThemeEffect = () =>
           cause: error,
         }),
     }),
-    Effect.tap((theme) => Effect.log(`Theme retrieved: ${theme}`))
+    Effect.tap((theme) => Effect.log(`Theme retrieved: ${theme}`)),
   );

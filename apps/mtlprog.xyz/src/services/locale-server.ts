@@ -45,9 +45,9 @@ const getNestedValue = (
 ): string => {
   const result = path.split(".").reduce((current: unknown, key: string) => {
     if (
-      current !== null &&
-      typeof current === "object" &&
-      key in (current as Record<string, unknown>)
+      current !== null
+      && typeof current === "object"
+      && key in (current as Record<string, unknown>)
     ) {
       return (current as Record<string, unknown>)[key];
     }
@@ -78,7 +78,7 @@ export const LocaleServiceServerLive = Layer.succeed(LocaleServiceServerTag, {
     }),
 
   t: (key: string) =>
-    Effect.gen(function* () {
+    Effect.gen(function*() {
       const cookieStore = yield* Effect.promise(() => cookies());
       const locale = cookieStore.get("locale")?.value;
       const currentLocale = (locale === "en" || locale === "ru") ? locale : "en";
@@ -90,7 +90,7 @@ export const LocaleServiceServerLive = Layer.succeed(LocaleServiceServerTag, {
             key,
             locale: currentLocale,
             message: `Translation not found for key: ${key}`,
-          })
+          }),
         );
       }
 

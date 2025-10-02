@@ -1,6 +1,6 @@
+import { type LocaleError, LocaleServiceServerTag, type TranslationError } from "@/services/locale-server";
 import * as S from "@effect/schema/Schema";
 import { Context, Effect, Layer, pipe } from "effect";
-import { LocaleServiceServerTag, type LocaleError, type TranslationError } from "@/services/locale-server";
 
 // Schemas for runtime validation
 export const ContentItemSchema = S.Struct({
@@ -86,13 +86,13 @@ export const ContentServiceTag = Context.GenericTag<ContentService>(
 // Service implementation using LocaleServiceServer for translations
 export const ContentServiceLive = Layer.effect(
   ContentServiceTag,
-  Effect.gen(function* () {
+  Effect.gen(function*() {
     const localeService = yield* LocaleServiceServerTag;
 
     return {
       getContent: () =>
         pipe(
-          Effect.gen(function* () {
+          Effect.gen(function*() {
             const site = {
               name: yield* localeService.t("site.name"),
               shortName: yield* localeService.t("site.shortName"),
@@ -124,7 +124,7 @@ export const ContentServiceLive = Layer.effect(
                   id: "mtl-crowd",
                   title: yield* localeService.t("projects.items.mtl-crowd.title"),
                   description: yield* localeService.t(
-                    "projects.items.mtl-crowd.description"
+                    "projects.items.mtl-crowd.description",
                   ),
                   status: yield* localeService.t("projects.items.mtl-crowd.status"),
                   tech: ["STELLAR", "NEXT.JS", "EFFECT-TS"],
@@ -148,58 +148,58 @@ export const ContentServiceLive = Layer.effect(
                 {
                   id: "it-acceleration",
                   title: yield* localeService.t(
-                    "programs.items.it-acceleration.title"
+                    "programs.items.it-acceleration.title",
                   ),
                   tagline: yield* localeService.t(
-                    "programs.items.it-acceleration.tagline"
+                    "programs.items.it-acceleration.tagline",
                   ),
                   description: yield* localeService.t(
-                    "programs.items.it-acceleration.description"
+                    "programs.items.it-acceleration.description",
                   ),
                   status: yield* localeService.t(
-                    "programs.items.it-acceleration.status"
+                    "programs.items.it-acceleration.status",
                   ),
                   features: [
                     yield* localeService.t(
-                      "programs.items.it-acceleration.features.0"
+                      "programs.items.it-acceleration.features.0",
                     ),
                     yield* localeService.t(
-                      "programs.items.it-acceleration.features.1"
+                      "programs.items.it-acceleration.features.1",
                     ),
                     yield* localeService.t(
-                      "programs.items.it-acceleration.features.2"
+                      "programs.items.it-acceleration.features.2",
                     ),
                     yield* localeService.t(
-                      "programs.items.it-acceleration.features.3"
+                      "programs.items.it-acceleration.features.3",
                     ),
                   ],
                 },
                 {
                   id: "sdf-integration",
                   title: yield* localeService.t(
-                    "programs.items.sdf-integration.title"
+                    "programs.items.sdf-integration.title",
                   ),
                   tagline: yield* localeService.t(
-                    "programs.items.sdf-integration.tagline"
+                    "programs.items.sdf-integration.tagline",
                   ),
                   description: yield* localeService.t(
-                    "programs.items.sdf-integration.description"
+                    "programs.items.sdf-integration.description",
                   ),
                   status: yield* localeService.t(
-                    "programs.items.sdf-integration.status"
+                    "programs.items.sdf-integration.status",
                   ),
                   features: [
                     yield* localeService.t(
-                      "programs.items.sdf-integration.features.0"
+                      "programs.items.sdf-integration.features.0",
                     ),
                     yield* localeService.t(
-                      "programs.items.sdf-integration.features.1"
+                      "programs.items.sdf-integration.features.1",
                     ),
                     yield* localeService.t(
-                      "programs.items.sdf-integration.features.2"
+                      "programs.items.sdf-integration.features.2",
                     ),
                     yield* localeService.t(
-                      "programs.items.sdf-integration.features.3"
+                      "programs.items.sdf-integration.features.3",
                     ),
                   ],
                 },
@@ -211,7 +211,7 @@ export const ContentServiceLive = Layer.effect(
                 {
                   title: yield* localeService.t("footer.columns.about.title"),
                   description: yield* localeService.t(
-                    "footer.columns.about.description"
+                    "footer.columns.about.description",
                   ),
                 },
                 {
@@ -219,13 +219,13 @@ export const ContentServiceLive = Layer.effect(
                   links: [
                     {
                       label: yield* localeService.t(
-                        "footer.columns.resources.links.github.label"
+                        "footer.columns.resources.links.github.label",
                       ),
                       icon: "Github",
                     },
                     {
                       label: yield* localeService.t(
-                        "footer.columns.resources.links.docs.label"
+                        "footer.columns.resources.links.docs.label",
                       ),
                       icon: "ExternalLink",
                     },
@@ -236,25 +236,25 @@ export const ContentServiceLive = Layer.effect(
                   links: [
                     {
                       label: yield* localeService.t(
-                        "footer.columns.community.links.discord.label"
+                        "footer.columns.community.links.discord.label",
                       ),
                       icon: "MessageCircle",
                     },
                     {
                       label: yield* localeService.t(
-                        "footer.columns.community.links.email.label"
+                        "footer.columns.community.links.email.label",
                       ),
                       icon: "Mail",
                     },
                     {
                       label: yield* localeService.t(
-                        "footer.columns.community.links.montelibero.label"
+                        "footer.columns.community.links.montelibero.label",
                       ),
                       icon: "MessageCircle",
                     },
                     {
                       label: yield* localeService.t(
-                        "footer.columns.community.links.guild.label"
+                        "footer.columns.community.links.guild.label",
                       ),
                       icon: "MessageCircle",
                     },
@@ -268,5 +268,5 @@ export const ContentServiceLive = Layer.effect(
           Effect.tap(() => Effect.log("Content loaded successfully")),
         ),
     };
-  })
+  }),
 );

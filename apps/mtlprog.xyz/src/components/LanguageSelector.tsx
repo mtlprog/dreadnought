@@ -1,14 +1,10 @@
 "use client";
 
+import { runClientEffect } from "@/lib/runtime";
+import { getLocaleEffect, type Locale, setLocaleEffect } from "@/services/settings-client";
+import { Effect, pipe } from "effect";
 import { Globe } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Effect, pipe } from "effect";
-import {
-  getLocaleEffect,
-  setLocaleEffect,
-  type Locale,
-} from "@/services/settings-client";
-import { runClientEffect } from "@/lib/runtime";
 
 const LOCALES: { value: Locale; label: string }[] = [
   { value: "en", label: "EN" },
@@ -22,7 +18,7 @@ export function LanguageSelector() {
   useEffect(() => {
     const program = pipe(
       getLocaleEffect(),
-      Effect.tap((locale) => Effect.sync(() => setCurrentLocale(locale)))
+      Effect.tap((locale) => Effect.sync(() => setCurrentLocale(locale))),
     );
 
     void runClientEffect(program);
@@ -34,14 +30,13 @@ export function LanguageSelector() {
 
     const program = pipe(
       setLocaleEffect(locale),
-      Effect.tap(() => Effect.log(`Language changed to: ${locale}`))
+      Effect.tap(() => Effect.log(`Language changed to: ${locale}`)),
     );
 
     void runClientEffect(program);
   };
 
-  const currentLabel =
-    LOCALES.find((l) => l.value === currentLocale)?.label || "EN";
+  const currentLabel = LOCALES.find((l) => l.value === currentLocale)?.label || "EN";
 
   return (
     <div className="relative">

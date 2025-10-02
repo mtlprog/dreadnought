@@ -1,7 +1,7 @@
-import { Effect, pipe } from "effect";
 import * as S from "@effect/schema/Schema";
-import { cookies } from "next/headers";
+import { Effect, pipe } from "effect";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 
 export type Locale = "en" | "ru";
 export type Theme = "system" | "light" | "dark";
@@ -11,7 +11,7 @@ export class ServerActionError extends S.TaggedError<ServerActionError>()(
   {
     message: S.String,
     cause: S.optional(S.Unknown),
-  }
+  },
 ) {}
 
 // Effect-TS implementations
@@ -44,7 +44,7 @@ export const setLocaleEffect = (locale: Locale) =>
           }),
       })
     ),
-    Effect.tap(() => Effect.log(`Locale set to: ${locale}`))
+    Effect.tap(() => Effect.log(`Locale set to: ${locale}`)),
   );
 
 export const setThemeEffect = (theme: Theme) =>
@@ -76,7 +76,7 @@ export const setThemeEffect = (theme: Theme) =>
           }),
       })
     ),
-    Effect.tap(() => Effect.log(`Theme set to: ${theme}`))
+    Effect.tap(() => Effect.log(`Theme set to: ${theme}`)),
   );
 
 export const getLocaleEffect = () =>
@@ -93,7 +93,7 @@ export const getLocaleEffect = () =>
           cause: error,
         }),
     }),
-    Effect.tap((locale) => Effect.log(`Locale retrieved: ${locale}`))
+    Effect.tap((locale) => Effect.log(`Locale retrieved: ${locale}`)),
   );
 
 export const getThemeEffect = () =>
@@ -112,5 +112,5 @@ export const getThemeEffect = () =>
           cause: error,
         }),
     }),
-    Effect.tap((theme) => Effect.log(`Theme retrieved: ${theme}`))
+    Effect.tap((theme) => Effect.log(`Theme retrieved: ${theme}`)),
   );

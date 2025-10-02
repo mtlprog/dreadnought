@@ -38,37 +38,37 @@
 }
 
 .light {
-  /* Light theme - Clean, high contrast */
-  --background: #ffffff;
+  /* Light theme - Clean, high contrast, retrofuturistic */
+  --background: #f5f5f7;
   --foreground: #0a0e1a;
 
-  /* Semantic colors - Inverted for light mode */
+  /* Semantic colors - Electric, saturated colors for retrofuturistic aesthetic */
   --primary: #0066cc;
   --primary-foreground: #ffffff;
   --secondary: #00a868;
   --secondary-foreground: #ffffff;
 
-  /* Component colors */
-  --card: #f8f9fa;
+  /* Component colors - High contrast for readability */
+  --card: #ffffff;
   --card-foreground: #0a0e1a;
-  --border: #cbd5e1;
-  --input: #f1f5f9;
+  --border: #2d3748;
+  --input: #ffffff;
   --ring: #0066cc;
 
   /* State colors */
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --muted: #e5e7eb;
+  --muted-foreground: #3f4b5b;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --accent: #7c3aed;
   --accent-foreground: #ffffff;
-  --hover: #e2e8f0;
+  --hover: #dbeafe;
 
-  /* Retrofuturistic accents - Adjusted for light mode */
+  /* Retrofuturistic accents - Electric, saturated colors */
   --cyber-green: #00a868;
   --electric-cyan: #0066cc;
-  --warning-amber: #f59e0b;
-  --steel-gray: #475569;
+  --warning-amber: #ea580c;
+  --steel-gray: #334155;
   --neon-purple: #9333ea;
 }
 

@@ -1,14 +1,14 @@
 "use server";
 
-import { Effect } from "effect";
 import {
-  setLocaleEffect,
-  setThemeEffect,
   getLocaleEffect,
   getThemeEffect,
   type Locale,
+  setLocaleEffect,
+  setThemeEffect,
   type Theme,
 } from "@/services/settings";
+import { Effect } from "effect";
 
 // Re-export types for convenience
 export type { Locale, Theme };

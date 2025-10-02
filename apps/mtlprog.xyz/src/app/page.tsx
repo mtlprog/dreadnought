@@ -1,11 +1,11 @@
 import { Hero } from "@/components/Hero";
-import { Footer } from "@/components/layout/Footer";
 import { LanguageSelector } from "@/components/LanguageSelector";
-import { ThemeSelector } from "@/components/ThemeSelector";
+import { Footer } from "@/components/layout/Footer";
 import { Programs } from "@/components/Programs";
 import { Projects } from "@/components/Projects";
-import { ContentServiceTag, ContentServiceLive } from "@/constants/content";
-import { LinksServiceTag, LinksServiceLive } from "@/constants/links";
+import { ThemeSelector } from "@/components/ThemeSelector";
+import { ContentServiceLive, ContentServiceTag } from "@/constants/content";
+import { LinksServiceLive, LinksServiceTag } from "@/constants/links";
 import { LocaleServiceServerLive } from "@/services/locale-server";
 import { Effect, Layer, pipe } from "effect";
 
