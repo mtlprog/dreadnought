@@ -94,17 +94,21 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
   return null;
 }
 
-function AccountTypeIndicator({ type }: { type: "issuer" | "subfond" | "operational" }) {
+function AccountTypeIndicator({ type }: { type: "issuer" | "subfond" | "mutual" | "operational" | "other" }) {
   const colors = {
     issuer: "text-cyber-green",
     subfond: "text-electric-cyan",
+    mutual: "text-purple-400",
     operational: "text-warning-amber",
+    other: "text-steel-gray",
   };
 
   const labels = {
     issuer: "ЭМИТЕНТ",
     subfond: "САБФОНД",
+    mutual: "МУТУАЛ",
     operational: "ОПЕРАЦ.",
+    other: "ПРОЧЕЕ",
   };
 
   return (
@@ -311,6 +315,53 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
             </div>
           </div>
         </Card>
+
+        {/* Other Accounts Section (separate from main fund totals) */}
+        {fundData.otherAccounts && fundData.otherAccounts.length > 0 && (
+          <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
+            <div className="bg-steel-gray/30 text-foreground p-6 border-l-4 border-steel-gray">
+              <h2 className="text-2xl font-mono uppercase tracking-wider">ПРОЧИЕ СЧЕТА</h2>
+              <p className="text-sm font-mono mt-2 text-steel-gray">
+                Не входят в общий итог фонда
+              </p>
+            </div>
+
+            <div className="p-6">
+              {/* Sticky Table Header */}
+              <div className="sticky top-0 z-10 bg-background border-b border-border mb-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-steel-gray">
+                      <TableHead className="text-foreground font-mono uppercase tracking-wider w-32 bg-background">
+                        ТОКЕН
+                      </TableHead>
+                      <TableHead className="text-foreground font-mono uppercase tracking-wider w-40 bg-background">
+                        БАЛАНС
+                      </TableHead>
+                      <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
+                        ЦЕНА (EURMTL)
+                      </TableHead>
+                      <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
+                        ЦЕНА (XLM)
+                      </TableHead>
+                      <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
+                        СТОИМОСТЬ (EURMTL)
+                      </TableHead>
+                      <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
+                        СТОИМОСТЬ (XLM)
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                </Table>
+              </div>
+
+              {/* Other Account Sections */}
+              <div className="space-y-6">
+                {fundData.otherAccounts.map((account, index) => <AccountSection key={index} account={account} />)}
+              </div>
+            </div>
+          </Card>
+        )}
       </div>
     </TooltipProvider>
   );

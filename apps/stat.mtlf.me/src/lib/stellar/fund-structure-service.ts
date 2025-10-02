@@ -8,14 +8,14 @@ import type { AssetInfo } from "./types";
 export interface FundAccount {
   readonly id: string;
   readonly name: string;
-  readonly type: "issuer" | "subfond" | "operational";
+  readonly type: "issuer" | "subfond" | "mutual" | "operational" | "other";
   readonly description: string;
 }
 
 const FundAccountSchema = S.Struct({
   id: S.String.pipe(S.pattern(/^G[A-Z2-7]{55}$/)),
   name: S.String.pipe(S.nonEmptyString()),
-  type: S.Literal("issuer", "subfond", "operational"),
+  type: S.Literal("issuer", "subfond", "mutual", "operational", "other"),
   description: S.String.pipe(S.nonEmptyString()),
 });
 
@@ -29,6 +29,7 @@ export interface FundAccountPortfolio extends FundAccount {
 
 export interface FundStructureData {
   readonly accounts: readonly FundAccountPortfolio[];
+  readonly otherAccounts: readonly FundAccountPortfolio[];
   readonly aggregatedTotals: {
     readonly totalEURMTL: number;
     readonly totalXLM: number;
@@ -52,23 +53,19 @@ export const FundStructureServiceTag = Context.GenericTag<FundStructureService>(
 
 // Fund accounts from FUND_STRUCTURE.md - validated with Schema
 const FUND_ACCOUNTS_RAW = [
+  // Main Issuer
   {
     id: "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
     name: "MAIN ISSUER",
     type: "issuer",
     description: "Основной эмитент токенов фонда",
   },
+  // Subfonds
   {
     id: "GAQ5ERJVI6IW5UVNPEVXUUVMXH3GCDHJ4BJAXMAAKPR5VBWWAUOMABIZ",
     name: "MABIZ",
     type: "subfond",
     description: "Сабфонд малого и среднего бизнеса",
-  },
-  {
-    id: "GA7I6SGUHQ26ARNCD376WXV5WSE7VJRX6OEFNFCEGRLFGZWQIV73LABR",
-    name: "LABR",
-    type: "subfond",
-    description: "Сабфонд трудовых ресурсов",
   },
   {
     id: "GCOJHUKGHI6IATN7AIEK4PSNBPXIAIZ7KB2AWTTUCNIAYVPUB2DMCITY",
@@ -77,16 +74,43 @@ const FUND_ACCOUNTS_RAW = [
     description: "Сабфонд городской инфраструктуры",
   },
   {
-    id: "GCR5J3NU2NNG2UKDQ5XSZVX7I6TDLB3LEN2HFUR2EPJUMNWCUL62MTLM",
-    name: "MTLM",
-    type: "subfond",
-    description: "Сабфонд Montelibero Meta",
-  },
-  {
     id: "GAEZHXMFRW2MWLWCXSBNZNUSE6SN3ODZDDOMPFH3JPMJXN4DKBPMDEFI",
     name: "DEFI",
     type: "subfond",
     description: "Сабфонд децентрализованных финансов",
+  },
+  // Mutuals
+  {
+    id: "GCKCV7T56CAPFUYMCQUYSEUMZRC7GA7CAQ2BOL3RPS4NQXDTRCSULMFB",
+    name: "MFB",
+    type: "mutual",
+    description: "Mutual Fund Business",
+  },
+  {
+    id: "GD2SNF4QHUJD6VRAXWDA4CDUYENYB23YDFQ74DVC4P5SYR54AAVCUMFA",
+    name: "APART",
+    type: "mutual",
+    description: "Mutual Fund Apartments",
+  },
+  // Operational
+  {
+    id: "GBSCMGJCE4DLQ6TYRNUMXUZZUXGZBM4BXVZUIHBBL5CSRRW2GWEHUADM",
+    name: "ADMIN",
+    type: "operational",
+    description: "Операционный счёт администрирования",
+  },
+  // Others (not included in fund totals)
+  {
+    id: "GA7I6SGUHQ26ARNCD376WXV5WSE7VJRX6OEFNFCEGRLFGZWQIV73LABR",
+    name: "LABR",
+    type: "other",
+    description: "Трудовые ресурсы (не входит в общий счёт фонда)",
+  },
+  {
+    id: "GCR5J3NU2NNG2UKDQ5XSZVX7I6TDLB3LEN2HFUR2EPJUMNWCUL62MTLM",
+    name: "MTLM",
+    type: "other",
+    description: "Montelibero Meta (не входит в общий счёт фонда)",
   },
 ] as const;
 
@@ -234,8 +258,12 @@ const getFundStructureImpl = (): Effect.Effect<
       FUND_ACCOUNTS.map(getAccountPortfolio),
       { concurrency: 3 }, // Limit concurrent requests
     ),
-    Effect.map((accounts) => {
-      // Calculate aggregated totals
+    Effect.map((allAccounts) => {
+      // Separate "other" accounts from main fund accounts
+      const accounts = allAccounts.filter(account => account.type !== "other");
+      const otherAccounts = allAccounts.filter(account => account.type === "other");
+
+      // Calculate aggregated totals (excluding "other" accounts)
       const aggregatedTotals = accounts.reduce(
         (totals, account) => ({
           totalEURMTL: totals.totalEURMTL + account.totalEURMTL,
@@ -253,6 +281,7 @@ const getFundStructureImpl = (): Effect.Effect<
 
       return {
         accounts,
+        otherAccounts,
         aggregatedTotals,
       };
     }),

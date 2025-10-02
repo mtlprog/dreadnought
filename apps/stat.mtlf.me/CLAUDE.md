@@ -173,14 +173,18 @@ interface FundStructureService {
 }
 ```
 
-**Fund Accounts** (6 total from `/docs/FUND_STRUCTURE.md`):
+**Fund Accounts** (10 total from `/docs/FUND_STRUCTURE.md`):
 - 1 Main Issuer (GACKTN...)
-- 5 Subfonds (MABIZ, LABR, CITY, MTLM, DEFI)
+- 3 Subfonds (MABIZ, CITY, DEFI)
+- 2 Mutuals (MFB, APART)
+- 1 Operational (ADMIN)
+- 2 Others (LABR, MTLM) - displayed separately, NOT included in fund totals
 
 **Key Features**:
 - Schema validation for all accounts (`@effect/schema`)
 - Concurrency: 3 accounts processed in parallel
 - Liquid token filtering (only tokens with prices count toward totals)
+- Separate display for "other" accounts (not counted in aggregated totals)
 - Graceful error handling (partial results on failures)
 
 **📘 Full Fund Structure Guide**: See `docs/guides/fund-structure-service.md` for complete details on data flow, account management, liquid vs illiquid tokens, error handling, and adding new accounts.

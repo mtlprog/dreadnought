@@ -15,6 +15,7 @@ export const FundDataClientTag = Context.GenericTag<FundDataClient>("@stat.mtlf.
 // Schema for validating API responses
 const FundStructureDataSchema = S.Struct({
   accounts: S.Array(S.Unknown), // Simplified for now, could be more specific
+  otherAccounts: S.Array(S.Unknown), // Other accounts (LABR, MTLM) not included in fund totals
   aggregatedTotals: S.Struct({
     totalEURMTL: S.Number,
     totalXLM: S.Number,

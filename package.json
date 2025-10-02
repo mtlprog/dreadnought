@@ -17,6 +17,13 @@
     "check": "bun run type-check && bun run lint",
     "verify": "bun run lint && bun run typecheck && bun run test && bun run build"
   },
+  "dependencies": {
+    "effect": "^3.11.0",
+    "@effect/platform": "latest",
+    "@effect/platform-bun": "latest",
+    "@effect/platform-node": "^0.97.1",
+    "@effect/schema": "latest"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@effect/eslint-plugin": "latest",

@@ -35,4 +35,12 @@ Review checklist:
    - Input validation with Schema
    - Safe Stellar operations
 
+7. BUILD VERIFICATION (MANDATORY):
+   - Run `bun run build` after review
+   - Ensure build succeeds without errors
+   - Report any TypeScript or ESLint errors
+   - Verify all tests pass (if applicable)
+
 Report issues with severity and suggested fixes.
+
+IMPORTANT: After completing the review checklist, ALWAYS run `bun run build` to verify the build succeeds.

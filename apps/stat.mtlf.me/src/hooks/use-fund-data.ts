@@ -100,7 +100,7 @@ export function useFundData(): UseFundDataState {
           ),
         ]),
         Effect.map(([, data]) => data),
-        Effect.catchAll((error: FundDataFetchError | FundDataParseError | FundDataNetworkError) =>
+        Effect.catchAll((error: Readonly<FundDataFetchError | FundDataParseError | FundDataNetworkError>) =>
           pipe(
             Effect.sync(() => {
               if (isMountedRef.current) {

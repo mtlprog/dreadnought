@@ -9,7 +9,7 @@ export const getTokenPriceCommand = (
   tokenAIssuer: string,
   tokenBCode: string,
   tokenBIssuer: string,
-): Effect.Effect<void, never, PriceService> =>
+): Effect.Effect<unknown, unknown, PriceService> =>
   pipe(
     Effect.gen(function*() {
       const priceService = yield* PriceServiceTag;
@@ -50,7 +50,8 @@ export const getTokenPriceCommand = (
     Effect.catchAll((error) =>
       pipe(
         Effect.logError(chalk.red("\n❌ Failed to calculate price:")),
-        Effect.tap(() => logErrorWithCause(chalk.red("Error"))(error)),
+        Effect.flatMap(() => logErrorWithCause(chalk.red("Error"))(error)),
+        Effect.flatMap(() => Effect.fail(error)),
       )
     ),
   );

@@ -19,10 +19,17 @@ The FundStructureService (src/lib/stellar/fund-structure-service.ts) is the orch
 interface FundAccount {
   readonly id: string;           // Stellar public key (G...)
   readonly name: string;          // Display name (e.g., "MABIZ")
-  readonly type: "issuer" | "subfond" | "operational";
+  readonly type: "issuer" | "subfond" | "mutual" | "operational" | "other";
   readonly description: string;   // Russian description
 }
 ```
+
+**Account Types**:
+- `issuer`: Main issuer account
+- `subfond`: Subfund accounts (MABIZ, CITY, DEFI)
+- `mutual`: Mutual fund accounts (MFB, APART)
+- `operational`: Operational accounts (ADMIN)
+- `other`: Other accounts NOT included in fund totals (LABR, MTLM)
 
 ### Validation Schema
 
@@ -32,7 +39,7 @@ All accounts are validated using `@effect/schema`:
 const FundAccountSchema = S.Struct({
   id: S.String.pipe(S.pattern(/^G[A-Z2-7]{55}$/)), // Stellar public key format
   name: S.String.pipe(S.nonEmptyString()),
-  type: S.Literal("issuer", "subfond", "operational"),
+  type: S.Literal("issuer", "subfond", "mutual", "operational", "other"),
   description: S.String.pipe(S.nonEmptyString()),
 });
 ```
@@ -45,17 +52,29 @@ From `/docs/FUND_STRUCTURE.md`:
 - **MAIN ISSUER**: `GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V`
   - Основной эмитент токенов фонда
 
-**Subfonds**:
+**Subfonds** (included in fund totals):
 - **MABIZ**: `GAQ5ERJVI6IW5UVNPEVXUUVMXH3GCDHJ4BJAXMAAKPR5VBWWAUOMABIZ`
   - Сабфонд малого и среднего бизнеса
-- **LABR**: `GA7I6SGUHQ26ARNCD376WXV5WSE7VJRX6OEFNFCEGRLFGZWQIV73LABR`
-  - Сабфонд трудовых ресурсов
 - **CITY**: `GCOJHUKGHI6IATN7AIEK4PSNBPXIAIZ7KB2AWTTUCNIAYVPUB2DMCITY`
   - Сабфонд городской инфраструктуры
-- **MTLM**: `GCR5J3NU2NNG2UKDQ5XSZVX7I6TDLB3LEN2HFUR2EPJUMNWCUL62MTLM`
-  - Сабфонд Montelibero Meta
 - **DEFI**: `GAEZHXMFRW2MWLWCXSBNZNUSE6SN3ODZDDOMPFH3JPMJXN4DKBPMDEFI`
   - Сабфонд децентрализованных финансов
+
+**Mutuals** (included in fund totals):
+- **MFB**: `GCKCV7T56CAPFUYMCQUYSEUMZRC7GA7CAQ2BOL3RPS4NQXDTRCSULMFB`
+  - Mutual Fund Business
+- **APART**: `GD2SNF4QHUJD6VRAXWDA4CDUYENYB23YDFQ74DVC4P5SYR54AAVCUMFA`
+  - Mutual Fund Apartments
+
+**Operational** (included in fund totals):
+- **ADMIN**: `GBSCMGJCE4DLQ6TYRNUMXUZZUXGZBM4BXVZUIHBBL5CSRRW2GWEHUADM`
+  - Операционный счёт администрирования
+
+**Others** (NOT included in fund totals, displayed separately):
+- **LABR**: `GA7I6SGUHQ26ARNCD376WXV5WSE7VJRX6OEFNFCEGRLFGZWQIV73LABR`
+  - Трудовые ресурсы
+- **MTLM**: `GCR5J3NU2NNG2UKDQ5XSZVX7I6TDLB3LEN2HFUR2EPJUMNWCUL62MTLM`
+  - Montelibero Meta
 
 ## Data Flow
 
@@ -171,14 +190,17 @@ Complete fund structure with aggregated totals:
 ```typescript
 interface FundStructureData {
   readonly accounts: readonly FundAccountPortfolio[];
+  readonly otherAccounts: readonly FundAccountPortfolio[];  // "other" type accounts
   readonly aggregatedTotals: {
-    readonly totalEURMTL: number;    // Sum of all account totalEURMTL
-    readonly totalXLM: number;       // Sum of all account totalXLM
-    readonly accountCount: number;   // Number of accounts processed
-    readonly tokenCount: number;     // Total tokens across all accounts
+    readonly totalEURMTL: number;    // Sum of account totalEURMTL (excluding "other")
+    readonly totalXLM: number;       // Sum of account totalXLM (excluding "other")
+    readonly accountCount: number;   // Number of accounts processed (excluding "other")
+    readonly tokenCount: number;     // Total tokens across accounts (excluding "other")
   };
 }
 ```
+
+**Important**: `otherAccounts` are displayed separately in the UI and NOT included in `aggregatedTotals`.
 
 ## Liquid vs Illiquid Tokens
 

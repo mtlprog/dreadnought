@@ -22,17 +22,17 @@ program
   .requiredOption("-b, --token-b <code>", "Token B code (e.g., EURMTL)")
   .requiredOption("--token-b-issuer <issuer>", "Token B issuer address")
   .action((options) => {
-    const program = pipe(
-      getTokenPriceCommand(
-        options.tokenA,
-        options.tokenAIssuer,
-        options.tokenB,
-        options.tokenBIssuer,
+    BunRuntime.runMain(
+      pipe(
+        getTokenPriceCommand(
+          options.tokenA,
+          options.tokenAIssuer,
+          options.tokenB,
+          options.tokenBIssuer,
+        ),
+        Effect.provide(AppLayer),
       ),
-      Effect.provide(AppLayer),
     );
-
-    BunRuntime.runMain(program);
   });
 
 // Predefined token pairs for Montelibero
@@ -44,24 +44,24 @@ program
     const MTL_ISSUER = "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V";
     const EURMTL_ISSUER = "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V";
 
-    const program = pipe(
-      getTokenPriceCommand("MTL", MTL_ISSUER, "EURMTL", EURMTL_ISSUER),
-      Effect.provide(AppLayer),
+    BunRuntime.runMain(
+      pipe(
+        getTokenPriceCommand("MTL", MTL_ISSUER, "EURMTL", EURMTL_ISSUER),
+        Effect.provide(AppLayer),
+      ),
     );
-
-    BunRuntime.runMain(program);
   });
 
 program
   .command("xlm-usdc")
   .description("Get XLM price in USDC (example on mainnet)")
   .action(() => {
-    const program = pipe(
-      getTokenPriceCommand("XLM", "native", "USDC", "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"),
-      Effect.provide(AppLayer),
+    BunRuntime.runMain(
+      pipe(
+        getTokenPriceCommand("XLM", "native", "USDC", "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"),
+        Effect.provide(AppLayer),
+      ),
     );
-
-    BunRuntime.runMain(program);
   });
 
 program.parse();
