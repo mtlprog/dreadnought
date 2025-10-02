@@ -5,6 +5,7 @@ import { Effect, pipe } from "effect";
 import { checkProjects } from "./commands/check-projects";
 import { createProject } from "./commands/create-project";
 import { listProjects } from "./commands/list-projects";
+import { updateNft } from "./commands/update-nft";
 import { AppLayer } from "./layers";
 
 // CLI setup
@@ -49,6 +50,18 @@ projectCommand
   .action(async () => {
     const effectProgram = pipe(
       checkProjects(),
+      Effect.provide(AppLayer),
+    );
+
+    await Effect.runPromise(effectProgram);
+  });
+
+projectCommand
+  .command("update-nft")
+  .description("Update NFT metadata in IPFS")
+  .action(async () => {
+    const effectProgram = pipe(
+      updateNft(),
       Effect.provide(AppLayer),
     );
 

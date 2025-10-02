@@ -18,7 +18,9 @@ export class PinataError extends S.TaggedError<PinataError>()(
 ) {}
 
 // Re-export from lib/stellar for convenience
-export { EnvironmentError, StellarError } from "@/lib/stellar";
-import type { EnvironmentError, StellarError } from "@/lib/stellar";
+import { EnvironmentError as StellarEnvError, StellarError as StellarErr } from "@/lib/stellar";
 
-export type CliError = ValidationError | PinataError | StellarError | EnvironmentError;
+export { StellarEnvError as EnvironmentError, StellarErr as StellarError };
+export type { StellarServiceError } from "@/lib/stellar";
+
+export type CliError = ValidationError | PinataError | StellarErr | StellarEnvError;

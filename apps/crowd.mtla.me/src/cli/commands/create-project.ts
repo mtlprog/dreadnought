@@ -39,10 +39,15 @@ const askQuestions = (): Effect.Effect<ProjectData, ValidationError> =>
             name: "fulldescription",
             message: "Полное описание проекта (base64 encoded):",
             validate: (value: string) => {
+              // Check if valid base64 format
+              const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+              if (!base64Regex.test(value)) {
+                return "Должна быть корректная base64 строка";
+              }
               try {
-                return globalThis.btoa(globalThis.atob(value)) === value
-                  ? true
-                  : "Должна быть корректная base64 строка";
+                // Try to decode to verify it's valid
+                globalThis.atob(value);
+                return true;
               } catch {
                 return "Должна быть корректная base64 строка";
               }
