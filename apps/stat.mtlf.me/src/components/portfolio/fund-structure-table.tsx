@@ -119,9 +119,6 @@ function AccountTypeIndicator({ type }: { type: "issuer" | "subfond" | "mutual" 
 }
 
 function AccountSection({ account }: { account: FundAccountPortfolio }) {
-  // Filter only liquid tokens
-  const liquidTokens = account.tokens.filter(token => token.priceInXLM !== null || token.priceInEURMTL !== null);
-
   return (
     <div className="space-y-2">
       {/* Account Header */}
@@ -179,7 +176,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
             </TableRow>
 
             {/* Token Rows */}
-            {liquidTokens.map((token, index) => (
+            {account.tokens.map((token, index) => (
               <TableRow key={index} className="border-steel-gray/30">
                 <TableCell>
                   <StellarAsset

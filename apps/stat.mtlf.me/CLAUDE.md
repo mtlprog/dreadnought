@@ -183,7 +183,7 @@ interface FundStructureService {
 **Key Features**:
 - Schema validation for all accounts (`@effect/schema`)
 - Concurrency: 3 accounts processed in parallel
-- Liquid token filtering (only tokens with prices count toward totals)
+- All tokens displayed regardless of price availability (illiquid tokens show "—" for prices/values)
 - Separate display for "other" accounts (not counted in aggregated totals)
 - Graceful error handling (partial results on failures)
 

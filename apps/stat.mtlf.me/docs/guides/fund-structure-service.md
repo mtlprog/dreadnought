@@ -9,7 +9,7 @@ The FundStructureService (src/lib/stellar/fund-structure-service.ts) is the orch
 1. Fetches portfolio data for all fund accounts
 2. Calculates token prices in EURMTL and XLM
 3. Computes account-level and fund-level totals
-4. Filters liquid vs illiquid tokens
+4. Displays all tokens (liquid and illiquid)
 
 ## Fund Account Structure
 
@@ -142,8 +142,7 @@ priceService.getTokenPrice(XLM_ASSET, EURMTL_ASSET)
 
 ```typescript
 calculateAccountTotals(tokens, xlmBalance, xlmPriceInEURMTL)
-  → Filter liquid tokens (those with prices)
-  → Sum EURMTL values:
+  → Sum EURMTL values (only tokens with prices contribute):
       totalEURMTL = Σ(token.valueInEURMTL) + (xlmBalance × xlmPriceInEURMTL)
   → Sum XLM values:
       totalXLM = Σ(token.valueInXLM) + xlmBalance
@@ -241,19 +240,15 @@ Tokens without discoverable prices (no orderbook, no paths).
 ```
 
 **Treatment**:
-- Not included in total calculations
-- Not displayed in UI (filtered out)
+- Displayed in UI with "—" for unavailable prices/values
+- Not included in total calculations (only tokens with prices contribute to totals)
 - Logged for debugging
 
-### Filtering Logic
+### Total Calculation Logic
 
 ```typescript
-const liquidTokens = tokens.filter(token =>
-  token.priceInXLM !== null || token.priceInEURMTL !== null
-);
-
-// Only liquid tokens contribute to totals
-const totalEURMTL = liquidTokens.reduce((sum, token) => {
+// All tokens are displayed, but only those with values contribute to totals
+const totalEURMTL = tokens.reduce((sum, token) => {
   if (token.valueInEURMTL !== null && token.valueInEURMTL !== undefined) {
     return sum + parseFloat(token.valueInEURMTL);
   }
@@ -368,9 +363,9 @@ Effect.all(
    );
    ```
 
-3. **Skip Illiquid Tokens**:
-   - Maintain whitelist of liquid tokens
-   - Skip pricing for known illiquid tokens
+3. **Optimize Illiquid Token Pricing**:
+   - Maintain cache of known illiquid tokens
+   - Skip repeated pricing attempts for known illiquid tokens
    - Store in config or database
 
 ## Adding New Accounts
@@ -515,13 +510,13 @@ export STELLAR_NETWORK=mainnet
 
 **Issue: Totals Don't Add Up**
 
-**Cause**: Illiquid tokens excluded from totals
+**Cause**: Illiquid tokens don't have values, so they don't contribute to totals
 
 **Check**:
 ```typescript
-// Compare all tokens vs liquid tokens
+// Compare all tokens vs tokens with values
 console.log("All tokens:", account.tokens.length);
-console.log("Liquid tokens:", account.tokens.filter(t => t.priceInXLM !== null).length);
+console.log("Tokens with values:", account.tokens.filter(t => t.valueInXLM !== null).length);
 ```
 
 ## Related Documentation

@@ -144,10 +144,7 @@ const calculateAccountTotals = (
   xlmBalance: string,
   xlmPriceInEURMTL: string | null,
 ): { totalEURMTL: number; totalXLM: number } => {
-  // Filter only liquid tokens (those with prices)
-  const liquidTokens = tokens.filter(token => token.priceInXLM !== null || token.priceInEURMTL !== null);
-
-  const totalEURMTL = liquidTokens.reduce((sum, token) => {
+  const totalEURMTL = tokens.reduce((sum, token) => {
     if (token.valueInEURMTL !== null && token.valueInEURMTL !== undefined) {
       return sum + parseFloat(token.valueInEURMTL);
     }
@@ -156,7 +153,7 @@ const calculateAccountTotals = (
     ? parseFloat(xlmBalance) * parseFloat(xlmPriceInEURMTL)
     : 0);
 
-  const totalXLM = liquidTokens.reduce((sum, token) => {
+  const totalXLM = tokens.reduce((sum, token) => {
     if (token.valueInXLM !== null && token.valueInXLM !== undefined) {
       return sum + parseFloat(token.valueInXLM);
     }
