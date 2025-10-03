@@ -1,13 +1,46 @@
-import type { ProjectData } from "@/lib/stellar/types";
+import type { ProjectData, ProjectDataWithResults } from "@/lib/stellar/types";
 import chalk from "chalk";
 import { Effect, pipe } from "effect";
 import prompts from "prompts";
 import { PinataServiceCli } from "../services/pinata.service";
 import { ValidationError } from "../types";
 import { handleCliError } from "../utils/errors";
+import { type FundingData, getCurrentFundingData, getHistoricalFundingData } from "../utils/funding-history";
 import { fetchProjectFromIPFS } from "../utils/ipfs";
 import { calculateSoldAmount, findActiveSellOffer } from "../utils/offer";
 import { validateProjectData } from "../utils/validation";
+
+const askToAddFundingData = (
+  fundingData: FundingData,
+): Effect.Effect<boolean, ValidationError> =>
+  pipe(
+    Effect.tryPromise({
+      try: () =>
+        prompts({
+          type: "confirm",
+          name: "addFundingData",
+          message: chalk.yellow(
+            `\nДобавить данные о финансировании в NFT?\n`
+              + `  Собрано: ${fundingData.funded_amount} MTLCrowd\n`
+              + `  Поддержавших: ${fundingData.supporters_count}\n`
+              + `  Осталось: ${fundingData.remaining_amount} MTLCrowd\n`
+              + `  Статус: ${fundingData.funding_status}`,
+          ),
+          initial: true,
+        }),
+      catch: (error) =>
+        new ValidationError({
+          field: "user_confirmation",
+          message: `Failed to get confirmation: ${error}`,
+        }),
+    }),
+    Effect.flatMap(response => {
+      const confirmed = (response as { addFundingData?: boolean }).addFundingData;
+      return confirmed === true
+        ? Effect.succeed(true)
+        : Effect.succeed(false);
+    }),
+  );
 
 const askForAssetCode = (): Effect.Effect<string, ValidationError> =>
   pipe(
@@ -42,8 +75,8 @@ const askForAssetCode = (): Effect.Effect<string, ValidationError> =>
   );
 
 const askForUpdatedData = (
-  currentData: ProjectData,
-): Effect.Effect<ProjectData, ValidationError> =>
+  currentData: ProjectData | ProjectDataWithResults,
+): Effect.Effect<ProjectData | ProjectDataWithResults, ValidationError> =>
   pipe(
     Effect.tryPromise({
       try: () =>
@@ -131,16 +164,40 @@ const askForUpdatedData = (
           message: `Failed to get user input: ${error}`,
         }),
     }),
-    Effect.flatMap(response =>
-      Object.keys(response as object).length < 8
-        ? Effect.fail(
+    Effect.flatMap(response => {
+      if (Object.keys(response as object).length < 8) {
+        return Effect.fail(
           new ValidationError({
             field: "user_input",
             message: "Operation cancelled",
           }),
-        )
-        : validateProjectData(response)
-    ),
+        );
+      }
+
+      // Validate base project data
+      return pipe(
+        validateProjectData(response),
+        Effect.map(validatedData => {
+          // Preserve funding fields if they exist in currentData
+          const result: ProjectData | ProjectDataWithResults = {
+            ...validatedData,
+          };
+
+          if ("funded_amount" in currentData && currentData.funded_amount !== undefined) {
+            return {
+              ...result,
+              funded_amount: currentData.funded_amount,
+              ...(currentData.supporters_count !== undefined ? { supporters_count: currentData.supporters_count } : {}),
+              ...(currentData.remaining_amount !== undefined ? { remaining_amount: currentData.remaining_amount } : {}),
+              ...(currentData.funding_status !== undefined ? { funding_status: currentData.funding_status } : {}),
+              ...(currentData.supporters !== undefined ? { supporters: currentData.supporters } : {}),
+            };
+          }
+
+          return result;
+        }),
+      );
+    }),
   );
 
 // Constants
@@ -285,11 +342,83 @@ export const updateNft = () =>
         Effect.logInfo(`${chalk.cyan("Deadline:")} ${currentData.deadline}`),
       ]);
 
-      // 4. Запросить обновленные данные
-      yield* Effect.logInfo(chalk.blue("\\n📝 Enter updated data (press Enter to keep current value):\\n"));
-      const updatedData = yield* askForUpdatedData(currentData);
+      // 4. Check if funding data should be added
+      let dataToUpdate: ProjectData | ProjectDataWithResults = currentData;
 
-      // 5. Загрузить в IPFS
+      if ("funding_status" in currentData && currentData.funding_status !== undefined) {
+        // Data already exists in IPFS
+        yield* Effect.logInfo(chalk.green("\\n✅ Funding data already exists in NFT"));
+      } else {
+        // Try to get funding data (works for both active and closed projects)
+        yield* Effect.logInfo(chalk.blue("\\n📊 Checking funding data..."));
+
+        // First try current state
+        const currentFundingData = yield* pipe(
+          getCurrentFundingData(assetCode, currentData.target_amount),
+          Effect.catchAll(() => Effect.succeed(null)),
+        );
+
+        // If current state shows no data (0 funded), try historical data
+        let fundingData: FundingData | null = currentFundingData;
+        if (
+          currentFundingData === null
+          || (parseFloat(currentFundingData.funded_amount) === 0 && currentFundingData.supporters_count === 0)
+        ) {
+          yield* Effect.logInfo(chalk.yellow("  No current data found, fetching historical data..."));
+          fundingData = yield* pipe(
+            getHistoricalFundingData(assetCode, currentData.target_amount),
+            Effect.catchAll(() => Effect.succeed(null)),
+          );
+        }
+
+        // Skip if no funding data available
+        if (fundingData === null) {
+          yield* Effect.logInfo(chalk.yellow("  No funding data available"));
+        } else {
+          const shouldAdd = yield* askToAddFundingData(fundingData);
+
+          if (shouldAdd) {
+            dataToUpdate = {
+              ...currentData,
+              ...(fundingData.funded_amount !== "0" ? { funded_amount: fundingData.funded_amount } : {}),
+              ...(fundingData.supporters_count > 0 ? { supporters_count: fundingData.supporters_count } : {}),
+              ...(fundingData.remaining_amount !== "0" ? { remaining_amount: fundingData.remaining_amount } : {}),
+              ...(fundingData.supporters.length > 0 ? { supporters: fundingData.supporters } : {}),
+              funding_status: fundingData.funding_status,
+            };
+          }
+        }
+      }
+
+      // 5. Запросить обновленные данные
+      yield* Effect.logInfo(chalk.blue("\\n📝 Enter updated data (press Enter to keep current value):\\n"));
+      const updatedData = yield* askForUpdatedData(dataToUpdate);
+
+      // 6. Показать JSON и запросить подтверждение
+      yield* Effect.logInfo(chalk.blue("\\n📄 Data to be uploaded to IPFS:"));
+      yield* Effect.logInfo(chalk.white(JSON.stringify(updatedData, null, 2)));
+
+      const uploadConfirmed = yield* Effect.tryPromise({
+        try: () =>
+          prompts({
+            type: "confirm",
+            name: "confirmed",
+            message: chalk.yellow("\\nПродолжить загрузку в IPFS?"),
+            initial: true,
+          }),
+        catch: (error) =>
+          new ValidationError({
+            field: "upload_confirmation",
+            message: `Failed to get confirmation: ${error}`,
+          }),
+      });
+
+      if (!(uploadConfirmed as { confirmed?: boolean }).confirmed) {
+        yield* Effect.logInfo(chalk.yellow("\\n⏭️  Upload cancelled"));
+        return;
+      }
+
+      // 7. Загрузить в IPFS
       yield* Effect.logInfo(chalk.blue("\\n📦 Uploading to IPFS..."));
       const newCid = yield* pipe(
         PinataServiceCli,
