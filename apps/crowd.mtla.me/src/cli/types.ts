@@ -17,10 +17,15 @@ export class PinataError extends S.TaggedError<PinataError>()(
   },
 ) {}
 
-// Re-export from lib/stellar for convenience
-import { EnvironmentError as StellarEnvError, StellarError as StellarErr } from "@/lib/stellar";
+// Re-export from @dreadnought/stellar-core for convenience
+import {
+  EnvironmentError as StellarEnvError,
+  StellarError as StellarErr,
+  type StellarServiceError,
+  TokenPriceError,
+} from "@dreadnought/stellar-core";
 
-export { StellarEnvError as EnvironmentError, StellarErr as StellarError };
-export type { StellarServiceError } from "@/lib/stellar";
+export { StellarEnvError as EnvironmentError, StellarErr as StellarError, TokenPriceError };
+export type { StellarServiceError };
 
-export type CliError = ValidationError | PinataError | StellarErr | StellarEnvError;
+export type CliError = ValidationError | PinataError | StellarErr | StellarEnvError | TokenPriceError;

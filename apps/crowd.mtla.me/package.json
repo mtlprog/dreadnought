@@ -11,6 +11,7 @@
     "cli": "bun run src/cli/index.ts"
   },
   "dependencies": {
+    "@dreadnought/stellar-core": "workspace:*",
     "@effect/platform": "latest",
     "@effect/platform-bun": "latest",
     "@effect/schema": "latest",

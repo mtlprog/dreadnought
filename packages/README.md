@@ -11,12 +11,40 @@ packages/
 │   ├── package.json
 │   ├── src/
 │   │   └── index.ts
-│   └── README.md
+│   ├── README.md
+│   └── (tests)
 ```
 
 ## Available Packages
 
-*No packages created yet. All development is currently in `/apps/crowd.mtla.me/`*
+### @dreadnought/stellar-core
+
+**Purpose**: Core Stellar blockchain utilities
+**Key Features**: Network configuration, error types, API wrappers
+**Dependencies**: `@stellar/stellar-sdk`, `effect`, `@effect/schema`
+**Used By**: `crowd.mtla.me`, `stat.mtlf.me`
+
+**Exports**:
+- `getStellarConfig()` - Get network configuration (testnet/mainnet)
+- `loadAccount()` - Load account from Horizon API
+- `fetchOrderbook()` - Fetch orderbook for asset pair
+- `getClaimableBalances()` - Get claimable balances for account
+- Error types: `StellarError`, `EnvironmentError`, `TokenPriceError`
+
+**Example**:
+```typescript
+import { getStellarConfig, loadAccount } from "@dreadnought/stellar-core";
+import { Effect, pipe } from "effect";
+
+const program = pipe(
+  getStellarConfig(),
+  Effect.flatMap((config) => loadAccount(config.server, "GABC..."))
+);
+```
+
+See `packages/stellar-core/README.md` for full documentation.
+
+---
 
 ## Creating New Packages
 
@@ -26,3 +54,12 @@ Only create packages when:
 3. Explicit request from development team
 
 Follow the naming convention: `@dreadnought/package-name`
+
+### Package Checklist
+
+- ✅ Use Effect-TS for all async operations
+- ✅ Include comprehensive README.md
+- ✅ Write tests with ManagedRuntime pattern
+- ✅ Use peerDependencies for effect and @effect/schema
+- ✅ Export all types and interfaces
+- ✅ Follow strict TypeScript configuration

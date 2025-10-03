@@ -1,26 +1,12 @@
-import type { Horizon } from "@stellar/stellar-sdk";
+import {
+  type AccountResponse,
+  type EnvironmentError,
+  getStellarConfig,
+  loadAccount,
+  type StellarError,
+} from "@dreadnought/stellar-core";
 import { Context, Effect, Layer, pipe } from "effect";
-import { getStellarConfig } from "./config";
-import { type EnvironmentError, StellarError } from "./errors";
 import type { AssetInfo } from "./types";
-
-// Stellar account balance interface
-interface BalanceRecord {
-  readonly balance: string;
-  readonly limit?: string;
-  readonly buying_liabilities?: string;
-  readonly selling_liabilities?: string;
-  readonly asset_type: string;
-  readonly asset_code?: string;
-  readonly asset_issuer?: string;
-}
-
-// Stellar account response interface
-interface AccountResponse {
-  readonly id: string;
-  readonly sequence: string;
-  readonly balances: readonly BalanceRecord[];
-}
 
 export interface TokenBalance {
   readonly asset: AssetInfo;
@@ -41,19 +27,6 @@ export interface PortfolioService {
 }
 
 export const PortfolioServiceTag = Context.GenericTag<PortfolioService>("@dreadnought/PortfolioService");
-
-const loadAccountBalances = (
-  server: Horizon.Server,
-  accountId: string,
-): Effect.Effect<AccountResponse, StellarError> =>
-  Effect.tryPromise({
-    try: () => server.loadAccount(accountId) as Promise<AccountResponse>,
-    catch: (error) =>
-      new StellarError({
-        operation: "loadAccount",
-        cause: error,
-      }),
-  });
 
 const parseBalances = (
   accountRecord: AccountResponse,
@@ -91,12 +64,12 @@ const parseBalances = (
 
 const getAccountPortfolioImpl = (
   accountId: string,
-): Effect.Effect<AccountPortfolio, StellarError | EnvironmentError> =>
+): Effect.Effect<AccountPortfolio, StellarError | EnvironmentError, never> =>
   pipe(
     getStellarConfig(),
     Effect.flatMap((config) =>
       pipe(
-        loadAccountBalances(config.server, accountId),
+        loadAccount(config.server, accountId),
         Effect.flatMap(parseBalances),
         Effect.map(({ tokens, xlmBalance }) => ({
           accountId,
