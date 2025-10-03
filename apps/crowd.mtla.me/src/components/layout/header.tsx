@@ -2,6 +2,7 @@
 
 import { useLocale } from "@/components/locale-client-provider";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { ThemeSelector } from "@/components/theme-selector";
 import Link from "next/link";
 
 export function Header() {
@@ -25,13 +26,14 @@ export function Header() {
             </div>
           </Link>
 
-          <nav className="flex items-center gap-2 md:gap-8">
+          <nav className="flex items-center gap-2 md:gap-4">
             <Link
               href="/#projects-section"
               className="text-sm md:text-lg font-bold text-foreground hover:text-destructive transition-colors uppercase tracking-wide whitespace-nowrap"
             >
               {t("header.projects")}
             </Link>
+            <ThemeSelector />
             <LocaleSwitcher />
           </nav>
         </div>

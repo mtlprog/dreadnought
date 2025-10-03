@@ -1,7 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  /* Retrofuturistic color palette - updated with stylish colors */
+  /* Light theme - Retrofuturistic with high contrast */
+  --background: 0 0% 100%;         /* White background */
+  --foreground: 217 21% 5%;        /* Almost black text for 7:1 contrast */
+  --primary: 152 80% 40%;          /* #16a34a - Darker green for better contrast */
+  --primary-foreground: 0 0% 100%; /* White on green */
+  --secondary: 261 53% 55%;        /* #8b5cf6 - Darker purple */
+  --secondary-foreground: 0 0% 100%; /* White on purple */
+  --destructive: 340 82% 55%;      /* #e11d48 - Darker pink */
+  --destructive-foreground: 0 0% 100%; /* White on pink */
+  --border: 217 21% 75%;           /* Medium gray border */
+  --input: 0 0% 97%;               /* Very light gray input */
+  --ring: 152 80% 40%;             /* Darker green ring */
+  --muted: 217 15% 92%;            /* Light muted background */
+  --muted-foreground: 217 21% 25%; /* Dark gray text for 7:1 contrast */
+  --accent: 152 80% 40%;           /* Darker green accent */
+  --accent-foreground: 0 0% 100%;  /* White on accent */
+  --card: 0 0% 100%;               /* Pure white card for max contrast */
+  --card-foreground: 217 21% 5%;   /* Almost black text on cards */
+  --popover: 0 0% 100%;            /* White popover */
+  --popover-foreground: 217 21% 5%; /* Almost black text on popover */
+  --hover: 340 82% 55%;            /* Darker pink hover */
+}
+
+.dark {
+  /* Dark theme - Original retrofuturistic colors enhanced */
   --background: 217 21% 8%;        /* #0f1419 - Dark blue-gray */
   --foreground: 186 100% 60%;      /* #4dd0e1 - Bright cyan */
   --primary: 152 100% 71%;         /* #69f0ae - Bright green accent */
@@ -48,6 +72,30 @@
   
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Smooth theme transitions for all color-related properties */
+  html,
+  html * {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease,
+                opacity 0.3s ease;
+  }
+
+  /* Disable transitions for reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    html,
+    html * {
+      transition: none !important;
+    }
+  }
 }
 
 * {

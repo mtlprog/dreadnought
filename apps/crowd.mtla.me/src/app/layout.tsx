@@ -31,6 +31,7 @@ export const metadata: Metadata = {
 };
 
 type Locale = "en" | "ru";
+type Theme = "system" | "light" | "dark";
 
 async function getServerLocale(): Promise<Locale> {
   const cookieStore = await cookies();
@@ -43,15 +44,34 @@ async function getServerLocale(): Promise<Locale> {
   return "en"; // Default locale
 }
 
+async function getServerTheme(): Promise<Theme> {
+  const cookieStore = await cookies();
+  const themeCookie = cookieStore.get("theme");
+
+  if (
+    themeCookie !== undefined
+    && (themeCookie.value === "system" || themeCookie.value === "light" || themeCookie.value === "dark")
+  ) {
+    return themeCookie.value as Theme;
+  }
+
+  return "dark"; // Default theme
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
   readonly children: Readonly<ReactNode>;
 }>) {
   const locale = await getServerLocale();
+  const theme = await getServerTheme();
+
+  // Resolve system theme to actual theme for SSR
+  // In production, default to dark for system theme
+  const resolvedTheme = theme === "system" ? "dark" : theme;
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={resolvedTheme}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
