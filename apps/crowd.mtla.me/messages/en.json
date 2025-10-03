@@ -10,9 +10,9 @@
     "projects": "PROJECTS"
   },
   "hero": {
-    "title": "FUND THE",
-    "titleHighlight": "NETWORK STATE",
-    "subtitle": "MTL CROWD TOKENS ARE DONATION CREDITS TO MONTELIBERO ASSOCIATION",
+    "title": "SUPPORT",
+    "titleHighlight": "FREEDOM WITH ACTION",
+    "subtitle": "CHOOSE PROJECTS AND CONTROL YOUR DONATIONS DIRECTLY",
     "scrollDown": "VIEW PROJECTS",
     "description": "GOVERN HOW YOUR DONATIONS ARE USED THROUGH DECENTRALIZED PROJECT FUNDING",
     "step1": {
@@ -42,14 +42,14 @@
     "fundingGoal": "Funding Goal",
     "raised": "Raised",
     "deadline": "Deadline",
-    "fundingEnded": "FUNDING ENDED",
-    "fundProject": "PROJECT DETAILS",
+    "fundingEnded": "FUNDRAISING ENDED",
+    "fundProject": "SUPPORT →",
     "active": "ACTIVE",
-    "fundingProgress": "FUNDING PROGRESS",
+    "fundingProgress": "RAISED",
     "target": "TARGET",
-    "supporters": "SUPPORTERS",
-    "viewProject": "VIEW PROJECT",
-    "fundingActive": "FUNDING ACTIVE"
+    "supporters": "ALREADY HELPED",
+    "viewProject": "RESULTS →",
+    "fundingActive": "NOW RAISING"
   },
   "projectPage": {
     "backToProjects": "← Back to Projects",
@@ -61,27 +61,28 @@
     "description": "Description"
   },
   "funding": {
-    "title": "Fund Project",
+    "title": "Support Project",
     "stellarAccount": "Stellar Account",
     "stellarAccountPlaceholder": "Enter your Stellar account ID",
     "amount": "Amount (MTLCrowd)",
-    "amountPlaceholder": "Enter amount to fund",
+    "amountPlaceholder": "Enter support amount",
     "balance": "Your Balance",
-    "fundButton": "Fund Project",
+    "fundButton": "Send Support",
     "processing": "Processing...",
-    "success": "Funding successful!",
-    "error": "Funding failed",
+    "success": "Support sent!",
+    "error": "Send failed",
     "insufficientBalance": "Insufficient balance",
     "invalidAccount": "Invalid Stellar account",
     "transactionHash": "Transaction Hash"
   },
   "footer": {
     "title": "MTL CROWD",
-    "description": "DECENTRALIZED FUNDING PLATFORM FOR FREEDOM FOCUSED PROJECTS. POWERED BY STELLAR BLOCKCHAIN.",
+    "description": "NEXT-GEN CROWDFUNDING. TRANSPARENCY THROUGH BLOCKCHAIN. PROJECTS FOR FREEDOM.",
     "resourcesTitle": "RESOURCES",
     "documentation": "→ DOCUMENTATION",
-    "cliReference": "→ CLI REFERENCE", 
+    "cliReference": "→ CLI REFERENCE",
     "technicalSupport": "→ TECHNICAL SUPPORT",
+    "tokenOffer": "→ MTLCROWD TOKEN OFFER",
     "associationTitle": "ASSOCIATION",
     "githubOrg": "GITHUB ORG",
     "montelibroRu": "MONTELIBERO RU",
@@ -96,20 +97,20 @@
       "projectAccount": "PROJECT ACCOUNT:"
     },
     "funding": {
-      "title": "FUNDING STATUS",
-      "progress": "PROGRESS",
+      "title": "FUNDRAISING STATUS",
+      "progress": "RAISED",
       "raised": "RAISED",
       "target": "TARGET",
-      "supporters": "SUPPORTERS"
+      "supporters": "ALREADY HELPED"
     },
     "status": {
       "title": "PROJECT STATUS",
-      "completed": "FUNDING COMPLETED",
+      "completed": "FUNDRAISING ENDED",
       "finalAmount": "FINAL AMOUNT:",
       "target": "TARGET:",
       "successRate": "SUCCESS RATE:",
-      "totalSupporters": "TOTAL SUPPORTERS:",
-      "completedMessage": "This project has reached its funding goal or deadline. No further contributions are accepted."
+      "totalSupporters": "TOTAL HELPED:",
+      "completedMessage": "This project has reached its goal or deadline. No further contributions are accepted."
     },
     "support": {
       "title": "SUPPORT PROJECT",
@@ -140,13 +141,13 @@
       "fromMtlCrowd": "FROM MTLCROWD",
       "fromEurMtl": "FROM EURMTL",
       "exchangedToMtlCrowd": "EXCHANGED TO MTLCROWD",
-      "noTokensAvailable": "NO TOKENS AVAILABLE FOR FUNDING",
-      "minimumSupport": "MINIMUM SUPPORT: 1 MTLCROWD TOKEN"
+      "noTokensAvailable": "NO TOKENS FOR SUPPORT",
+      "minimumSupport": "FROM 1 MTLCROWD TOKEN"
     },
     "projectCode": "PROJECT CODE",
     "deadline": "DEADLINE",
-    "signTransaction": "Please sign this funding transaction",
-    "transactionGenerated": "Funding Transaction Generated",
+    "signTransaction": "Please sign this support transaction",
+    "transactionGenerated": "Support Transaction Generated",
     "mmwbError": "MMWB ERROR",
     "useSep7Button": "Please use the SEP-0007 button to sign the transaction manually."
   },

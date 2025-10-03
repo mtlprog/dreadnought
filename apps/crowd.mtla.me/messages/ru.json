@@ -10,9 +10,9 @@
     "projects": "ПРОЕКТЫ"
   },
   "hero": {
-    "title": "ФИНАНСИРУЙ",
-    "titleHighlight": "СЕТЕВОЕ СООБЩЕСТВО",
-    "subtitle": "ТОКЕНЫ MTL CROWD - ЭТО КРЕДИТЫ НА ПОЖЕРТВОВАНИЯ АССОЦИАЦИИ МОНТЕЛИБЕРО",
+    "title": "ПОДДЕРЖИ",
+    "titleHighlight": "СВОБОДУ ДЕЛОМ",
+    "subtitle": "ВЫБИРАЙ ПРОЕКТЫ И УПРАВЛЯЙ СВОИМИ ПОЖЕРТВОВАНИЯМИ НАПРЯМУЮ",
     "scrollDown": "СМОТРЕТЬ ПРОЕКТЫ",
     "description": "УПРАВЛЯЙ ИСПОЛЬЗОВАНИЕМ СВОИХ ПОЖЕРТВОВАНИЙ ЧЕРЕЗ ДЕЦЕНТРАЛИЗОВАННОЕ ФИНАНСИРОВАНИЕ ПРОЕКТОВ",
     "step1": {
@@ -42,14 +42,14 @@
     "fundingGoal": "Цель финансирования",
     "raised": "Собрано",
     "deadline": "Дедлайн",
-    "fundingEnded": "ФИНАНСИРОВАНИЕ ЗАВЕРШЕНО",
-    "fundProject": "ДЕТАЛИ ПРОЕКТА",
+    "fundingEnded": "СБОР ЗАВЕРШЕН",
+    "fundProject": "ПОДДЕРЖАТЬ →",
     "active": "АКТИВЕН",
-    "fundingProgress": "ПРОГРЕСС ФИНАНСИРОВАНИЯ",
+    "fundingProgress": "СОБРАНО",
     "target": "ЦЕЛЬ",
-    "supporters": "ПОДДЕРЖИВАЮЩИХ",
-    "viewProject": "ПОСМОТРЕТЬ ПРОЕКТ",
-    "fundingActive": "ФИНАНСИРОВАНИЕ АКТИВНО"
+    "supporters": "УЖЕ ПОМОГЛИ",
+    "viewProject": "РЕЗУЛЬТАТЫ →",
+    "fundingActive": "СЕЙЧАС СОБИРАЕМ"
   },
   "projectPage": {
     "backToProjects": "← Назад к проектам",
@@ -61,27 +61,28 @@
     "description": "Описание"
   },
   "funding": {
-    "title": "Финансировать проект",
+    "title": "Поддержать проект",
     "stellarAccount": "Stellar аккаунт",
     "stellarAccountPlaceholder": "Введите ID вашего Stellar аккаунта",
     "amount": "Сумма (MTLCrowd)",
-    "amountPlaceholder": "Введите сумму для финансирования",
+    "amountPlaceholder": "Введите сумму поддержки",
     "balance": "Ваш баланс",
-    "fundButton": "Финансировать проект",
+    "fundButton": "Отправить поддержку",
     "processing": "Обработка...",
-    "success": "Финансирование успешно!",
-    "error": "Ошибка финансирования",
+    "success": "Поддержка отправлена!",
+    "error": "Ошибка отправки",
     "insufficientBalance": "Недостаточно средств",
     "invalidAccount": "Неверный Stellar аккаунт",
     "transactionHash": "Хеш транзакции"
   },
   "footer": {
     "title": "MTL CROWD",
-    "description": "ДЕЦЕНТРАЛИЗОВАННАЯ ПЛАТФОРМА ФИНАНСИРОВАНИЯ ДЛЯ ПРОЕКТОВ, НАПРАВЛЕННЫХ НА СВОБОДУ. РАБОТАЕТ НА БЛОКЧЕЙНЕ STELLAR.",
+    "description": "КРАУДФАНДИНГ НОВОГО ПОКОЛЕНИЯ. ПРОЗРАЧНОСТЬ ЧЕРЕЗ БЛОКЧЕЙН. ПРОЕКТЫ ДЛЯ СВОБОДЫ.",
     "resourcesTitle": "РЕСУРСЫ",
     "documentation": "→ ДОКУМЕНТАЦИЯ",
     "cliReference": "→ СПРАВКА CLI",
     "technicalSupport": "→ ТЕХНИЧЕСКАЯ ПОДДЕРЖКА",
+    "tokenOffer": "→ ОФЕРТА ТОКЕНА MTLCROWD",
     "associationTitle": "АССОЦИАЦИЯ",
     "githubOrg": "ОРГАНИЗАЦИЯ GITHUB",
     "montelibroRu": "МОНТЕЛИБЕРО RU",
@@ -96,20 +97,20 @@
       "projectAccount": "АККАУНТ ПРОЕКТА:"
     },
     "funding": {
-      "title": "СТАТУС ФИНАНСИРОВАНИЯ",
-      "progress": "ПРОГРЕСС",
+      "title": "КАК ИДЕТ СБОР",
+      "progress": "СОБРАНО",
       "raised": "СОБРАНО",
       "target": "ЦЕЛЬ",
-      "supporters": "ПОДДЕРЖИВАЮЩИХ"
+      "supporters": "УЖЕ ПОМОГЛИ"
     },
     "status": {
       "title": "СТАТУС ПРОЕКТА",
-      "completed": "ФИНАНСИРОВАНИЕ ЗАВЕРШЕНО",
+      "completed": "СБОР ЗАВЕРШЕН",
       "finalAmount": "ФИНАЛЬНАЯ СУММА:",
       "target": "ЦЕЛЬ:",
       "successRate": "ПРОЦЕНТ УСПЕХА:",
-      "totalSupporters": "ВСЕГО ПОДДЕРЖИВАЮЩИХ:",
-      "completedMessage": "Этот проект достиг своей цели финансирования или дедлайна. Дальнейшие взносы не принимаются."
+      "totalSupporters": "ВСЕГО ПОМОГЛИ:",
+      "completedMessage": "Этот проект достиг своей цели или дедлайна. Дальнейшие взносы не принимаются."
     },
     "support": {
       "title": "ПОДДЕРЖАТЬ ПРОЕКТ",
@@ -140,13 +141,13 @@
       "fromMtlCrowd": "ИЗ MTLCROWD",
       "fromEurMtl": "ИЗ EURMTL",
       "exchangedToMtlCrowd": "ОБМЕНЕНО В MTLCROWD",
-      "noTokensAvailable": "НЕТ ТОКЕНОВ ДОСТУПНЫХ ДЛЯ ФИНАНСИРОВАНИЯ",
-      "minimumSupport": "МИНИМАЛЬНАЯ ПОДДЕРЖКА: 1 ТОКЕН MTLCROWD"
+      "noTokensAvailable": "НЕТ ТОКЕНОВ ДЛЯ ПОДДЕРЖКИ",
+      "minimumSupport": "ОТ 1 ТОКЕНА MTLCROWD"
     },
     "projectCode": "КОД ПРОЕКТА",
     "deadline": "ДЕДЛАЙН",
-    "signTransaction": "Пожалуйста, подпишите эту транзакцию финансирования",
-    "transactionGenerated": "Транзакция финансирования сгенерирована",
+    "signTransaction": "Пожалуйста, подпишите эту транзакцию поддержки",
+    "transactionGenerated": "Транзакция поддержки сгенерирована",
     "mmwbError": "ОШИБКА MMWB",
     "useSep7Button": "Пожалуйста, используйте кнопку SEP-0007 для подписания транзакции вручную."
   },

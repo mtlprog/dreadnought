@@ -45,6 +45,13 @@ export function Footer() {
               >
                 {t("footer.technicalSupport")}
               </Link>
+              <Link
+                href="https://github.com/Montelibero/MTLA-Documents/blob/main/Internal/MTLCrowd/MTLCrowdOffer.ru.md"
+                target="_blank"
+                className="block text-lg font-mono text-muted-foreground hover:text-destructive transition-colors"
+              >
+                {t("footer.tokenOffer")}
+              </Link>
             </div>
           </div>
 
