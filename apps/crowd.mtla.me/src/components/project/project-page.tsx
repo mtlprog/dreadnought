@@ -4,6 +4,8 @@ import { TransactionResult } from "@/components/form/transaction-result";
 import { useLocale } from "@/components/locale-client-provider";
 import { addStellarUri } from "@/lib/stellar-uri-service";
 import type { Project } from "@/types/project";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { FundingForm } from "./funding-form";
 import { ProjectInfo } from "./project-info";
@@ -109,6 +111,15 @@ export function ProjectPage({ project }: ProjectPageProps) {
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
+          {/* Back Button */}
+          <Link
+            href="/#projects-section"
+            className="inline-flex items-center gap-2 mb-8 h-12 px-4 border-2 border-border bg-background text-foreground font-mono uppercase text-sm hover:border-primary hover:text-primary transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>{t("projectPage.backToProjects")}</span>
+          </Link>
+
           {/* Header Section */}
           <div className="text-center mb-8">
             <h1 className="text-4xl md:text-6xl font-black text-foreground uppercase tracking-tighter mb-4">

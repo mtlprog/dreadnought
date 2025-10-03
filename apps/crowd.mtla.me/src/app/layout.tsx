@@ -80,11 +80,13 @@ export default async function RootLayout({
             delayDuration={300}
             skipDelayDuration={100}
           >
-            <Header />
-            <main className="h-screen overflow-y-scroll">
-              {children}
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1">
+                {children}
+              </main>
               <Footer />
-            </main>
+            </div>
           </TooltipProvider>
         </LocaleClientProvider>
       </body>

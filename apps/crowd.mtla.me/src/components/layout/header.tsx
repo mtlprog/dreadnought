@@ -9,7 +9,7 @@ export function Header() {
   const { t } = useLocale();
 
   return (
-    <header className="sticky top-0 z-50 h-20 border-b-4 border-primary bg-background">
+    <header className="h-20 border-b-4 border-primary bg-background">
       <div className="container h-full mx-auto px-4 md:px-6">
         <div className="h-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 md:gap-4">
