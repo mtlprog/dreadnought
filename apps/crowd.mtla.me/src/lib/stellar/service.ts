@@ -239,10 +239,17 @@ export const StellarServiceLive = Layer.succeed(
                 const isExpired = isProjectExpired(projectData.deadline);
                 const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
 
-                // Project is completed if:
-                // 1. Expired OR fully funded OR
-                // 2. No active sell offer (offer was closed, meaning project was finalized)
-                const isCompleted = isExpired || isFullyFunded || !hasActiveSellOffer;
+                // Determine status based on funding_status from IPFS data
+                let status: "active" | "completed" | "canceled" | "expired";
+                if ("funding_status" in projectData && projectData.funding_status !== undefined) {
+                  // Use funding_status from IPFS if available
+                  status = projectData.funding_status as "completed" | "canceled";
+                } else if (isExpired || isFullyFunded || !hasActiveSellOffer) {
+                  // Legacy: project is completed if expired, fully funded, or offer closed
+                  status = "completed";
+                } else {
+                  status = "active";
+                }
 
                 const projectInfo: ProjectInfo = {
                   name: projectData.name,
@@ -256,7 +263,17 @@ export const StellarServiceLive = Layer.succeed(
                   current_amount: currentAmount,
                   supporters_count: supportersCount,
                   ipfsUrl: `https://ipfs.io/ipfs/${projectEntry.cid}`,
-                  status: isCompleted ? "completed" : "active",
+                  status,
+                  funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
+                  remaining_amount: "remaining_amount" in projectData
+                    ? (projectData.remaining_amount as string)
+                    : undefined,
+                  funding_status: "funding_status" in projectData
+                    ? (projectData.funding_status as "completed" | "canceled")
+                    : undefined,
+                  supporters: "supporters" in projectData
+                    ? (projectData.supporters as readonly { readonly account_id: string; readonly amount: string }[])
+                    : undefined,
                 };
 
                 return projectInfo;
@@ -342,10 +359,17 @@ export const StellarServiceLive = Layer.succeed(
                     const isExpired = isProjectExpired(projectData.deadline);
                     const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
 
-                    // Project is completed if:
-                    // 1. Expired OR fully funded OR
-                    // 2. No active sell offer (offer was closed, meaning project was finalized)
-                    const isCompleted = isExpired || isFullyFunded || !hasActiveSellOffer;
+                    // Determine status based on funding_status from IPFS data
+                    let status: "active" | "completed" | "canceled" | "expired";
+                    if ("funding_status" in projectData && projectData.funding_status !== undefined) {
+                      // Use funding_status from IPFS if available
+                      status = projectData.funding_status as "completed" | "canceled";
+                    } else if (isExpired || isFullyFunded || !hasActiveSellOffer) {
+                      // Legacy: project is completed if expired, fully funded, or offer closed
+                      status = "completed";
+                    } else {
+                      status = "active";
+                    }
 
                     const projectInfo: ProjectInfo = {
                       name: projectData.name,
@@ -359,7 +383,20 @@ export const StellarServiceLive = Layer.succeed(
                       current_amount: currentAmount,
                       supporters_count: supportersCount,
                       ipfsUrl: `https://ipfs.io/ipfs/${entry.cid}`,
-                      status: isCompleted ? "completed" : "active",
+                      status,
+                      funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
+                      remaining_amount: "remaining_amount" in projectData
+                        ? (projectData.remaining_amount as string)
+                        : undefined,
+                      funding_status: "funding_status" in projectData
+                        ? (projectData.funding_status as "completed" | "canceled")
+                        : undefined,
+                      supporters: "supporters" in projectData
+                        ? (projectData.supporters as readonly {
+                          readonly account_id: string;
+                          readonly amount: string;
+                        }[])
+                        : undefined,
                     };
 
                     return projectInfo;

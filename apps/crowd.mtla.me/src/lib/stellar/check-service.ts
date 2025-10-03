@@ -13,6 +13,11 @@ import { StellarError, type StellarServiceError } from "./errors";
 import type { ProjectData } from "./types";
 import { fetchProjectDataFromIPFS, isProjectExpired } from "./utils";
 
+interface TokenHolder {
+  readonly accountId: string;
+  readonly balance: string;
+}
+
 export interface ProjectCheckResult {
   readonly code: string;
   readonly name: string;
@@ -25,12 +30,9 @@ export interface ProjectCheckResult {
   readonly action: "refund" | "fund_project" | "no_action";
   readonly claimableBalancesCount: number;
   readonly tokenHoldersCount: number;
+  readonly claimableBalances: readonly Horizon.ServerApi.ClaimableBalanceRecord[];
+  readonly tokenHolders: readonly TokenHolder[];
   readonly error?: string;
-}
-
-interface TokenHolder {
-  readonly accountId: string;
-  readonly balance: string;
 }
 
 export interface StellarCheckService {
@@ -143,9 +145,8 @@ const getTokenHolders = (
               }
             }
           }
-        } catch (error) {
-          // If asset doesn't exist or no holders, that's fine
-          console.error(`No holders found for ${crowdfundingTokenCode}:`, error);
+        } catch {
+          // If asset doesn't exist or no holders, that's fine - return empty array
         }
 
         return holders;
@@ -500,6 +501,8 @@ const checkSingleProject = (
           action: "no_action" as const,
           claimableBalancesCount: claimableBalances.length,
           tokenHoldersCount: tokenHolders.length,
+          claimableBalances,
+          tokenHolders,
         };
       }
 
@@ -527,6 +530,8 @@ const checkSingleProject = (
           action: "no_action" as const,
           claimableBalancesCount: 0,
           tokenHoldersCount: 0,
+          claimableBalances: [],
+          tokenHolders: [],
         };
       }
 
@@ -562,6 +567,8 @@ const checkSingleProject = (
             action: "refund" as const,
             claimableBalancesCount: 0,
             tokenHoldersCount: 0,
+            claimableBalances: [],
+            tokenHolders: [],
           };
         } else {
           return {
@@ -575,6 +582,8 @@ const checkSingleProject = (
             action: "no_action" as const,
             claimableBalancesCount: 0,
             tokenHoldersCount: 0,
+            claimableBalances: [],
+            tokenHolders: [],
             error: "Failed to create offer cancellation transaction",
           };
         }
@@ -644,6 +653,8 @@ const checkSingleProject = (
           action: transactionResult.action,
           claimableBalancesCount: claimableBalances.length,
           tokenHoldersCount: tokenHolders.length,
+          claimableBalances,
+          tokenHolders,
         };
       } else {
         return {
@@ -657,6 +668,8 @@ const checkSingleProject = (
           action: "no_action" as const,
           claimableBalancesCount: claimableBalances.length,
           tokenHoldersCount: tokenHolders.length,
+          claimableBalances,
+          tokenHolders,
           error: "Failed to create transaction",
         };
       }
@@ -784,6 +797,8 @@ export const StellarCheckServiceLive = Layer.succeed(
                     action: "no_action" as const,
                     claimableBalancesCount: 0,
                     tokenHoldersCount: 0,
+                    claimableBalances: [],
+                    tokenHolders: [],
                     error: `Failed to fetch project data: ${error}`,
                   })
                 ),

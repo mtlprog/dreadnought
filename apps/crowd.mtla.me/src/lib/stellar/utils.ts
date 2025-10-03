@@ -1,12 +1,13 @@
 import type { Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
 import { StellarError } from "./errors";
-import type { ProjectData, ProjectInfo } from "./types";
+import type { ProjectDataWithResults, ProjectInfo } from "./types";
 
 /**
  * Fetch project data from IPFS using CID
+ * Returns ProjectDataWithResults which includes optional funding results
  */
-export const fetchProjectDataFromIPFS = (cid: string): Effect.Effect<ProjectData, StellarError> =>
+export const fetchProjectDataFromIPFS = (cid: string): Effect.Effect<ProjectDataWithResults, StellarError> =>
   pipe(
     Effect.tryPromise({
       try: async () => {
@@ -15,7 +16,7 @@ export const fetchProjectDataFromIPFS = (cid: string): Effect.Effect<ProjectData
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        return await response.json() as ProjectData;
+        return await response.json() as ProjectDataWithResults;
       },
       catch: (error) =>
         new StellarError({
@@ -67,6 +68,88 @@ export const countUniqueSupporters = (
   }
 
   return uniqueSponsors.size;
+};
+
+/**
+ * Count total unique supporters from both claimable balances and token holders
+ * Combines supporters from claimable balances (sponsors) and token holders (account IDs)
+ */
+export const countTotalSupporters = (
+  claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
+  tokenHolders: Readonly<readonly { readonly accountId: string; readonly balance: string }[]>,
+  assetCode: Readonly<string>,
+  stellarAccountId: Readonly<string>,
+): number => {
+  const uniqueSupporters = new Set<string>();
+  const crowdfundingTokenCode = `C${assetCode}`;
+
+  // Add supporters from claimable balances
+  for (const balance of claimableBalances) {
+    const asset = balance.asset;
+    const assetCodeFromBalance = asset !== "native" ? asset.split(":")[0] : "native";
+
+    if (asset !== "native" && assetCodeFromBalance === crowdfundingTokenCode) {
+      const isClaimableByAccount = balance.claimants?.some(claimant => claimant.destination === stellarAccountId);
+
+      if (isClaimableByAccount && balance.sponsor !== undefined) {
+        uniqueSupporters.add(balance.sponsor);
+      }
+    }
+  }
+
+  // Add token holders (excluding issuer)
+  for (const holder of tokenHolders) {
+    if (holder.accountId !== stellarAccountId && parseFloat(holder.balance) > 0) {
+      uniqueSupporters.add(holder.accountId);
+    }
+  }
+
+  return uniqueSupporters.size;
+};
+
+/**
+ * Collect all supporters with their contributions
+ * Returns array of {account_id, amount} for all unique supporters
+ */
+export const collectSupportersData = (
+  claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
+  tokenHolders: Readonly<readonly { readonly accountId: string; readonly balance: string }[]>,
+  assetCode: Readonly<string>,
+  stellarAccountId: Readonly<string>,
+): readonly { readonly account_id: string; readonly amount: string }[] => {
+  const supportersMap = new Map<string, number>();
+  const crowdfundingTokenCode = `C${assetCode}`;
+
+  // Collect from claimable balances
+  for (const balance of claimableBalances) {
+    const asset = balance.asset;
+    const assetCodeFromBalance = asset !== "native" ? asset.split(":")[0] : "native";
+
+    if (asset !== "native" && assetCodeFromBalance === crowdfundingTokenCode) {
+      const isClaimableByAccount = balance.claimants?.some(claimant => claimant.destination === stellarAccountId);
+
+      if (isClaimableByAccount && balance.sponsor !== undefined) {
+        const currentAmount = supportersMap.get(balance.sponsor) ?? 0;
+        supportersMap.set(balance.sponsor, currentAmount + parseFloat(balance.amount));
+      }
+    }
+  }
+
+  // Collect from token holders (excluding issuer)
+  for (const holder of tokenHolders) {
+    if (holder.accountId !== stellarAccountId && parseFloat(holder.balance) > 0) {
+      const currentAmount = supportersMap.get(holder.accountId) ?? 0;
+      supportersMap.set(holder.accountId, currentAmount + parseFloat(holder.balance));
+    }
+  }
+
+  // Convert to array and sort by amount (descending)
+  return Array.from(supportersMap.entries())
+    .map(([account_id, amount]) => ({
+      account_id,
+      amount: amount.toString(),
+    }))
+    .sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
 };
 
 /**
