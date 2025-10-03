@@ -123,7 +123,7 @@ function truncateAccountId(accountId: string): string {
  * // { code: "EURMTL", issuer: "GABC...", type: "credit_alphanum4" }
  * ```
  */
-export function assetToInfo(asset: Asset): AssetInfo {
+export function assetToInfo(asset: Readonly<Asset>): AssetInfo {
   if (asset.isNative()) {
     return {
       code: "XLM",

@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  formatAccountIdForDisplay,
-  isValidStellarAccountId,
-  truncateAccountId,
-} from "./account";
+import { formatAccountIdForDisplay, isValidStellarAccountId, truncateAccountId } from "./account";
 
 describe("Account Utilities", () => {
   const validAccountId = "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V";

@@ -44,6 +44,7 @@ export const PortfolioServiceTag = Context.GenericTag<PortfolioService>("@dreadn
  * @param accountRecord - Stellar account response from Horizon API
  * @returns Effect with parsed tokens and XLM balance
  */
+
 const parseBalances = (
   accountRecord: AccountResponse,
 ): Effect.Effect<{ tokens: readonly TokenBalance[]; xlmBalance: string }, never, never> =>

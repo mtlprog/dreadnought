@@ -1,11 +1,7 @@
-import type { AccountResponse, StellarError } from "@dreadnought/stellar-core";
-import { afterEach, describe, expect, test } from "bun:test";
+import type { StellarError } from "@dreadnought/stellar-core";
+import { describe, expect, test } from "bun:test";
 import { Effect, Layer, ManagedRuntime, pipe } from "effect";
-import {
-  type AccountPortfolio,
-  PortfolioServiceLive,
-  PortfolioServiceTag,
-} from "./portfolio-service";
+import { type AccountPortfolio, PortfolioServiceTag } from "./portfolio-service";
 
 // Mock PortfolioService for testing
 const createMockPortfolioService = (mockResponse: AccountPortfolio | StellarError) => {

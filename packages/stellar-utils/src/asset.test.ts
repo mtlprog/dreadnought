@@ -1,12 +1,6 @@
 import { Asset } from "@stellar/stellar-sdk";
 import { describe, expect, test } from "bun:test";
-import {
-  assetToInfo,
-  createAsset,
-  formatAssetDisplay,
-  parseAssetString,
-  type AssetInfo,
-} from "./asset";
+import { type AssetInfo, assetToInfo, createAsset, formatAssetDisplay, parseAssetString } from "./asset";
 
 describe("Asset Utilities", () => {
   const testAssetInfo: AssetInfo = {

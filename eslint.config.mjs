@@ -153,7 +153,7 @@ export default [
 
   // Configuration for UI components and React patterns
   {
-    files: ["**/components/**/*.{ts,tsx}", "**/app/**/*.{ts,tsx}", "**/lib/**/*.{ts,tsx}"],
+    files: ["**/components/**/*.{ts,tsx}", "**/app/**/*.{ts,tsx}", "**/lib/**/*.{ts,tsx}", "**/packages/**/*.{ts,tsx}"],
     rules: {
       "@typescript-eslint/prefer-readonly-parameter-types": "off",
     },

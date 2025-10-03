@@ -64,12 +64,12 @@ export function truncateAccountId(
  */
 export function formatAccountIdForDisplay(
   accountId: string,
-  options?: {
+  options?: Readonly<{
     validate?: boolean;
     truncate?: boolean;
     prefixLength?: number;
     suffixLength?: number;
-  },
+  }>,
 ): string {
   const { validate = false, truncate = true, prefixLength = 2, suffixLength = 6 } = options ?? {};
 
