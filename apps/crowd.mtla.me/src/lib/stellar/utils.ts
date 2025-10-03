@@ -1,7 +1,7 @@
 import type { Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
 import { StellarError } from "./errors";
-import type { ProjectDataWithResults, ProjectInfo } from "./types";
+import type { ProjectData, ProjectDataWithResults, ProjectInfo } from "./types";
 
 /**
  * Fetch project data from IPFS using CID
@@ -181,6 +181,52 @@ export const calculateRaisedAmount = (
   }
 
   return totalAmount.toString();
+};
+
+/**
+ * Get current funding metrics for a project
+ *
+ * Priority logic:
+ * 1. If project has funding_status in IPFS → use IPFS data (source of truth for closed projects)
+ * 2. Otherwise → calculate from blockchain (for active projects)
+ *
+ * This ensures:
+ * - Closed projects show finalized data from IPFS (even if blockchain is cleared)
+ * - Active projects show real-time data from blockchain
+ *
+ * @param projectData - Project data from IPFS
+ * @param claimableBalances - Claimable balances from blockchain
+ * @param assetCode - Project asset code (without P/C prefix)
+ * @param stellarAccountId - Issuer account ID
+ * @returns Current funding amount and supporters count
+ */
+export const getCurrentFundingMetrics = (
+  projectData: Readonly<ProjectData | ProjectDataWithResults>,
+  claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
+  assetCode: Readonly<string>,
+  stellarAccountId: Readonly<string>,
+): { readonly amount: string; readonly supporters: number } => {
+  // Check if project has finalized funding data in IPFS
+  const hasIPFSFundingData = "funding_status" in projectData
+    && projectData.funding_status !== undefined
+    && "funded_amount" in projectData
+    && projectData.funded_amount !== undefined
+    && "supporters_count" in projectData
+    && projectData.supporters_count !== undefined;
+
+  if (hasIPFSFundingData) {
+    // Closed project - use IPFS as source of truth
+    return {
+      amount: projectData.funded_amount,
+      supporters: projectData.supporters_count,
+    };
+  }
+
+  // Active project - calculate from blockchain
+  return {
+    amount: calculateRaisedAmount(claimableBalances, assetCode, stellarAccountId),
+    supporters: countUniqueSupporters(claimableBalances, assetCode, stellarAccountId),
+  };
 };
 
 /**

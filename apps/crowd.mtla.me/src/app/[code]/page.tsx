@@ -1,30 +1,11 @@
 import { ProjectPage } from "@/components/project/project-page";
-import type { Project } from "@/types/project";
+import { getProject } from "@/lib/projects";
 import { notFound } from "next/navigation";
 
 interface ProjectPageProps {
   params: Promise<{
     code: string;
   }>;
-}
-
-async function getProject(code: string): Promise<Project | null> {
-  try {
-    const baseUrl = process.env["NEXT_PUBLIC_BASE_URL"] ?? "https://crowd.mtla.me";
-    const response = await fetch(`${baseUrl}/api/projects/${encodeURIComponent(code)}`, {
-      next: { revalidate: 300 },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const result = await response.json() as { success: boolean; data: Project };
-    return result.success === true ? result.data : null;
-  } catch (error) {
-    console.error("Error fetching project:", error);
-    return null;
-  }
 }
 
 export async function generateMetadata({ params }: ProjectPageProps) {

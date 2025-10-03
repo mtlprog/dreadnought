@@ -3,13 +3,7 @@ import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 import type { ProjectData, ProjectInfo } from "./types";
-import {
-  calculateRaisedAmount,
-  countUniqueSupporters,
-  fetchProjectDataFromIPFS,
-  isProjectExpired,
-  sortProjectsByPriority,
-} from "./utils";
+import { fetchProjectDataFromIPFS, getCurrentFundingMetrics, isProjectExpired, sortProjectsByPriority } from "./utils";
 
 export interface StellarService {
   readonly getProjects: () => Effect.Effect<ProjectInfo[], StellarServiceError>;
@@ -234,10 +228,16 @@ export const StellarServiceLive = Layer.succeed(
                   return null;
                 }
 
-                const supportersCount = countUniqueSupporters(claimableBalances, projectEntry.code, config.publicKey);
-                const currentAmount = calculateRaisedAmount(claimableBalances, projectEntry.code, config.publicKey);
+                // Get funding metrics (IPFS priority for closed projects)
+                const metrics = getCurrentFundingMetrics(
+                  projectData,
+                  claimableBalances,
+                  projectEntry.code,
+                  config.publicKey,
+                );
+
                 const isExpired = isProjectExpired(projectData.deadline);
-                const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
+                const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
 
                 // Determine status based on funding_status from IPFS data
                 let status: "active" | "completed" | "canceled" | "expired";
@@ -260,8 +260,8 @@ export const StellarServiceLive = Layer.succeed(
                   project_account_id: projectData.project_account_id,
                   target_amount: projectData.target_amount,
                   deadline: projectData.deadline,
-                  current_amount: currentAmount,
-                  supporters_count: supportersCount,
+                  current_amount: metrics.amount,
+                  supporters_count: metrics.supporters,
                   ipfsUrl: `https://ipfs.io/ipfs/${projectEntry.cid}`,
                   status,
                   funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
@@ -353,11 +353,16 @@ export const StellarServiceLive = Layer.succeed(
                       return null; // Skip projects without P-tokens (project doesn't exist)
                     }
 
-                    // Calculate crowdfunding metrics (will be 0 if no C-tokens exist)
-                    const supportersCount = countUniqueSupporters(claimableBalances, entry.code, config.publicKey);
-                    const currentAmount = calculateRaisedAmount(claimableBalances, entry.code, config.publicKey);
+                    // Get funding metrics (IPFS priority for closed projects)
+                    const metrics = getCurrentFundingMetrics(
+                      projectData,
+                      claimableBalances,
+                      entry.code,
+                      config.publicKey,
+                    );
+
                     const isExpired = isProjectExpired(projectData.deadline);
-                    const isFullyFunded = parseFloat(currentAmount) >= parseFloat(projectData.target_amount);
+                    const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
 
                     // Determine status based on funding_status from IPFS data
                     let status: "active" | "completed" | "canceled" | "expired";
@@ -380,8 +385,8 @@ export const StellarServiceLive = Layer.succeed(
                       project_account_id: projectData.project_account_id,
                       target_amount: projectData.target_amount,
                       deadline: projectData.deadline,
-                      current_amount: currentAmount,
-                      supporters_count: supportersCount,
+                      current_amount: metrics.amount,
+                      supporters_count: metrics.supporters,
                       ipfsUrl: `https://ipfs.io/ipfs/${entry.cid}`,
                       status,
                       funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
