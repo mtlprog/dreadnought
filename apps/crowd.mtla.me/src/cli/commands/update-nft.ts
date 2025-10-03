@@ -154,7 +154,8 @@ const askForUpdatedData = (
             initial: currentData.deadline,
             validate: (value: string) => {
               const date = new Date(value);
-              return !isNaN(date.getTime()) && date > new Date() ? true : "Введите корректную дату в будущем";
+              // Just validate format - allow any date (past or future)
+              return !isNaN(date.getTime()) ? true : "Введите корректную дату в формате YYYY-MM-DD";
             },
           },
         ]),
