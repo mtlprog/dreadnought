@@ -129,8 +129,8 @@
       "fullyFunded": "PROJECT FULLY FUNDED",
       "noMTLTokens": "NO MTLCROWD TOKENS",
       "tooltips": {
-        "accountId": "Enter your Stellar account ID (starts with G). This is where your MTLCrowd tokens will be deducted from. Your account ID is like your wallet address on the Stellar network.",
-        "amount": "Specify how many MTLCrowd tokens you want to spend on this project. You can enter more than your MTLCrowd balance - the system will automatically exchange your EURMTL tokens to MTLCrowd (1:1 rate) if needed. Each token represents your donation credit to the Montelibero Association."
+        "accountId": "Your Stellar wallet ID (starts with G). Tokens will be deducted from here.",
+        "amount": "How many tokens to send. Not enough MTLCrowd? EURMTL will auto-exchange (1:1 rate)."
       },
       "mtlCrowdAvailable": "AVAILABLE MTLCROWD",
       "tokens": "TOKENS",
