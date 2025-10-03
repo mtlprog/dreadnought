@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocale } from "@/components/locale-client-provider";
 import { Check, Copy, ExternalLink, Loader2 } from "lucide-react";
 import React, { forwardRef } from "react";
 
@@ -36,11 +37,13 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
   isTelegramUrlLoading = false,
   onTelegramOpen,
   className,
-  title = "Generated Transaction",
+  title,
   showTelegramButton = true,
   showCopyButton = true,
   showSep7Button = true,
 }, ref) => {
+  const { t } = useLocale();
+
   if (transactionXDR === "" || transactionXDR === null || transactionXDR === undefined) {
     return null;
   }
@@ -78,7 +81,7 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Check className="h-5 w-5 text-green-600" />
-          {title}
+          {title ?? t("transactionResult.title")}
         </CardTitle>
       </CardHeader>
 
@@ -86,14 +89,14 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
         {/* XDR Display */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
-            Transaction XDR:
+            {t("transactionResult.xdrLabel")}
           </label>
           <div className="relative">
             <textarea
               readOnly
               value={transactionXDR}
               className="w-full min-h-[120px] p-3 bg-muted font-mono text-sm border resize-none"
-              placeholder="Transaction XDR will appear here..."
+              placeholder={t("transactionResult.xdrPlaceholder")}
             />
           </div>
         </div>
@@ -111,13 +114,13 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
                 ? (
                   <>
                     <Check className="h-4 w-4 text-green-600" />
-                    <span>Copied!</span>
+                    <span>{t("transactionResult.copied")}</span>
                   </>
                 )
                 : (
                   <>
                     <Copy className="h-4 w-4" />
-                    <span>Copy XDR</span>
+                    <span>{t("transactionResult.copyButton")}</span>
                   </>
                 )}
             </Button>
@@ -132,13 +135,13 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
             >
               <a
                 href={buildSep7TransactionUri(transactionXDR, {
-                  msg: "Please sign this transaction",
+                  msg: t("project.signTransaction"),
                   return_url: typeof window !== "undefined" ? window.location.href : "",
                 })}
                 target="_blank"
                 rel="noreferrer"
               >
-                <span>SEP-0007</span>
+                <span>{t("transactionResult.sep7Button")}</span>
                 <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
@@ -155,7 +158,7 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
               {telegramBotUrl !== null && telegramBotUrl !== undefined && telegramBotUrl !== ""
                 ? (
                   <>
-                    <span>Open in MMWB</span>
+                    <span>{t("transactionResult.mmwbOpen")}</span>
                     <ExternalLink className="h-4 w-4" />
                   </>
                 )
@@ -165,12 +168,12 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
                       ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          <span>Loading...</span>
+                          <span>{t("transactionResult.loading")}</span>
                         </>
                       )
                       : (
                         <>
-                          <span>Sign with MMWB</span>
+                          <span>{t("transactionResult.mmwbSign")}</span>
                           <ExternalLink className="h-4 w-4" />
                         </>
                       )}
@@ -183,12 +186,12 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
         {/* Instructions */}
         <div className="text-sm text-muted-foreground space-y-1">
           <p>
-            <strong>Next steps:</strong>
+            <strong>{t("transactionResult.nextSteps")}</strong>
           </p>
           <ol className="list-decimal list-inside space-y-1 ml-2">
-            <li>Copy the XDR above</li>
-            <li>Sign it using your Stellar wallet or the MMWB Telegram bot</li>
-            <li>Submit the signed transaction to the Stellar network</li>
+            <li>{t("transactionResult.step1")}</li>
+            <li>{t("transactionResult.step2")}</li>
+            <li>{t("transactionResult.step3")}</li>
           </ol>
         </div>
       </CardContent>

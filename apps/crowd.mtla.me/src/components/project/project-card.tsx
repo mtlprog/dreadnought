@@ -72,7 +72,7 @@ export function ProjectCard({
                 {Math.round(progressPercentage)}%
               </span>
             </div>
-            <Progress value={progressPercentage} className="h-4" />
+            <Progress value={progressPercentage} className={`h-4 ${isCompleted ? "[&>div]:bg-foreground" : ""}`} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

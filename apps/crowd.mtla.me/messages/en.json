@@ -21,13 +21,13 @@
       "description": "PURCHASE MTL CROWD TOKENS AS DONATION CREDITS"
     },
     "step2": {
-      "number": "02", 
+      "number": "02",
       "title": "CHOOSE PROJECTS",
       "description": "ALLOCATE YOUR TOKENS TO FREEDOM FOCUSED INITIATIVES"
     },
     "step3": {
       "number": "03",
-      "title": "TRACK IMPACT", 
+      "title": "TRACK IMPACT",
       "description": "MONITOR PROJECT PROGRESS AND FUND ALLOCATION"
     },
     "mtlCrowdButton": "MTL CROWD",
@@ -67,7 +67,7 @@
     "amount": "Amount (MTLCrowd)",
     "amountPlaceholder": "Enter support amount",
     "balance": "Your Balance",
-    "fundButton": "Send Support",
+    "fundButton": "Generate Transaction",
     "processing": "Processing...",
     "success": "Support sent!",
     "error": "Send failed",
@@ -82,7 +82,7 @@
     "documentation": "→ DOCUMENTATION",
     "cliReference": "→ CLI REFERENCE",
     "technicalSupport": "→ TECHNICAL SUPPORT",
-    "tokenOffer": "→ MTLCROWD TOKEN OFFER",
+    "tokenOffer": "→ MTLCROWD OFFER",
     "associationTitle": "ASSOCIATION",
     "githubOrg": "GITHUB ORG",
     "montelibroRu": "MONTELIBERO RU",
@@ -148,8 +148,8 @@
     "deadline": "DEADLINE",
     "signTransaction": "Please sign this support transaction",
     "transactionGenerated": "Support Transaction Generated",
-    "mmwbError": "MMWB ERROR",
-    "useSep7Button": "Please use the SEP-0007 button to sign the transaction manually."
+    "mmwbError": "MTL WALLET ERROR",
+    "useSep7Button": "Please use the Sunce Wallet button to sign the transaction manually."
   },
   "common": {
     "loading": "Loading...",
@@ -159,5 +159,20 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "save": "Save"
+  },
+  "transactionResult": {
+    "title": "Transaction Generated",
+    "xdrLabel": "Transaction XDR:",
+    "xdrPlaceholder": "Transaction XDR will appear here...",
+    "copyButton": "Copy XDR",
+    "copied": "Copied!",
+    "sep7Button": "Sunce Wallet",
+    "mmwbOpen": "MTL Wallet",
+    "mmwbSign": "MTL Wallet",
+    "loading": "Loading...",
+    "nextSteps": "Next steps:",
+    "step1": "Copy the XDR above",
+    "step2": "Sign it using your Stellar wallet or MTL Wallet Telegram bot",
+    "step3": "Submit the signed transaction to the Stellar network"
   }
 }

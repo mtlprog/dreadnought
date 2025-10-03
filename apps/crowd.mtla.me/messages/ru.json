@@ -22,7 +22,7 @@
     },
     "step2": {
       "number": "02",
-      "title": "ВЫБИРАЙ ПРОЕКТЫ", 
+      "title": "ВЫБИРАЙ ПРОЕКТЫ",
       "description": "РАСПРЕДЕЛЯЙ СВОИ ТОКЕНЫ НА ИНИЦИАТИВЫ, НАПРАВЛЕННЫЕ НА СВОБОДУ"
     },
     "step3": {
@@ -67,7 +67,7 @@
     "amount": "Сумма (MTLCrowd)",
     "amountPlaceholder": "Введите сумму поддержки",
     "balance": "Ваш баланс",
-    "fundButton": "Отправить поддержку",
+    "fundButton": "Сгенерировать транзакцию",
     "processing": "Обработка...",
     "success": "Поддержка отправлена!",
     "error": "Ошибка отправки",
@@ -82,7 +82,7 @@
     "documentation": "→ ДОКУМЕНТАЦИЯ",
     "cliReference": "→ СПРАВКА CLI",
     "technicalSupport": "→ ТЕХНИЧЕСКАЯ ПОДДЕРЖКА",
-    "tokenOffer": "→ ОФЕРТА ТОКЕНА MTLCROWD",
+    "tokenOffer": "→ ОФЕРТА MTLCROWD",
     "associationTitle": "АССОЦИАЦИЯ",
     "githubOrg": "ОРГАНИЗАЦИЯ GITHUB",
     "montelibroRu": "МОНТЕЛИБЕРО RU",
@@ -148,8 +148,8 @@
     "deadline": "ДЕДЛАЙН",
     "signTransaction": "Пожалуйста, подпишите эту транзакцию поддержки",
     "transactionGenerated": "Транзакция поддержки сгенерирована",
-    "mmwbError": "ОШИБКА MMWB",
-    "useSep7Button": "Пожалуйста, используйте кнопку SEP-0007 для подписания транзакции вручную."
+    "mmwbError": "ОШИБКА MTL WALLET",
+    "useSep7Button": "Пожалуйста, используйте кнопку Sunce Wallet для подписания транзакции вручную."
   },
   "common": {
     "loading": "Загрузка...",
@@ -159,5 +159,20 @@
     "cancel": "Отмена",
     "confirm": "Подтвердить",
     "save": "Сохранить"
+  },
+  "transactionResult": {
+    "title": "Транзакция сгенерирована",
+    "xdrLabel": "XDR транзакции:",
+    "xdrPlaceholder": "XDR транзакции появится здесь...",
+    "copyButton": "Скопировать XDR",
+    "copied": "Скопировано!",
+    "sep7Button": "Sunce Wallet",
+    "mmwbOpen": "MTL Wallet",
+    "mmwbSign": "MTL Wallet",
+    "loading": "Загрузка...",
+    "nextSteps": "Следующие шаги:",
+    "step1": "Скопируйте XDR выше",
+    "step2": "Подпишите его в вашем Stellar кошельке или в MTL Wallet через Telegram",
+    "step3": "Отправьте подписанную транзакцию в сеть Stellar"
   }
 }
