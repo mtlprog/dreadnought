@@ -1,3 +1,6 @@
+// Re-export from @dreadnought/stellar-utils
+export type { AssetInfo } from "@dreadnought/stellar-utils";
+
 // Price calculation details
 export interface PriceDetails {
   readonly source: "orderbook" | "path";
@@ -21,11 +24,4 @@ export interface TokenPairPrice {
   readonly price: string;
   readonly timestamp: Date;
   readonly details?: PriceDetails;
-}
-
-// Stellar asset representation
-export interface AssetInfo {
-  readonly code: string;
-  readonly issuer: string;
-  readonly type: "native" | "credit_alphanum4" | "credit_alphanum12";
 }

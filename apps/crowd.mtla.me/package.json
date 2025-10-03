@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dreadnought/stellar-core": "workspace:*",
+    "@dreadnought/stellar-utils": "workspace:*",
     "@effect/platform": "latest",
     "@effect/platform-bun": "latest",
     "@effect/schema": "latest",

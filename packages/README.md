@@ -46,6 +46,34 @@ See `packages/stellar-core/README.md` for full documentation.
 
 ---
 
+### @dreadnought/stellar-utils
+
+**Purpose**: Utility functions for Stellar assets and accounts
+**Key Features**: Asset parsing/formatting, account validation, type conversions
+**Dependencies**: `@stellar/stellar-sdk`
+**Used By**: `crowd.mtla.me`, `stat.mtlf.me`, `@dreadnought/stellar-portfolio`
+
+**Exports**:
+- `createAsset()` - Create Stellar SDK Asset from AssetInfo
+- `parseAssetString()` - Parse "CODE:ISSUER" format
+- `formatAssetDisplay()` - Format asset for display
+- `assetToInfo()` - Convert Asset to AssetInfo
+- `isValidStellarAccountId()` - Validate account ID format
+- `truncateAccountId()` - Truncate for display
+- `formatAccountIdForDisplay()` - Format with validation options
+
+**Example**:
+```typescript
+import { parseAssetString, truncateAccountId } from "@dreadnought/stellar-utils";
+
+const asset = parseAssetString("EURMTL:GABC...");
+const shortId = truncateAccountId("GACKTN5DA...");
+```
+
+See `packages/stellar-utils/README.md` for full documentation.
+
+---
+
 ## Creating New Packages
 
 Only create packages when:

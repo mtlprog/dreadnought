@@ -1,0 +1,23 @@
+{
+  "name": "@dreadnought/stellar-utils",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^12.3.0"
+  },
+  "peerDependencies": {
+    "effect": "^3.11.0",
+    "@effect/schema": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "effect": "^3.11.0",
+    "@effect/schema": "latest"
+  }
+}

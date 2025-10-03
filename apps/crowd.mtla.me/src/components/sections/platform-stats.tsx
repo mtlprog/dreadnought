@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 "use client";
 
 import type { PlatformStats } from "@/app/api/stats/route";
