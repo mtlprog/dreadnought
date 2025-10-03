@@ -43,7 +43,7 @@ export function ProjectsSection() {
   const completedProjects = projects.filter(p => p.status === "completed");
 
   return (
-    <section id="projects-section" className="py-24 bg-background">
+    <section id="projects-section" className="min-h-screen py-24 bg-background">
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">

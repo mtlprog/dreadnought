@@ -81,8 +81,10 @@ export default async function RootLayout({
             skipDelayDuration={100}
           >
             <Header />
-            <main>{children}</main>
-            <Footer />
+            <main className="h-screen overflow-y-scroll">
+              {children}
+              <Footer />
+            </main>
           </TooltipProvider>
         </LocaleClientProvider>
       </body>
