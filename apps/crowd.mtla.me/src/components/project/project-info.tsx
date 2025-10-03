@@ -1,5 +1,6 @@
 import { useLocale } from "@/components/locale-client-provider";
 import { Progress } from "@/components/ui/progress";
+import { formatNumber } from "@/lib/format";
 import { truncateAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
 import ReactMarkdown from "react-markdown";
@@ -55,7 +56,7 @@ const decodeFullDescription = (base64String: string): string => {
 };
 
 export function ProjectInfo({ project }: ProjectInfoProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   const isCompleted = project.status === "completed";
 
@@ -170,13 +171,13 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
             <div className="border-2 border-border bg-muted p-4 text-center">
               <div className="text-xs font-mono text-muted-foreground mb-2">{t("project.funding.raised")}</div>
               <div className="text-xl font-black text-primary leading-tight">
-                {parseInt(project.current_amount).toLocaleString()}
+                {formatNumber(parseInt(project.current_amount), locale)}
               </div>
             </div>
             <div className="border-2 border-border bg-muted p-4 text-center">
               <div className="text-xs font-mono text-muted-foreground mb-2">{t("project.funding.target")}</div>
               <div className="text-xl font-black text-foreground leading-tight">
-                {parseInt(project.target_amount).toLocaleString()}
+                {formatNumber(parseInt(project.target_amount), locale)}
               </div>
             </div>
             <div className="border-2 border-border bg-muted p-4 text-center">

@@ -4,6 +4,7 @@ import { useLocale } from "@/components/locale-client-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { formatNumber } from "@/lib/format";
 import type { Project } from "@/types/project";
 import Link from "next/link";
 
@@ -15,7 +16,7 @@ interface ProjectCardProps {
 export function ProjectCard({
   project,
 }: Readonly<ProjectCardProps>) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
 
   const isCompleted = project.status === "completed";
 
@@ -81,7 +82,7 @@ export function ProjectCard({
                 {t("projects.raised")}
               </div>
               <div className="text-xl font-black text-primary">
-                {parseInt(project.current_amount).toLocaleString()}
+                {formatNumber(parseInt(project.current_amount), locale)}
               </div>
             </div>
             <div className="border-2 border-border bg-muted p-4">
@@ -89,7 +90,7 @@ export function ProjectCard({
                 {t("projects.target")}
               </div>
               <div className="text-xl font-black text-foreground">
-                {parseInt(project.target_amount).toLocaleString()}
+                {formatNumber(parseInt(project.target_amount), locale)}
               </div>
             </div>
           </div>

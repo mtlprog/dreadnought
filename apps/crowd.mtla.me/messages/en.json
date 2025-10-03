@@ -158,7 +158,8 @@
     "close": "Close",
     "cancel": "Cancel",
     "confirm": "Confirm",
-    "save": "Save"
+    "save": "Save",
+    "or": "or"
   },
   "transactionResult": {
     "title": "Transaction Generated",
@@ -172,7 +173,8 @@
     "loading": "Loading...",
     "nextSteps": "Next steps:",
     "step1": "Copy the XDR above",
-    "step2": "Sign it using your Stellar wallet or MTL Wallet Telegram bot",
-    "step3": "Submit the signed transaction to the Stellar network"
+    "step2": "Sign it using your Stellar wallet, for example:",
+    "step3": "Submit the signed transaction to the Stellar network",
+    "updateWarning": "Site data will update within 10 minutes after submitting the transaction to the network."
   }
 }

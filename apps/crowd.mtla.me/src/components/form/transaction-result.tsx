@@ -1,8 +1,8 @@
 "use client";
 
+import { useLocale } from "@/components/locale-client-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLocale } from "@/components/locale-client-provider";
 import { Check, Copy, ExternalLink, Loader2 } from "lucide-react";
 import React, { forwardRef } from "react";
 
@@ -86,6 +86,44 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Update Warning */}
+        <div className="border-2 border-primary bg-primary/10 p-4">
+          <p className="text-sm font-bold text-foreground uppercase">
+            {t("transactionResult.updateWarning")}
+          </p>
+        </div>
+
+        {/* Instructions */}
+        <div className="space-y-2">
+          <p className="text-sm font-bold text-foreground">
+            {t("transactionResult.nextSteps")}
+          </p>
+          <ol className="list-decimal list-inside space-y-1 ml-2 text-sm text-foreground">
+            <li>{t("transactionResult.step1")}</li>
+            <li>
+              {t("transactionResult.step2")}{" "}
+              <a
+                href="https://t.me/sunce_wallet"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:text-destructive underline transition-colors"
+              >
+                Sunce Wallet
+              </a>{" "}
+              {t("common.or")}{" "}
+              <a
+                href="https://t.me/myMTLWalletBot"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:text-destructive underline transition-colors"
+              >
+                MTL Wallet
+              </a>
+            </li>
+            <li>{t("transactionResult.step3")}</li>
+          </ol>
+        </div>
+
         {/* XDR Display */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
@@ -181,18 +219,6 @@ const TransactionResult = forwardRef<HTMLDivElement, TransactionResultProps>(({
                 )}
             </Button>
           )}
-        </div>
-
-        {/* Instructions */}
-        <div className="text-sm text-muted-foreground space-y-1">
-          <p>
-            <strong>{t("transactionResult.nextSteps")}</strong>
-          </p>
-          <ol className="list-decimal list-inside space-y-1 ml-2">
-            <li>{t("transactionResult.step1")}</li>
-            <li>{t("transactionResult.step2")}</li>
-            <li>{t("transactionResult.step3")}</li>
-          </ol>
         </div>
       </CardContent>
     </Card>

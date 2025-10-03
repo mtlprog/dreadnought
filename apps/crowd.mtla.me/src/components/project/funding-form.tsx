@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useDualBalance } from "@/hooks/use-dual-balance";
 import { useFormValidation } from "@/hooks/use-form-validation";
 import { useLocalStorage } from "@/hooks/use-local-storage";
+import { formatNumber } from "@/lib/format";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 import type { Project } from "@/types/project";
 import { HelpCircle } from "lucide-react";
@@ -40,7 +41,7 @@ const fundingFormSchema = z.object({
 type FundingFormData = z.infer<typeof fundingFormSchema>;
 
 export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [formData, setFormData] = useState<FundingFormData>({
     userAccountId: "",
     amount: "",
@@ -190,13 +191,13 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("project.status.finalAmount")}</span>
               <span className="text-foreground">
-                {parseFloat(project.current_amount).toLocaleString()} MTLCrowd
+                {formatNumber(parseFloat(project.current_amount), locale)} MTLCrowd
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("project.status.target")}</span>
               <span className="text-foreground">
-                {parseFloat(project.target_amount).toLocaleString()} MTLCrowd
+                {formatNumber(parseFloat(project.target_amount), locale)} MTLCrowd
               </span>
             </div>
             <div className="flex justify-between">

@@ -1,5 +1,6 @@
 import { useLocale } from "@/components/locale-client-provider";
 import { Button } from "@/components/ui/button";
+import { formatNumber } from "@/lib/format";
 import { isValidStellarAccountId } from "@/lib/stellar-validation";
 
 interface BalanceDisplayProps {
@@ -23,7 +24,7 @@ export function BalanceDisplay({
   eurMtlSpend,
   onRefresh,
 }: BalanceDisplayProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const isValidAccount = accountId !== "" && isValidStellarAccountId(accountId);
   const mtlCrowdBalance = balance !== null ? Math.floor(parseFloat(balance)) : 0;
   const eurMtlBalanceValue = eurMtlBalance !== null && eurMtlBalance !== undefined
@@ -78,15 +79,16 @@ export function BalanceDisplay({
       {/* ОСНОВНАЯ ИНФОРМАЦИЯ О БАЛАНСЕ */}
       <div className="space-y-2">
         <p className="text-sm font-mono text-muted-foreground">
-          {t("project.support.mtlCrowdAvailable")}: {mtlCrowdBalance.toLocaleString()} {t("project.support.tokens")}
+          {t("project.support.mtlCrowdAvailable")}: {formatNumber(mtlCrowdBalance, locale)}{" "}
+          {t("project.support.tokens")}
         </p>
 
         <p className="text-sm font-mono text-muted-foreground">
-          {t("project.support.needed")}: {remainingAmount.toLocaleString()} {t("project.support.tokens")}
+          {t("project.support.needed")}: {formatNumber(remainingAmount, locale)} {t("project.support.tokens")}
         </p>
 
         <p className="text-sm font-mono text-accent">
-          {t("project.support.maxContribution")}: {maxFromMtlCrowd.toLocaleString()} {t("project.support.tokens")}
+          {t("project.support.maxContribution")}: {formatNumber(maxFromMtlCrowd, locale)} {t("project.support.tokens")}
         </p>
       </div>
 
@@ -94,7 +96,7 @@ export function BalanceDisplay({
       {eurMtlBalanceValue > 0 && (
         <div className="border-t border-border pt-3 space-y-2">
           <p className="text-xs font-mono text-cyan-400 uppercase">
-            {t("project.support.eurMtlAutoExchange")}: {eurMtlBalanceValue.toLocaleString()}{" "}
+            {t("project.support.eurMtlAutoExchange")}: {formatNumber(eurMtlBalanceValue, locale)}{" "}
             {t("project.support.tokens")}
           </p>
         </div>
@@ -108,13 +110,14 @@ export function BalanceDisplay({
           </p>
           <div className="space-y-1 pl-2">
             <p className="text-xs font-mono text-muted-foreground">
-              {t("project.support.fromMtlCrowd")}: {Math.min(requestedAmount, mtlCrowdBalance).toLocaleString()}{" "}
+              {t("project.support.fromMtlCrowd")}: {formatNumber(Math.min(requestedAmount, mtlCrowdBalance), locale)}
+              {" "}
               {t("project.support.tokens")}
             </p>
             {eurMtlToUse > 0 && (
               <p className="text-xs font-mono text-muted-foreground">
-                {t("project.support.fromEurMtl")}: {eurMtlToUse.toLocaleString()} → {eurMtlToUse.toLocaleString()}{" "}
-                {t("project.support.exchangedToMtlCrowd")}
+                {t("project.support.fromEurMtl")}: {formatNumber(eurMtlToUse, locale)} →{" "}
+                {formatNumber(eurMtlToUse, locale)} {t("project.support.exchangedToMtlCrowd")}
               </p>
             )}
           </div>
