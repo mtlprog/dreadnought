@@ -3,7 +3,14 @@ import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 import type { ProjectData, ProjectInfo } from "./types";
-import { fetchProjectDataFromIPFS, getCurrentFundingMetrics, isProjectExpired, sortProjectsByPriority } from "./utils";
+import {
+  fetchProjectDataFromIPFS,
+  getCurrentFundingMetrics,
+  getTokenHolders,
+  getTopSupporters,
+  isProjectExpired,
+  sortProjectsByPriority,
+} from "./utils";
 
 export interface StellarService {
   readonly getProjects: () => Effect.Effect<ProjectInfo[], StellarServiceError>;
@@ -212,15 +219,20 @@ export const StellarServiceLive = Layer.succeed(
                   checkActiveSellOffer(config.server, config.publicKey, `C${projectEntry.code}`)
                 ),
               ),
+              pipe(
+                getStellarConfig(),
+                Effect.flatMap((config: Readonly<StellarConfig>) => getTokenHolders(config, projectEntry.code)),
+              ),
               getStellarConfig(),
             ]),
             Effect.map(
               (
-                [projectData, tokenExists, claimableBalances, hasActiveSellOffer, config]: readonly [
+                [projectData, tokenExists, claimableBalances, hasActiveSellOffer, tokenHolders, config]: readonly [
                   ProjectData,
                   boolean,
                   readonly Horizon.ServerApi.ClaimableBalanceRecord[],
                   boolean,
+                  readonly { readonly accountId: string; readonly balance: string }[],
                   StellarConfig,
                 ],
               ) => {
@@ -234,6 +246,16 @@ export const StellarServiceLive = Layer.succeed(
                   claimableBalances,
                   projectEntry.code,
                   config.publicKey,
+                );
+
+                // Get top supporters (IPFS priority for closed projects)
+                const topSupporters = getTopSupporters(
+                  projectData,
+                  claimableBalances,
+                  tokenHolders,
+                  projectEntry.code,
+                  config.publicKey,
+                  10,
                 );
 
                 const isExpired = isProjectExpired(projectData.deadline);
@@ -271,9 +293,7 @@ export const StellarServiceLive = Layer.succeed(
                   funding_status: "funding_status" in projectData
                     ? (projectData.funding_status as "completed" | "canceled")
                     : undefined,
-                  supporters: "supporters" in projectData
-                    ? (projectData.supporters as readonly { readonly account_id: string; readonly amount: string }[])
-                    : undefined,
+                  supporters: topSupporters.length > 0 ? topSupporters : undefined,
                 };
 
                 return projectInfo;

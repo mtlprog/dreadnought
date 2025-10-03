@@ -1,5 +1,6 @@
-import type { Horizon } from "@stellar/stellar-sdk";
+import { Asset, type Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
+import type { StellarConfig } from "./config";
 import { StellarError } from "./errors";
 import type { ProjectData, ProjectDataWithResults, ProjectInfo } from "./types";
 
@@ -227,6 +228,126 @@ export const getCurrentFundingMetrics = (
     amount: calculateRaisedAmount(claimableBalances, assetCode, stellarAccountId),
     supporters: countUniqueSupporters(claimableBalances, assetCode, stellarAccountId),
   };
+};
+
+/**
+ * Get token holders for a specific asset
+ * @param config - Stellar configuration
+ * @param assetCode - Project asset code (without P/C prefix)
+ * @returns Array of token holders with their balances
+ */
+export const getTokenHolders = (
+  config: Readonly<StellarConfig>,
+  assetCode: Readonly<string>,
+): Effect.Effect<readonly { readonly accountId: string; readonly balance: string }[], StellarError> =>
+  pipe(
+    Effect.tryPromise({
+      try: async () => {
+        const crowdfundingTokenCode = `C${assetCode}`;
+        const holders: { accountId: string; balance: string }[] = [];
+
+        try {
+          // Get all accounts holding this asset using pagination
+          const allAccounts: Horizon.ServerApi.AccountRecord[] = [];
+          let callBuilder = config.server.accounts()
+            .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
+            .limit(200); // Maximum allowed per request
+
+          // Fetch all pages using pagination
+          while (true) {
+            const response = await callBuilder.call();
+            allAccounts.push(...response.records);
+
+            // If we got fewer records than the limit, we've reached the end
+            if (response.records.length < 200) {
+              break;
+            }
+
+            // Prepare next page request
+            const lastRecord = response.records[response.records.length - 1];
+            if (lastRecord === undefined) break; // Safety check
+
+            callBuilder = config.server.accounts()
+              .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
+              .cursor(lastRecord.paging_token)
+              .limit(200);
+          }
+
+          for (const account of allAccounts) {
+            for (const balance of account.balances) {
+              if (
+                balance.asset_type !== "native"
+                && balance.asset_type !== "liquidity_pool_shares"
+                && "asset_code" in balance
+                && "asset_issuer" in balance
+                && balance.asset_code === crowdfundingTokenCode
+                && balance.asset_issuer === config.publicKey
+              ) {
+                holders.push({
+                  accountId: account.account_id,
+                  balance: balance.balance,
+                });
+              }
+            }
+          }
+        } catch {
+          // If asset doesn't exist or no holders found, return empty array
+          return [];
+        }
+
+        return holders;
+      },
+      catch: (error) =>
+        new StellarError({
+          cause: error,
+          operation: "get_token_holders",
+        }),
+    }),
+  );
+
+/**
+ * Get top supporters for a project
+ *
+ * Priority logic:
+ * 1. If project has supporters in IPFS → use IPFS data (source of truth for closed projects)
+ * 2. Otherwise → calculate from blockchain (for active projects)
+ *
+ * @param projectData - Project data from IPFS
+ * @param claimableBalances - Claimable balances from blockchain
+ * @param tokenHolders - Token holders from blockchain
+ * @param assetCode - Project asset code (without P/C prefix)
+ * @param stellarAccountId - Issuer account ID
+ * @param limit - Maximum number of supporters to return (default: 10)
+ * @returns Array of top supporters sorted by contribution amount (descending)
+ */
+export const getTopSupporters = (
+  projectData: Readonly<ProjectData | ProjectDataWithResults>,
+  claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
+  tokenHolders: Readonly<readonly { readonly accountId: string; readonly balance: string }[]>,
+  assetCode: Readonly<string>,
+  stellarAccountId: Readonly<string>,
+  limit = 10,
+): readonly { readonly account_id: string; readonly amount: string }[] => {
+  // Check if project has finalized supporters data in IPFS
+  const hasIPFSSupportersData = "supporters" in projectData
+    && projectData.supporters !== undefined
+    && Array.isArray(projectData.supporters)
+    && projectData.supporters.length > 0;
+
+  if (hasIPFSSupportersData) {
+    // Closed project - use IPFS as source of truth
+    return projectData.supporters.slice(0, limit);
+  }
+
+  // Active project - calculate from blockchain
+  const allSupporters = collectSupportersData(
+    claimableBalances,
+    tokenHolders,
+    assetCode,
+    stellarAccountId,
+  );
+
+  return allSupporters.slice(0, limit);
 };
 
 /**

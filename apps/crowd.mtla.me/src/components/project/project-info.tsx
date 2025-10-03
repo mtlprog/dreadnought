@@ -6,6 +6,7 @@ import type { Project } from "@/types/project";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import { TopSupporters } from "./top-supporters";
 
 interface ProjectInfoProps {
   project: Project;
@@ -189,6 +190,13 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
           </div>
         </div>
       </div>
+
+      {/* Top Supporters */}
+      {project.supporters !== undefined && project.supporters.length > 0 && (
+        <div className="border-2 border-border bg-card p-6">
+          <TopSupporters supporters={project.supporters} />
+        </div>
+      )}
     </div>
   );
 }

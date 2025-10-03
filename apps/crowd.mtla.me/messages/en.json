@@ -103,6 +103,13 @@
       "target": "TARGET",
       "supporters": "ALREADY HELPED"
     },
+    "topSupporters": {
+      "title": "TOP SUPPORTERS",
+      "place": "#",
+      "account": "ACCOUNT",
+      "contribution": "CONTRIBUTION",
+      "noSupporters": "NO SUPPORTERS YET"
+    },
     "status": {
       "title": "PROJECT STATUS",
       "completed": "FUNDRAISING ENDED",

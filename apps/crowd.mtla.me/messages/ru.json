@@ -103,6 +103,13 @@
       "target": "ЦЕЛЬ",
       "supporters": "УЖЕ ПОМОГЛИ"
     },
+    "topSupporters": {
+      "title": "ТОП ДОНАТЕРОВ",
+      "place": "#",
+      "account": "АККАУНТ",
+      "contribution": "ВКЛАД",
+      "noSupporters": "ПОКА НЕТ ДОНАТЕРОВ"
+    },
     "status": {
       "title": "СТАТУС ПРОЕКТА",
       "completed": "СБОР ЗАВЕРШЕН",
