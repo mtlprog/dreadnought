@@ -2,7 +2,79 @@ import { Asset, type Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
 import type { StellarConfig } from "./config";
 import { StellarError } from "./errors";
-import type { ProjectData, ProjectDataWithResults, ProjectInfo } from "./types";
+import type { ProjectData, ProjectDataWithResults, ProjectInfo, SupporterContributionExact } from "./types";
+
+/**
+ * In-memory cache for account names
+ * TTL: 24 hours (86400000 ms)
+ */
+interface CachedName {
+  readonly name: string | undefined;
+  readonly timestamp: number;
+}
+
+const accountNamesCache = new Map<string, CachedName>();
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+/**
+ * Get account name from manageData entry "Name" with 24h caching
+ * Returns decoded name or undefined if not found
+ *
+ * Cache rationale:
+ * - Account names change very rarely
+ * - Reduces Horizon API calls significantly
+ * - 24h TTL ensures eventual consistency
+ */
+export const getAccountName = (
+  config: Readonly<StellarConfig>,
+  accountId: Readonly<string>,
+): Effect.Effect<string | undefined, StellarError> => {
+  // Check cache first
+  const cached = accountNamesCache.get(accountId);
+  const now = Date.now();
+
+  if (cached !== undefined && (now - cached.timestamp) < CACHE_TTL_MS) {
+    return pipe(
+      Effect.succeed(cached.name),
+      Effect.tap(() => Effect.log(`[Cache HIT] Account name for ${accountId.slice(0, 8)}...`)),
+    );
+  }
+
+  // Cache miss or expired - fetch from Horizon
+  return pipe(
+    Effect.tryPromise({
+      try: async () => {
+        try {
+          const account = await config.server.loadAccount(accountId);
+          const nameEntry = account.data_attr["Name"];
+
+          if (nameEntry === undefined) {
+            return undefined;
+          }
+
+          // Decode base64 name
+          const decoded = Buffer.from(nameEntry, "base64").toString("utf-8");
+          return decoded;
+        } catch {
+          // Account not found or no Name entry
+          return undefined;
+        }
+      },
+      catch: (error) =>
+        new StellarError({
+          cause: error,
+          operation: "get_account_name",
+        }),
+    }),
+    Effect.tap((name) => {
+      // Store in cache
+      accountNamesCache.set(accountId, { name, timestamp: now });
+      return Effect.log(
+        `[Cache MISS] Fetched account name for ${accountId.slice(0, 8)}...: ${name ?? "undefined"}`,
+      );
+    }),
+  );
+};
 
 /**
  * Fetch project data from IPFS using CID
@@ -306,28 +378,32 @@ export const getTokenHolders = (
   );
 
 /**
- * Get top supporters for a project
+ * Get top supporters for a project with account names
  *
  * Priority logic:
  * 1. If project has supporters in IPFS → use IPFS data (source of truth for closed projects)
  * 2. Otherwise → calculate from blockchain (for active projects)
  *
+ * Fetches account names from manageData "Name" entry for each supporter
+ *
+ * @param config - Stellar configuration
  * @param projectData - Project data from IPFS
  * @param claimableBalances - Claimable balances from blockchain
  * @param tokenHolders - Token holders from blockchain
  * @param assetCode - Project asset code (without P/C prefix)
  * @param stellarAccountId - Issuer account ID
  * @param limit - Maximum number of supporters to return (default: 10)
- * @returns Array of top supporters sorted by contribution amount (descending)
+ * @returns Effect with array of top supporters sorted by contribution amount (descending)
  */
 export const getTopSupporters = (
+  config: Readonly<StellarConfig>,
   projectData: Readonly<ProjectData | ProjectDataWithResults>,
   claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
   tokenHolders: Readonly<readonly { readonly accountId: string; readonly balance: string }[]>,
   assetCode: Readonly<string>,
   stellarAccountId: Readonly<string>,
   limit = 10,
-): readonly { readonly account_id: string; readonly amount: string }[] => {
+): Effect.Effect<readonly SupporterContributionExact[], StellarError> => {
   // Check if project has finalized supporters data in IPFS
   const hasIPFSSupportersData = "supporters" in projectData
     && projectData.supporters !== undefined
@@ -335,11 +411,11 @@ export const getTopSupporters = (
     && projectData.supporters.length > 0;
 
   if (hasIPFSSupportersData) {
-    // Closed project - use IPFS as source of truth
-    return projectData.supporters.slice(0, limit);
+    // Closed project - use IPFS as source of truth (already has names if available)
+    return Effect.succeed(projectData.supporters.slice(0, limit));
   }
 
-  // Active project - calculate from blockchain
+  // Active project - calculate from blockchain and fetch names
   const allSupporters = collectSupportersData(
     claimableBalances,
     tokenHolders,
@@ -347,7 +423,24 @@ export const getTopSupporters = (
     stellarAccountId,
   );
 
-  return allSupporters.slice(0, limit);
+  const topSupporters = allSupporters.slice(0, limit);
+
+  // Fetch names for all top supporters in parallel
+  return pipe(
+    Effect.all(
+      topSupporters.map((supporter) =>
+        pipe(
+          getAccountName(config, supporter.account_id),
+          Effect.map((name) => ({
+            ...supporter,
+            ...(name !== undefined ? { name } : {}),
+          })),
+          Effect.catchAll(() => Effect.succeed(supporter)),
+        )
+      ),
+      { concurrency: "unbounded" },
+    ),
+  );
 };
 
 /**

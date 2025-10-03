@@ -31,8 +31,16 @@ export type ProjectData = S.Schema.Type<typeof ProjectDataSchema>;
 export const SupporterContributionSchema = S.Struct({
   account_id: S.String,
   amount: S.String,
+  name: S.optional(S.String),
 });
 export type SupporterContribution = S.Schema.Type<typeof SupporterContributionSchema>;
+
+// Manual type for exact optional property (for components)
+export type SupporterContributionExact = {
+  readonly account_id: string;
+  readonly amount: string;
+  readonly name?: string;
+};
 
 // Extended project data schema with funding results
 export const ProjectDataWithResultsSchema = S.Struct({
@@ -54,11 +62,14 @@ export const ProjectDataWithResultsSchema = S.Struct({
 export type ProjectDataWithResults = S.Schema.Type<typeof ProjectDataWithResultsSchema>;
 
 // Extended project info for frontend (wraps base + additional fields)
-export interface ProjectInfo extends ProjectDataWithResults {
+export interface ProjectInfo extends Omit<ProjectDataWithResults, "supporters"> {
   readonly current_amount: string;
   readonly supporters_count: number;
   readonly ipfsUrl: string;
   readonly status: "active" | "completed" | "canceled" | "expired";
+  readonly supporters?: readonly SupporterContributionExact[];
+  readonly contact_name?: string;
+  readonly project_name?: string;
 }
 
 // CLI-specific project info (wraps base + CLI-specific fields)

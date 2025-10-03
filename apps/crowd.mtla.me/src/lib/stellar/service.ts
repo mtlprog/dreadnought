@@ -2,9 +2,10 @@ import type { Horizon } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
-import type { ProjectData, ProjectInfo } from "./types";
+import type { ProjectData, ProjectInfo, SupporterContributionExact } from "./types";
 import {
   fetchProjectDataFromIPFS,
+  getAccountName,
   getCurrentFundingMetrics,
   getTokenHolders,
   getTopSupporters,
@@ -225,7 +226,7 @@ export const StellarServiceLive = Layer.succeed(
               ),
               getStellarConfig(),
             ]),
-            Effect.map(
+            Effect.flatMap(
               (
                 [projectData, tokenExists, claimableBalances, hasActiveSellOffer, tokenHolders, config]: readonly [
                   ProjectData,
@@ -237,7 +238,7 @@ export const StellarServiceLive = Layer.succeed(
                 ],
               ) => {
                 if (!tokenExists) {
-                  return null;
+                  return Effect.succeed(null);
                 }
 
                 // Get funding metrics (IPFS priority for closed projects)
@@ -246,16 +247,6 @@ export const StellarServiceLive = Layer.succeed(
                   claimableBalances,
                   projectEntry.code,
                   config.publicKey,
-                );
-
-                // Get top supporters (IPFS priority for closed projects)
-                const topSupporters = getTopSupporters(
-                  projectData,
-                  claimableBalances,
-                  tokenHolders,
-                  projectEntry.code,
-                  config.publicKey,
-                  10,
                 );
 
                 const isExpired = isProjectExpired(projectData.deadline);
@@ -273,30 +264,53 @@ export const StellarServiceLive = Layer.succeed(
                   status = "active";
                 }
 
-                const projectInfo: ProjectInfo = {
-                  name: projectData.name,
-                  code: projectData.code,
-                  description: projectData.description,
-                  fulldescription: projectData.fulldescription,
-                  contact_account_id: projectData.contact_account_id,
-                  project_account_id: projectData.project_account_id,
-                  target_amount: projectData.target_amount,
-                  deadline: projectData.deadline,
-                  current_amount: metrics.amount,
-                  supporters_count: metrics.supporters,
-                  ipfsUrl: `https://ipfs.io/ipfs/${projectEntry.cid}`,
-                  status,
-                  funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
-                  remaining_amount: "remaining_amount" in projectData
-                    ? (projectData.remaining_amount as string)
-                    : undefined,
-                  funding_status: "funding_status" in projectData
-                    ? (projectData.funding_status as "completed" | "canceled")
-                    : undefined,
-                  supporters: topSupporters.length > 0 ? topSupporters : undefined,
-                };
+                // Get top supporters and account names (IPFS priority for closed projects)
+                return pipe(
+                  Effect.all([
+                    getTopSupporters(
+                      config,
+                      projectData,
+                      claimableBalances,
+                      tokenHolders,
+                      projectEntry.code,
+                      config.publicKey,
+                      10,
+                    ),
+                    getAccountName(config, projectData.contact_account_id),
+                    getAccountName(config, projectData.project_account_id),
+                  ]),
+                  Effect.map(([topSupporters, contactName, projectName]) => {
+                    const baseProjectInfo = {
+                      name: projectData.name,
+                      code: projectData.code,
+                      description: projectData.description,
+                      fulldescription: projectData.fulldescription,
+                      contact_account_id: projectData.contact_account_id,
+                      project_account_id: projectData.project_account_id,
+                      target_amount: projectData.target_amount,
+                      deadline: projectData.deadline,
+                      current_amount: metrics.amount,
+                      supporters_count: metrics.supporters,
+                      ipfsUrl: `https://ipfs.io/ipfs/${projectEntry.cid}`,
+                      status,
+                      funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
+                      remaining_amount: "remaining_amount" in projectData
+                        ? (projectData.remaining_amount as string)
+                        : undefined,
+                      funding_status: "funding_status" in projectData
+                        ? (projectData.funding_status as "completed" | "canceled")
+                        : undefined,
+                      ...(contactName !== undefined ? { contact_name: contactName } : {}),
+                      ...(projectName !== undefined ? { project_name: projectName } : {}),
+                    };
 
-                return projectInfo;
+                    const projectInfo: ProjectInfo = topSupporters.length > 0
+                      ? { ...baseProjectInfo, supporters: topSupporters }
+                      : baseProjectInfo;
+
+                    return projectInfo;
+                  }),
+                );
               },
             ),
             Effect.catchAll(() => Effect.succeed(null)),
@@ -396,7 +410,7 @@ export const StellarServiceLive = Layer.succeed(
                       status = "active";
                     }
 
-                    const projectInfo: ProjectInfo = {
+                    const baseProjectInfo = {
                       name: projectData.name,
                       code: projectData.code,
                       description: projectData.description,
@@ -416,13 +430,15 @@ export const StellarServiceLive = Layer.succeed(
                       funding_status: "funding_status" in projectData
                         ? (projectData.funding_status as "completed" | "canceled")
                         : undefined,
-                      supporters: "supporters" in projectData
-                        ? (projectData.supporters as readonly {
-                          readonly account_id: string;
-                          readonly amount: string;
-                        }[])
-                        : undefined,
                     };
+
+                    const projectInfo: ProjectInfo =
+                      ("supporters" in projectData && projectData.supporters !== undefined)
+                        ? {
+                          ...baseProjectInfo,
+                          supporters: projectData.supporters as readonly SupporterContributionExact[],
+                        }
+                        : baseProjectInfo;
 
                     return projectInfo;
                   },

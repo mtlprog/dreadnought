@@ -133,7 +133,9 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
                 className="text-primary hover:text-accent mt-1 block text-sm font-mono underline cursor-pointer transition-colors"
                 title={project.contact_account_id}
               >
-                {truncateAccountId(project.contact_account_id)}
+                {project.contact_name !== undefined
+                  ? project.contact_name
+                  : truncateAccountId(project.contact_account_id)}
               </a>
             </div>
             <div>
@@ -145,7 +147,9 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
                 className="text-primary hover:text-accent mt-1 block text-sm font-mono underline cursor-pointer transition-colors"
                 title={project.project_account_id}
               >
-                {truncateAccountId(project.project_account_id)}
+                {project.project_name !== undefined
+                  ? project.project_name
+                  : truncateAccountId(project.project_account_id)}
               </a>
             </div>
           </div>

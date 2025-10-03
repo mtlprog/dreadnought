@@ -3,9 +3,10 @@
 import { useLocale } from "@/components/locale-client-provider";
 import { formatNumber, type Locale } from "@/lib/format";
 import { truncateAccountId } from "@/lib/stellar-validation";
+import type { SupporterContributionExact } from "@/lib/stellar/types";
 
 interface TopSupportersProps {
-  supporters: readonly { readonly account_id: string; readonly amount: string }[];
+  supporters: readonly SupporterContributionExact[];
 }
 
 export function TopSupporters({ supporters }: TopSupportersProps) {
@@ -68,15 +69,16 @@ export function TopSupporters({ supporters }: TopSupportersProps) {
                   </span>
                 </div>
 
-                {/* Account ID */}
+                {/* Account ID or Name */}
                 <div className="col-span-7">
                   <a
                     href={`https://bsn.expert/accounts/${supporter.account_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm font-mono text-foreground hover:text-primary transition-colors underline"
+                    title={supporter.account_id}
                   >
-                    {truncateAccountId(supporter.account_id)}
+                    {supporter.name !== undefined ? supporter.name : truncateAccountId(supporter.account_id)}
                   </a>
                 </div>
 
