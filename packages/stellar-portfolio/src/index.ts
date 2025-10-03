@@ -1,8 +1,8 @@
-// Re-export from @dreadnought/stellar-portfolio
+// Portfolio service
 export {
   type AccountPortfolio,
   PortfolioServiceLive,
   PortfolioServiceTag,
   type PortfolioService,
   type TokenBalance,
-} from "@dreadnought/stellar-portfolio";
+} from "./portfolio-service";

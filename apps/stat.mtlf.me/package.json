@@ -13,6 +13,7 @@
   "dependencies": {
     "@dreadnought/stellar-core": "workspace:*",
     "@dreadnought/stellar-utils": "workspace:*",
+    "@dreadnought/stellar-portfolio": "workspace:*",
     "@stellar/stellar-sdk": "^12.3.0",
     "effect": "^3.11.0",
     "@effect/schema": "latest",

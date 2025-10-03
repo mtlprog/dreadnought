@@ -1,0 +1,24 @@
+{
+  "name": "@dreadnought/stellar-portfolio",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@dreadnought/stellar-core": "workspace:*",
+    "@dreadnought/stellar-utils": "workspace:*"
+  },
+  "peerDependencies": {
+    "effect": "^3.11.0",
+    "@effect/schema": "latest"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "effect": "^3.11.0",
+    "@effect/schema": "latest"
+  }
+}

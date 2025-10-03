@@ -74,6 +74,37 @@ See `packages/stellar-utils/README.md` for full documentation.
 
 ---
 
+### @dreadnought/stellar-portfolio
+
+**Purpose**: Portfolio management service for Stellar accounts
+**Key Features**: Effect-TS service, balance parsing, token filtering
+**Dependencies**: `@dreadnought/stellar-core`, `@dreadnought/stellar-utils`, `effect`, `@effect/schema`
+**Used By**: `stat.mtlf.me`
+
+**Exports**:
+- `PortfolioService` - Service interface
+- `PortfolioServiceTag` - Context tag for DI
+- `PortfolioServiceLive` - Live service implementation
+- `AccountPortfolio` - Portfolio data type
+- `TokenBalance` - Token balance type
+
+**Example**:
+```typescript
+import { PortfolioServiceLive, PortfolioServiceTag } from "@dreadnought/stellar-portfolio";
+import { Effect, pipe } from "effect";
+
+const program = pipe(
+  PortfolioServiceTag,
+  Effect.flatMap((service) => service.getAccountPortfolio("GABC..."))
+);
+
+await Effect.runPromise(Effect.provide(program, PortfolioServiceLive));
+```
+
+See `packages/stellar-portfolio/README.md` for full documentation.
+
+---
+
 ## Creating New Packages
 
 Only create packages when:
