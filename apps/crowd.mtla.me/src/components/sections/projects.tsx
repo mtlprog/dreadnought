@@ -43,16 +43,16 @@ export function ProjectsSection() {
   const completedProjects = projects.filter(p => p.status === "completed");
 
   return (
-    <section id="projects-section" className="min-h-screen py-24 bg-background">
-      <div className="container mx-auto px-6">
+    <section id="projects-section" className="min-h-screen py-12 md:py-24 bg-background">
+      <div className="container mx-auto px-4 md:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl md:text-6xl font-black text-foreground uppercase tracking-tighter mb-6">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-foreground uppercase tracking-tighter mb-4 md:mb-6">
               {t("projects.title")}
               <br />
               <span className="text-primary">PROJECTS</span>
             </h2>
-            <p className="text-xl text-muted-foreground font-mono max-w-3xl mx-auto">
+            <p className="text-base md:text-xl text-muted-foreground font-mono max-w-3xl mx-auto px-4">
               {t("projects.subtitle")}
             </p>
           </div>
@@ -67,17 +67,17 @@ export function ProjectsSection() {
               </div>
             )
             : (
-              <div className="space-y-16">
+              <div className="space-y-12 md:space-y-16">
                 {/* Active Projects */}
                 <div>
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className="w-6 h-6 bg-primary animate-pulse" />
-                    <h3 className="text-3xl font-black text-primary uppercase">
+                  <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                    <div className="w-4 h-4 md:w-6 md:h-6 bg-primary animate-pulse flex-shrink-0" />
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-primary uppercase">
                       {t("projects.fundingActive")} ({activeProjects.length})
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {activeProjects.map((project) => (
                       <ProjectCard
                         key={project.code}
@@ -90,14 +90,14 @@ export function ProjectsSection() {
                 {/* Completed Projects */}
                 {completedProjects.length > 0 && (
                   <div>
-                    <div className="flex items-center gap-4 mb-8">
-                      <div className="w-6 h-6 bg-secondary" />
-                      <h3 className="text-3xl font-black text-secondary uppercase">
+                    <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                      <div className="w-4 h-4 md:w-6 md:h-6 bg-secondary flex-shrink-0" />
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-secondary uppercase">
                         {t("projects.fundingEnded")} ({completedProjects.length})
                       </h3>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                       {completedProjects.map((project) => (
                         <ProjectCard
                           key={project.code}

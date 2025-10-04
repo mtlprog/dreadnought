@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 "use client";
 
 import type { PlatformStats } from "@/app/api/stats/route";
@@ -51,10 +50,10 @@ export function PlatformStatsSection() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 md:gap-12 max-w-6xl mx-auto px-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-8 md:gap-12 max-w-6xl mx-auto px-4">
       {/* Total Funded */}
       <div className="text-center space-y-2 md:space-y-3 group hover:scale-105 transition-transform duration-300 min-w-0">
-        <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-primary font-mono tabular-nums break-words">
+        <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-primary font-mono tabular-nums break-words">
           {isVisible
             ? (
               <CountUp
@@ -68,25 +67,25 @@ export function PlatformStatsSection() {
             )}
         </div>
         <div className="text-xs sm:text-sm md:text-base font-mono text-muted-foreground uppercase tracking-wider px-2">
-          СОБРАНО ВСЕГО <span className="text-primary block sm:inline">(EURMTL)</span>
+          СОБРАНО <span className="text-primary block sm:inline">(EURMTL)</span>
         </div>
       </div>
 
       {/* Total Supporters */}
       <div className="text-center space-y-2 md:space-y-3 group hover:scale-105 transition-transform duration-300 min-w-0">
-        <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-secondary font-mono tabular-nums break-words">
+        <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-secondary font-mono tabular-nums break-words">
           {isVisible ? <CountUp end={stats.totalSupporters} duration={2.5} /> : (
             "0"
           )}
         </div>
         <div className="text-xs sm:text-sm md:text-base font-mono text-muted-foreground uppercase tracking-wider px-2">
-          ПОДДЕРЖИВАЮЩИХ
+          ПОДДЕРЖАЛИ
         </div>
       </div>
 
       {/* Total Projects */}
       <div className="text-center space-y-2 md:space-y-3 group hover:scale-105 transition-transform duration-300 min-w-0">
-        <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-foreground font-mono tabular-nums break-words">
+        <div className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-foreground font-mono tabular-nums break-words">
           {isVisible ? <CountUp end={stats.totalProjects} duration={2.5} /> : (
             "0"
           )}

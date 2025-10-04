@@ -34,68 +34,71 @@ export function ProjectCard({
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
-        <div className="flex items-center justify-between mb-4">
-          <div className="px-3 py-1 border-2 border-border bg-muted">
-            <span className="text-sm font-mono text-primary">
+      <CardHeader className="p-4 md:p-6">
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="px-2 md:px-3 py-1 border-2 border-border bg-muted flex-shrink-0">
+            <span className="text-xs md:text-sm font-mono text-primary">
               {project.code}
             </span>
           </div>
           <div
-            className={`px-3 py-1 border-2 border-border bg-background ${statusColor}`}
+            className={`px-2 md:px-3 py-1 border-2 border-border bg-background ${statusColor} flex-shrink-0`}
           >
-            <span className="text-sm font-mono font-bold">{statusText}</span>
+            <span className="text-xs md:text-sm font-mono font-bold">{statusText}</span>
           </div>
         </div>
-        <CardTitle className="h-16 flex items-start leading-tight overflow-hidden">
+        <CardTitle className="h-14 md:h-16 flex items-start text-base md:text-lg leading-tight overflow-hidden">
           <span className="line-clamp-2">
             {project.name}
           </span>
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col">
+      <CardContent className="flex-1 flex flex-col p-4 md:p-6">
         <div className="flex-1">
-          <p className="text-base text-muted-foreground font-mono leading-relaxed mb-6">
-            {project.description.length > 150
-              ? `${project.description.substring(0, 150)}...`
+          <p className="text-sm md:text-base text-muted-foreground font-mono leading-relaxed mb-4 md:mb-6">
+            {project.description.length > 120
+              ? `${project.description.substring(0, 120)}...`
               : project.description}
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-lg font-bold text-foreground">
+              <span className="text-sm md:text-base font-bold text-foreground">
                 {t("projects.fundingProgress")}
               </span>
-              <span className="text-lg font-mono text-primary">
+              <span className="text-sm md:text-base font-mono text-primary">
                 {Math.round(progressPercentage)}%
               </span>
             </div>
-            <Progress value={progressPercentage} className={`h-4 ${isCompleted ? "[&>div]:bg-foreground" : ""}`} />
+            <Progress
+              value={progressPercentage}
+              className={`h-3 md:h-4 ${isCompleted ? "[&>div]:bg-foreground" : ""}`}
+            />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="border-2 border-border bg-muted p-4">
-              <div className="text-sm font-mono text-muted-foreground mb-1">
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="border-2 border-border bg-muted p-3 md:p-4">
+              <div className="text-xs md:text-sm font-mono text-muted-foreground mb-1">
                 {t("projects.raised")}
               </div>
-              <div className="text-xl font-black text-primary">
+              <div className="text-base md:text-xl font-black text-primary break-words">
                 {formatNumber(parseInt(project.current_amount), locale)}
               </div>
             </div>
-            <div className="border-2 border-border bg-muted p-4">
-              <div className="text-sm font-mono text-muted-foreground mb-1">
+            <div className="border-2 border-border bg-muted p-3 md:p-4">
+              <div className="text-xs md:text-sm font-mono text-muted-foreground mb-1">
                 {t("projects.target")}
               </div>
-              <div className="text-xl font-black text-foreground">
+              <div className="text-base md:text-xl font-black text-foreground break-words">
                 {formatNumber(parseInt(project.target_amount), locale)}
               </div>
             </div>
           </div>
 
-          <div className="flex justify-between items-center text-sm font-mono">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:items-center text-xs md:text-sm font-mono">
             <span className="text-muted-foreground">
               {t("projects.supporters")}: {project.supporters_count}
             </span>
@@ -106,10 +109,10 @@ export function ProjectCard({
         </div>
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="p-4 md:p-6">
         <Link href={`/${project.code.toLowerCase()}`} className="w-full">
           <Button
-            className="w-full"
+            className="w-full text-sm md:text-base"
             variant={isCompleted ? "outline" : "default"}
           >
             {isCompleted ? t("projects.viewProject") : t("projects.fundProject")}
