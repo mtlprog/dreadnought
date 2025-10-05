@@ -17,6 +17,122 @@ packages/
 
 ## Available Packages
 
+### @dreadnought/ui
+
+**Purpose**: Retrofuturistic UI component library based on shadcn/ui
+**Key Features**: Functional Brutalism design, React components, zero border-radius
+**Dependencies**: `@dreadnought/utils`, `@radix-ui/react-*`, `class-variance-authority`, `react`
+**Used By**: `crowd.mtla.me`, `stat.mtlf.me`
+
+**Exports**:
+- `Button` - Brutalist button component with variants
+- `Card` - Card container with Header, Title, Description, Content, Footer
+- `Dialog` - Modal dialog with Radix UI primitives
+- `DropdownMenu` - Dropdown menu with multiple item types
+- `Footer` - Configurable footer with sections and links
+- `Input` - Styled input component
+- `Label` - Form label component
+- `Progress` - Progress bar component
+- `Tooltip` - Tooltip with Radix UI primitives
+
+**Example**:
+```typescript
+import { Button, Card, CardHeader, CardTitle, CardContent, Footer } from "@dreadnought/ui";
+
+<Card>
+  <CardHeader>
+    <CardTitle>Project Title</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <Button variant="destructive">Delete</Button>
+  </CardContent>
+</Card>
+
+<Footer
+  title="App"
+  description="Description"
+  sections={[{ title: "Links", links: [{href: "/", label: "Home"}] }]}
+/>
+```
+
+See `packages/ui/README.md` for full documentation.
+
+---
+
+### @dreadnought/utils
+
+**Purpose**: Common utility functions for the monorepo
+**Key Features**: Tailwind class merger, number formatting, pure functions
+**Dependencies**: `clsx`, `tailwind-merge`
+**Used By**: `crowd.mtla.me`, `stat.mtlf.me`, `@dreadnought/ui`
+
+**Exports**:
+- `cn()` - Combines and merges Tailwind CSS class names
+- `formatNumber()` - Formats numbers with thin space separators
+
+**Example**:
+```typescript
+import { cn, formatNumber } from "@dreadnought/utils";
+
+const classes = cn("px-2 py-1", isActive && "bg-primary");
+const formatted = formatNumber(1234567.89, 2); // "1 234 567.89"
+```
+
+See `packages/utils/README.md` for full documentation.
+
+---
+
+### @dreadnought/theme
+
+**Purpose**: Theme management with Effect-TS integration
+**Key Features**: ThemeSelector component, Effect runtime helpers, View Transitions API
+**Dependencies**: `effect`, `lucide-react`, `react`
+**Used By**: `crowd.mtla.me`, `mtlprog.xyz`
+
+**Exports**:
+- `ThemeSelector` - Dropdown theme switcher component (Light/Dark/System)
+- `getThemeEffect()` - Get current theme from server
+- `setThemeEffect()` - Set theme using server action
+- `runClientEffect()` - Run Effect in client components
+- `ServerActionError` - Error class for server action failures
+
+**Example**:
+```typescript
+import { ThemeSelector, getThemeEffect, runClientEffect } from "@dreadnought/theme";
+
+// Use component
+<ThemeSelector />
+
+// Use services
+const theme = await runClientEffect(getThemeEffect());
+```
+
+See `packages/theme/README.md` for full documentation.
+
+---
+
+### @dreadnought/hooks
+
+**Purpose**: React hooks with Effect-TS integration
+**Key Features**: Persistent state with localStorage, Effect-TS error handling
+**Dependencies**: `effect`, `react`
+**Used By**: `crowd.mtla.me`
+
+**Exports**:
+- `useLocalStorage()` - Syncs state with localStorage using Effect-TS
+
+**Example**:
+```typescript
+import { useLocalStorage } from "@dreadnought/hooks";
+
+const [theme, setTheme] = useLocalStorage<string>("theme", "dark");
+setTheme("light");
+```
+
+See `packages/hooks/README.md` for full documentation.
+
+---
+
 ### @dreadnought/stellar-core
 
 **Purpose**: Core Stellar blockchain utilities

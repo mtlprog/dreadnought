@@ -1,18 +1,14 @@
-import * as S from "@effect/schema/Schema";
 import { Effect, pipe } from "effect";
 
+// Re-export theme services from @dreadnought/theme
+export { getThemeEffect, ServerActionError, setThemeEffect, type Theme } from "@dreadnought/theme";
+
+// Import ServerActionError for locale actions
+import { ServerActionError } from "@dreadnought/theme";
+
 export type Locale = "en" | "ru";
-export type Theme = "system" | "light" | "dark";
 
-export class ServerActionError extends S.TaggedError<ServerActionError>()(
-  "ServerActionError",
-  {
-    message: S.String,
-    cause: S.optional(S.Unknown),
-  },
-) {}
-
-// Client-side Effect wrappers for Server Actions
+// Locale-specific server actions (not in shared package yet)
 export const setLocaleEffect = (locale: Locale) =>
   pipe(
     Effect.tryPromise({
@@ -29,22 +25,6 @@ export const setLocaleEffect = (locale: Locale) =>
     Effect.tap(() => Effect.log(`Locale set to: ${locale}`)),
   );
 
-export const setThemeEffect = (theme: Theme) =>
-  pipe(
-    Effect.tryPromise({
-      try: async () => {
-        const { setTheme } = await import("@/app/actions");
-        await setTheme(theme);
-      },
-      catch: (error) =>
-        new ServerActionError({
-          message: "Failed to set theme",
-          cause: error,
-        }),
-    }),
-    Effect.tap(() => Effect.log(`Theme set to: ${theme}`)),
-  );
-
 export const getLocaleEffect = () =>
   pipe(
     Effect.tryPromise({
@@ -59,20 +39,4 @@ export const getLocaleEffect = () =>
         }),
     }),
     Effect.tap((locale) => Effect.log(`Locale retrieved: ${locale}`)),
-  );
-
-export const getThemeEffect = () =>
-  pipe(
-    Effect.tryPromise({
-      try: async (): Promise<Theme> => {
-        const { getTheme } = await import("@/app/actions");
-        return getTheme();
-      },
-      catch: (error) =>
-        new ServerActionError({
-          message: "Failed to get theme",
-          cause: error,
-        }),
-    }),
-    Effect.tap((theme) => Effect.log(`Theme retrieved: ${theme}`)),
   );

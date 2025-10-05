@@ -1,6 +1,2 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: readonly ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+// Re-export from @dreadnought/utils
+export { cn } from "@dreadnought/utils";

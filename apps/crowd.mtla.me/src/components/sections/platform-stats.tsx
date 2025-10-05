@@ -10,25 +10,27 @@ export function PlatformStatsSection() {
 
   useEffect(() => {
     // Check cache first
-    const cachedStats = localStorage.getItem("platform-stats");
-    const cachedTime = localStorage.getItem("platform-stats-time");
+    if (typeof window !== "undefined" && window.localStorage) {
+      const cachedStats = window.localStorage.getItem("platform-stats");
+      const cachedTime = window.localStorage.getItem("platform-stats-time");
 
-    const now = Date.now();
-    const cacheAge = cachedTime ? now - parseInt(cachedTime) : Infinity;
+      const now = Date.now();
+      const cacheAge = cachedTime ? now - parseInt(cachedTime) : Infinity;
 
-    // Use cache if less than 60 seconds old
-    if (cachedStats && cacheAge < 60000) {
-      setStats(JSON.parse(cachedStats));
-    } else {
-      // Fetch fresh data
-      fetch("/api/stats")
-        .then((res) => res.json())
-        .then((data) => {
-          setStats(data);
-          localStorage.setItem("platform-stats", JSON.stringify(data));
-          localStorage.setItem("platform-stats-time", now.toString());
-        })
-        .catch((err) => console.error("Failed to load stats:", err));
+      // Use cache if less than 60 seconds old
+      if (cachedStats && cacheAge < 60000) {
+        setStats(JSON.parse(cachedStats));
+      } else {
+        // Fetch fresh data
+        fetch("/api/stats")
+          .then((res) => res.json())
+          .then((data) => {
+            setStats(data);
+            window.localStorage.setItem("platform-stats", JSON.stringify(data));
+            window.localStorage.setItem("platform-stats-time", now.toString());
+          })
+          .catch((err) => console.error("Failed to load stats:", err));
+      }
     }
 
     // Trigger animation when component mounts
