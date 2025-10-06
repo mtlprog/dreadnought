@@ -29,7 +29,7 @@ describe("Label", () => {
       <>
         <Label htmlFor="email">Email</Label>
         <input id="email" type="email" />
-      </>
+      </>,
     );
 
     const label = screen.getByText("Email");

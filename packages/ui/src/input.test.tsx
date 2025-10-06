@@ -27,7 +27,7 @@ describe("Input", () => {
   test("should accept value attribute", () => {
     render(<Input value="test value" readOnly />);
 
-    const input = screen.getByRole("textbox") as HTMLInputElement;
+    const input = screen.getByRole("textbox");
     expect(input.value).toBe("test value");
   });
 

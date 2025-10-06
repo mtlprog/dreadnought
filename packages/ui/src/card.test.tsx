@@ -55,7 +55,7 @@ describe("Card components", () => {
         </CardHeader>
         <CardContent>Card Content</CardContent>
         <CardFooter>Card Footer</CardFooter>
-      </Card>
+      </Card>,
     );
 
     expect(screen.getByText("Card Title")).toBeInTheDocument();

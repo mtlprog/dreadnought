@@ -26,7 +26,7 @@ describe("Footer", () => {
         title="Test App"
         description="Test description"
         sections={mockSections}
-      />
+      />,
     );
 
     const title = screen.getByText("Test App");
@@ -39,7 +39,7 @@ describe("Footer", () => {
         title="App"
         description="This is a description"
         sections={mockSections}
-      />
+      />,
     );
 
     const description = screen.getByText("This is a description");
@@ -52,7 +52,7 @@ describe("Footer", () => {
         title="App"
         description="Description"
         sections={mockSections}
-      />
+      />,
     );
 
     expect(screen.getByText("Resources")).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe("Footer", () => {
         title="App"
         description="Description"
         sections={mockSections}
-      />
+      />,
     );
 
     expect(screen.getByRole("link", { name: /documentation/i })).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe("Footer", () => {
         title="App"
         description="Description"
         sections={mockSections}
-      />
+      />,
     );
 
     const docsLink = screen.getByRole("link", { name: /documentation/i });
@@ -92,7 +92,7 @@ describe("Footer", () => {
         title="App"
         description="Description"
         sections={mockSections}
-      />
+      />,
     );
 
     const githubLink = screen.getByRole("link", { name: /github/i });
@@ -107,7 +107,7 @@ describe("Footer", () => {
         description="Description"
         sections={mockSections}
         bottomText="© 2025 Test Company"
-      />
+      />,
     );
 
     const bottomText = screen.getByText("© 2025 Test Company");

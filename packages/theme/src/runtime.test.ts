@@ -38,7 +38,7 @@ describe("theme runtime", () => {
 
     test("should handle Effect.map transformations", async () => {
       const program = Effect.succeed(10).pipe(
-        Effect.map((n) => n * 2)
+        Effect.map((n) => n * 2),
       );
       const result = await runClientEffect(program);
 
@@ -47,7 +47,7 @@ describe("theme runtime", () => {
 
     test("should handle Effect.flatMap chains", async () => {
       const program = Effect.succeed(5).pipe(
-        Effect.flatMap((n) => Effect.succeed(n + 3))
+        Effect.flatMap((n) => Effect.succeed(n + 3)),
       );
       const result = await runClientEffect(program);
 

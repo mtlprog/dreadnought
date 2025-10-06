@@ -107,7 +107,7 @@ describe("useLocalStorage", () => {
 
     const { result, rerender } = renderHook(
       ({ key }) => useLocalStorage(key, "initial"),
-      { initialProps: { key: "key1" } }
+      { initialProps: { key: "key1" } },
     );
 
     expect(result.current[0]).toBe("value1");
@@ -120,7 +120,7 @@ describe("useLocalStorage", () => {
   test("should use new initial value when it changes", () => {
     const { result, rerender } = renderHook(
       ({ initialValue }) => useLocalStorage("test-key", initialValue),
-      { initialProps: { initialValue: "initial1" } }
+      { initialProps: { initialValue: "initial1" } },
     );
 
     expect(result.current[0]).toBe("initial1");
