@@ -169,10 +169,13 @@ git push origin master
 
 ## 🧪 Testing
 
-**Full guide**: `/docs/guides/effect-ts-testing.md`
+**Full guides**:
+- `/docs/guides/bun-testing.md` - Bun test framework, React Testing Library, Happy DOM
+- `/docs/guides/effect-ts-testing.md` - Effect-TS ManagedRuntime patterns
 
-### Critical Pattern (MANDATORY)
+### Critical Patterns (MANDATORY)
 
+**Effect-TS Services:**
 ```typescript
 describe("Service", () => {
   test("should work", async () => {
@@ -187,7 +190,32 @@ describe("Service", () => {
 });
 ```
 
-**CRITICAL**: Always use `ManagedRuntime.make()` and `dispose()` in finally
+**React Components:**
+```typescript
+import { render, screen } from "@testing-library/react";
+import { describe, expect, test } from "bun:test";
+
+test("should render correctly", () => {
+  render(<Component />);
+  expect(screen.getByRole("button")).toBeInTheDocument();
+});
+```
+
+**React Hooks:**
+```typescript
+import { act, renderHook } from "@testing-library/react";
+
+test("should update value", () => {
+  const { result } = renderHook(() => useHook("initial"));
+  act(() => result.current[1]("updated"));
+  expect(result.current[0]).toBe("updated");
+});
+```
+
+**CRITICAL**:
+- Always use `ManagedRuntime.make()` and `dispose()` in finally
+- Use Happy DOM (not JSDom) for React component tests
+- Use `getAttribute()` instead of `toHaveAttribute()` with Bun
 
 ## 🚫 Forbidden Patterns
 
@@ -200,6 +228,8 @@ describe("Service", () => {
 - ❌ Runtime.make() → use ManagedRuntime.make()
 - ❌ Reuse runtime between tests
 - ❌ Forget testRuntime.dispose()
+- ❌ JSDom → use Happy DOM
+- ❌ toHaveAttribute() → use getAttribute()
 - ❌ Rounded corners in UI
 - ❌ npm/yarn/pnpm → use Bun
 
@@ -209,6 +239,7 @@ describe("Service", () => {
 
 - **[Effect-TS Patterns](/docs/guides/effect-ts-patterns.md)** - Service definition, layers, runtime
 - **[Effect-TS Testing](/docs/guides/effect-ts-testing.md)** - ManagedRuntime, mocks, patterns
+- **[Bun Testing](/docs/guides/bun-testing.md)** - Bun test framework, React Testing Library, Happy DOM
 - **[Stellar Integration](/docs/guides/stellar-integration.md)** - Network config, wallets, transactions
 - **[TypeScript Config](/docs/guides/typescript-config.md)** - Strict mode, branded types, utilities
 - **[Design System](/docs/guides/design-system.md)** - Retrofuturistic UI/UX
@@ -238,6 +269,9 @@ All packages documented in `/packages/README.md`
 - `const testRuntime = ManagedRuntime.make(ServiceLive)` - правильный способ
 - `try { ... } finally { await testRuntime.dispose() }` - обязательная структура
 - Новый runtime для каждого теста - никогда не переиспользовать
+- Happy DOM для React компонентов - JSDom не поддерживается в Bun
+- `renderHook` из `@testing-library/react` - не из deprecated пакета
+- `element.getAttribute()` вместо `toHaveAttribute()` - совместимость с Bun
 
 **TypeScript**:
 - Используй conditional spread для optional полей
