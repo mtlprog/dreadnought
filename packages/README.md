@@ -221,6 +221,70 @@ See `packages/stellar-portfolio/README.md` for full documentation.
 
 ---
 
+## Using React Components from Packages
+
+When using React components with Tailwind CSS from packages like `@dreadnought/ui`, you **MUST** configure Tailwind to scan package source files.
+
+### Tailwind CSS v4 Setup (Next.js 15+)
+
+For apps using Tailwind CSS v4 with `@tailwindcss/postcss`, add `@source` directive to your `globals.css`:
+
+```css
+@import "tailwindcss";
+
+/* Scan UI package for Tailwind classes */
+@source "../../packages/ui/src";
+
+:root {
+  /* Your theme variables... */
+}
+```
+
+**Why this is needed**: Tailwind CSS v4 by default only scans files in your app directory. Without the `@source` directive, classes from package components won't be included in the generated CSS, causing components to appear unstyled.
+
+### Tailwind CSS v3 Setup
+
+For apps using Tailwind CSS v3, configure `tailwind.config.js`:
+
+```typescript
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: [
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../../packages/ui/src/**/*.{js,ts,jsx,tsx}", // Add package sources
+  ],
+  // ... other config
+};
+
+export default config;
+```
+
+### Troubleshooting
+
+**Problem**: Components from `@dreadnought/ui` appear unstyled, missing layout or spacing.
+
+**Solution**: Check that:
+1. Your `globals.css` includes `@source "../../packages/ui/src"` (Tailwind v4)
+2. OR your `tailwind.config` includes package paths in `content` array (Tailwind v3)
+3. Dev server has been restarted after configuration changes
+
+**Example**: Using `Footer` component:
+
+```typescript
+import { Footer } from "@dreadnought/ui";
+
+// ❌ WRONG - Will be unstyled without proper Tailwind configuration
+<Footer title="App" sections={[...]} />
+
+// ✅ CORRECT - With @source directive in globals.css
+// Classes like grid-cols-3, gap-12, text-2xl will work
+<Footer title="App" sections={[...]} />
+```
+
+---
+
 ## Creating New Packages
 
 Only create packages when:
@@ -238,3 +302,4 @@ Follow the naming convention: `@dreadnought/package-name`
 - ✅ Use peerDependencies for effect and @effect/schema
 - ✅ Export all types and interfaces
 - ✅ Follow strict TypeScript configuration
+- ✅ Document Tailwind CSS setup for React components (if applicable)
