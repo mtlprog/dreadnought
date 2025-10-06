@@ -25,63 +25,12 @@ function formatAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-/**
- * Determines the price type label based on available bid and ask prices.
- *
- * @param bid - The bid price (buy order price), if available
- * @param ask - The ask price (sell order price), if available
- * @returns A localized label indicating the price calculation method:
- *   - "СРЕДНЯЯ" when both bid and ask are available (mid-market price)
- *   - "ТОЛЬКО BID" when only bid price is available (limited liquidity)
- *   - "ТОЛЬКО ASK" when only ask price is available (limited liquidity)
- */
-function getPriceTypeLabel(bid?: string, ask?: string): string {
-  const hasBid = bid != null;
-  const hasAsk = ask != null;
-
-  if (hasBid && hasAsk) {
-    return "СРЕДНЯЯ";
-  } else if (hasBid) {
-    return "ТОЛЬКО BID";
-  } else {
-    return "ТОЛЬКО ASK";
-  }
-}
-
 function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
   if (details == null) {
     return (
       <div className="font-mono">
         <div className="text-warning-amber">НЕТ ДАННЫХ</div>
         <div className="text-xs text-steel-gray mt-1">Цена недоступна</div>
-      </div>
-    );
-  }
-
-  if (details.source === "orderbook") {
-    const priceType = getPriceTypeLabel(details.bid, details.ask);
-
-    return (
-      <div className="font-mono space-y-1">
-        <div className="text-cyber-green uppercase text-xs">ПРЯМАЯ ТОРГОВЛЯ</div>
-        <div className="text-xs">
-          <span className="text-steel-gray">ТИП:</span> <span className="text-warning-amber">{priceType}</span>
-        </div>
-        {details.bid != null && (
-          <div className="text-xs">
-            <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(details.bid), 7)}
-          </div>
-        )}
-        {details.ask != null && (
-          <div className="text-xs">
-            <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(details.ask), 7)}
-          </div>
-        )}
-        {details.midPrice != null && (
-          <div className="text-xs border-t border-steel-gray/30 pt-1 mt-1">
-            <span className="text-steel-gray">ИТОГОВАЯ:</span> {formatNumber(parseFloat(details.midPrice), 7)}
-          </div>
-        )}
       </div>
     );
   }
@@ -94,45 +43,10 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
           <span className="text-steel-gray">ПУТЬ:</span>
         </div>
         {details.path.map((hop, index) => (
-          <div key={index} className="text-xs pl-2 space-y-1 border-l border-steel-gray/50 ml-1">
+          <div key={index} className="text-xs pl-2 border-l border-steel-gray/50 ml-1">
             <div className="font-semibold">
               {hop.from} → {hop.to}
             </div>
-            {(hop.bid != null || hop.ask != null)
-              ? (
-                <div className="pl-2 space-y-1">
-                  <div className="text-xs">
-                    <span className="text-steel-gray">ТИП:</span>{" "}
-                    <span className="text-warning-amber">{getPriceTypeLabel(hop.bid, hop.ask)}</span>
-                  </div>
-                  {hop.bid != null && (
-                    <div>
-                      <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(hop.bid), 7)}
-                    </div>
-                  )}
-                  {hop.ask != null && (
-                    <div>
-                      <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(hop.ask), 7)}
-                    </div>
-                  )}
-                  {hop.midPrice != null && (
-                    <div className="border-t border-steel-gray/30 pt-1">
-                      <span className="text-steel-gray">ИТОГОВАЯ:</span> {formatNumber(parseFloat(hop.midPrice), 7)}
-                    </div>
-                  )}
-                </div>
-              )
-              : hop.price != null
-              ? (
-                <div className="pl-2">
-                  <span className="text-steel-gray">ЦЕНА:</span> {formatNumber(parseFloat(hop.price), 7)}
-                </div>
-              )
-              : (
-                <div className="pl-2 text-warning-amber text-xs">
-                  НЕТ ДАННЫХ
-                </div>
-              )}
           </div>
         ))}
       </div>

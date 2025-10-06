@@ -5,16 +5,6 @@ import { type EnvironmentError, StellarError, TokenPriceError } from "./errors";
 import type { AssetInfo, PriceDetails, TokenPairPrice } from "./types";
 
 // Horizon API response interfaces
-interface OrderbookRecord {
-  readonly price: string;
-  readonly amount: string;
-}
-
-interface OrderbookResponse {
-  readonly bids: readonly OrderbookRecord[];
-  readonly asks: readonly OrderbookRecord[];
-}
-
 interface PathRecord {
   readonly source_amount: string;
   readonly destination_amount: string;
@@ -74,98 +64,15 @@ const createAsset = (assetInfo: AssetInfo): Effect.Effect<Asset, TokenPriceError
     );
   }
 
-  return Effect.succeed(new Asset(assetInfo.code, assetInfo.issuer));
-};
-
-const fetchOrderbook = (
-  server: Horizon.Server,
-  selling: Asset,
-  buying: Asset,
-): Effect.Effect<OrderbookResponse, StellarError> =>
-  Effect.tryPromise({
-    try: () => server.orderbook(selling, buying).call() as Promise<OrderbookResponse>,
+  return Effect.try({
+    try: () => new Asset(assetInfo.code, assetInfo.issuer),
     catch: (error) =>
-      new StellarError({
-        operation: "fetchOrderbook",
+      new TokenPriceError({
+        message: `Invalid asset: ${assetInfo.code}:${assetInfo.issuer}`,
         cause: error,
       }),
   });
-
-interface PriceCalculationResult {
-  readonly price: string;
-  readonly details: PriceDetails;
-}
-
-const calculateAveragePrice = (
-  orderbook: OrderbookResponse,
-): Effect.Effect<PriceCalculationResult, TokenPriceError> =>
-  pipe(
-    Effect.sync(() => {
-      const bids = orderbook.bids;
-      const asks = orderbook.asks;
-
-      if (bids.length === 0 && asks.length === 0) {
-        return Effect.fail(
-          new TokenPriceError({
-            message: "No orderbook data available",
-          }),
-        );
-      }
-
-      // Calculate best bid (highest buy price)
-      let bestBidPrice = 0;
-      let bestBidString: string | undefined;
-      if (bids.length > 0) {
-        const bestBid = bids[0]; // Bids are sorted descending
-        if (bestBid != null) {
-          bestBidPrice = parseFloat(bestBid.price);
-          bestBidString = bestBid.price;
-        }
-      }
-
-      // Calculate best ask (lowest sell price)
-      let bestAskPrice = 0;
-      let bestAskString: string | undefined;
-      if (asks.length > 0) {
-        const bestAsk = asks[0]; // Asks are sorted ascending
-        if (bestAsk != null) {
-          bestAskPrice = parseFloat(bestAsk.price);
-          bestAskString = bestAsk.price;
-        }
-      }
-
-      let midPrice: number;
-
-      // If we have both bid and ask, use mid-market price
-      if (bestBidPrice > 0 && bestAskPrice > 0) {
-        midPrice = (bestBidPrice + bestAskPrice) / 2;
-      } // If only bids available, use best bid
-      else if (bestBidPrice > 0) {
-        midPrice = bestBidPrice;
-      } // If only asks available, use best ask
-      else if (bestAskPrice > 0) {
-        midPrice = bestAskPrice;
-      } // No valid prices
-      else {
-        return Effect.fail(
-          new TokenPriceError({
-            message: "No valid price data found in orderbook",
-          }),
-        );
-      }
-
-      return Effect.succeed({
-        price: midPrice.toString(),
-        details: {
-          source: "orderbook" as const,
-          ...(bestBidString != null && bestBidString !== "" ? { bid: bestBidString } : {}),
-          ...(bestAskString != null && bestAskString !== "" ? { ask: bestAskString } : {}),
-          midPrice: midPrice.toString(),
-        },
-      });
-    }),
-    Effect.flatten,
-  );
+};
 
 const tryPathFinding = (
   tokenA: AssetInfo,
@@ -265,150 +172,49 @@ const tryPathFinding = (
       const destinationAmount = parseFloat(bestPath.destination_amount);
       const price = (destinationAmount / sourceAmount).toString();
 
-      // Build detailed path with orderbook data for each hop
-      return pipe(
-        Effect.all([
-          // Get orderbook data for each step in the path
-          bestPath.path != null && bestPath.path.length > 0
-            ? pipe(
-              pipe(
-                createAsset(tokenA),
-                Effect.flatMap((startAsset) => {
-                  const hops: Effect.Effect<{
-                    from: string;
-                    to: string;
-                    price?: string;
-                    bid?: string;
-                    ask?: string;
-                    midPrice?: string;
-                  }, TokenPriceError>[] = [];
+      // Build simplified path without orderbook details
+      const pathHops: Array<{ from: string; to: string }> = [];
 
-                  let currentAssetEffect = Effect.succeed(startAsset);
-                  let currentAssetCode = tokenA.code;
+      if (bestPath.path != null && bestPath.path.length > 0) {
+        let currentAssetCode = tokenA.code;
 
-                  // Process each intermediate hop
-                  for (const hop of bestPath.path) {
-                    const nextAssetCode = hop.asset_code ?? "XLM";
-                    const nextAssetIssuer = hop.asset_issuer;
+        // Process each intermediate hop
+        for (const hop of bestPath.path) {
+          const nextAssetCode = hop.asset_code ?? "XLM";
+          pathHops.push({
+            from: currentAssetCode,
+            to: nextAssetCode,
+          });
+          currentAssetCode = nextAssetCode;
+        }
 
-                    const nextAssetInfo: AssetInfo = nextAssetCode === "XLM"
-                      ? { code: "XLM", issuer: "", type: "native" }
-                      : { code: nextAssetCode, issuer: nextAssetIssuer ?? "", type: "credit_alphanum4" };
+        // Add final hop to destination if needed
+        if (currentAssetCode !== tokenB.code) {
+          pathHops.push({
+            from: currentAssetCode,
+            to: tokenB.code,
+          });
+        }
+      } else {
+        // Direct path
+        pathHops.push({
+          from: tokenA.code,
+          to: tokenB.code,
+        });
+      }
 
-                    // Get orderbook for this hop
-                    const hopEffect = pipe(
-                      Effect.all({
-                        currentAsset: currentAssetEffect,
-                        nextAsset: createAsset(nextAssetInfo),
-                      }),
-                      Effect.flatMap(({ currentAsset, nextAsset }) =>
-                        pipe(
-                          fetchOrderbook(config.server, currentAsset, nextAsset),
-                          Effect.flatMap(calculateAveragePrice),
-                          Effect.map((result) => ({
-                            from: currentAssetCode,
-                            to: nextAssetCode,
-                            ...(result.price !== "" && result.price != null ? { price: result.price } : {}),
-                            ...(result.details.bid != null && result.details.bid !== ""
-                              ? { bid: result.details.bid }
-                              : {}),
-                            ...(result.details.ask != null && result.details.ask !== ""
-                              ? { ask: result.details.ask }
-                              : {}),
-                            ...(result.details.midPrice != null && result.details.midPrice !== ""
-                              ? { midPrice: result.details.midPrice }
-                              : {}),
-                          })),
-                          Effect.catchAll(() =>
-                            Effect.succeed({
-                              from: currentAssetCode,
-                              to: nextAssetCode,
-                            })
-                          ),
-                        )
-                      ),
-                    );
+      const pathDetails: PriceDetails = {
+        source: "path" as const,
+        path: pathHops,
+      };
 
-                    hops.push(hopEffect);
-                    currentAssetEffect = createAsset(nextAssetInfo).pipe(
-                      Effect.catchAll(() => Effect.succeed(Asset.native())),
-                    );
-                    currentAssetCode = nextAssetCode;
-                  }
-
-                  // Add final hop to destination if needed
-                  if (currentAssetCode !== tokenB.code) {
-                    const finalHopEffect = pipe(
-                      Effect.all({
-                        currentAsset: currentAssetEffect,
-                        finalAsset: createAsset(tokenB),
-                      }),
-                      Effect.flatMap(({ currentAsset, finalAsset }) =>
-                        pipe(
-                          fetchOrderbook(config.server, currentAsset, finalAsset),
-                          Effect.flatMap(calculateAveragePrice),
-                          Effect.map((result) => ({
-                            from: currentAssetCode,
-                            to: tokenB.code,
-                            ...(result.price !== "" && result.price != null ? { price: result.price } : {}),
-                            ...(result.details.bid != null && result.details.bid !== ""
-                              ? { bid: result.details.bid }
-                              : {}),
-                            ...(result.details.ask != null && result.details.ask !== ""
-                              ? { ask: result.details.ask }
-                              : {}),
-                            ...(result.details.midPrice != null && result.details.midPrice !== ""
-                              ? { midPrice: result.details.midPrice }
-                              : {}),
-                          })),
-                          Effect.catchAll(() =>
-                            Effect.succeed({
-                              from: currentAssetCode,
-                              to: tokenB.code,
-                            })
-                          ),
-                        )
-                      ),
-                    );
-                    hops.push(finalHopEffect);
-                  }
-
-                  return Effect.succeed(hops);
-                }),
-              ),
-              Effect.flatMap((hops) =>
-                Effect.all(hops, { concurrency: 3 }).pipe(
-                  Effect.catchAll(() =>
-                    Effect.succeed([{
-                      from: tokenA.code,
-                      to: tokenB.code,
-                      price,
-                    }])
-                  ),
-                )
-              ),
-            )
-            : Effect.succeed([{
-              from: tokenA.code,
-              to: tokenB.code,
-              price,
-            }]),
-        ]),
-        Effect.map(([pathHops]) => {
-          const pathDetails: PriceDetails = {
-            source: "path" as const,
-            path: pathHops,
-          };
-
-          return {
-            tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
-            tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
-            price,
-            timestamp: new Date(),
-            details: pathDetails,
-          };
-        }),
-      );
+      return Effect.succeed({
+        tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
+        tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
+        price,
+        timestamp: new Date(),
+        details: pathDetails,
+      });
     }),
   );
 
@@ -418,59 +224,23 @@ const getTokenPriceImpl = (
 ): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError | EnvironmentError> =>
   pipe(
     getStellarConfig(),
-    Effect.flatMap((config) => {
-      // Try direct orderbook first
-      const directPrice = pipe(
-        Effect.all({
-          assetA: createAsset(tokenA),
-          assetB: createAsset(tokenB),
-        }),
-        Effect.flatMap(({ assetA, assetB }) =>
-          pipe(
-            fetchOrderbook(config.server, assetA, assetB),
-            Effect.flatMap(calculateAveragePrice),
-            Effect.map((result) => ({
-              tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
-              tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
-              price: result.price,
-              timestamp: new Date(),
-              details: result.details,
-            })),
-          )
-        ),
-      );
-
-      // If direct orderbook fails, try path finding as fallback
-      return pipe(
-        directPrice,
-        Effect.catchAll((directError) =>
-          pipe(
-            Effect.log(
-              `Direct orderbook failed for ${tokenA.code} -> ${tokenB.code}, trying path finding: ${
-                directError instanceof Error ? directError.message : String(directError)
-              }`,
-            ),
-            Effect.flatMap(() =>
-              pipe(
-                tryPathFinding(tokenA, tokenB, config),
-                Effect.tap(() => Effect.log(`Used path finding for ${tokenA.code} -> ${tokenB.code}`)),
-              )
-            ),
-          )
-        ),
+    Effect.flatMap((config) =>
+      pipe(
+        tryPathFinding(tokenA, tokenB, config),
+        Effect.tap(() => Effect.log(`Path finding for ${tokenA.code} -> ${tokenB.code}`)),
         Effect.catchTag("StellarError", (error) => Effect.fail(error)),
         Effect.catchTag("TokenPriceError", (error) => Effect.fail(error)),
         Effect.catchAll((error) =>
           pipe(
             Effect.log(
-              `Detailed pricing error for ${tokenA.code} -> ${tokenB.code}: ${
+              `Path finding error for ${tokenA.code} -> ${tokenB.code}: ${
                 error instanceof Error ? error.message : String(error)
               }`,
             ),
             Effect.flatMap(() =>
               Effect.fail(
                 new TokenPriceError({
-                  message: "Failed to calculate token price",
+                  message: "Failed to calculate token price via path finding",
                   tokenA: tokenA.code,
                   tokenB: tokenB.code,
                   cause: error,
@@ -479,8 +249,8 @@ const getTokenPriceImpl = (
             ),
           )
         ),
-      );
-    }),
+      )
+    ),
   );
 
 const getTokensWithPricesImpl = (

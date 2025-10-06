@@ -25,29 +25,6 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
     );
   }
 
-  if (details.source === "orderbook") {
-    return (
-      <div className="font-mono space-y-1">
-        <div className="text-cyber-green uppercase text-xs">ПРЯМАЯ ТОРГОВЛЯ</div>
-        {details.bid !== null && details.bid !== undefined && (
-          <div className="text-xs">
-            <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(details.bid), 7)}
-          </div>
-        )}
-        {details.ask !== null && details.ask !== undefined && (
-          <div className="text-xs">
-            <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(details.ask), 7)}
-          </div>
-        )}
-        {details.midPrice !== null && details.midPrice !== undefined && (
-          <div className="text-xs border-t border-steel-gray/30 pt-1 mt-1">
-            <span className="text-steel-gray">СРЕДНЯЯ:</span> {formatNumber(parseFloat(details.midPrice), 7)}
-          </div>
-        )}
-      </div>
-    );
-  }
-
   if (details.source === "path" && details.path !== null && details.path !== undefined) {
     return (
       <div className="font-mono space-y-1">
@@ -56,36 +33,10 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
           <span className="text-steel-gray">ПУТЬ:</span>
         </div>
         {details.path.map((hop, index) => (
-          <div key={index} className="text-xs pl-2 space-y-1 border-l border-steel-gray/50 ml-1">
+          <div key={index} className="text-xs pl-2 border-l border-steel-gray/50 ml-1">
             <div className="font-semibold">
               {hop.from} → {hop.to}
             </div>
-            {hop.bid !== null && hop.bid !== undefined && hop.ask !== null && hop.ask !== undefined
-                && hop.midPrice !== null && hop.midPrice !== undefined
-              ? (
-                <div className="pl-2 space-y-1">
-                  <div>
-                    <span className="text-steel-gray">BID:</span> {formatNumber(parseFloat(hop.bid), 7)}
-                  </div>
-                  <div>
-                    <span className="text-steel-gray">ASK:</span> {formatNumber(parseFloat(hop.ask), 7)}
-                  </div>
-                  <div className="border-t border-steel-gray/30 pt-1">
-                    <span className="text-steel-gray">СРЕДНЯЯ:</span> {formatNumber(parseFloat(hop.midPrice), 7)}
-                  </div>
-                </div>
-              )
-              : hop.price !== null && hop.price !== undefined
-              ? (
-                <div className="pl-2">
-                  <span className="text-steel-gray">ЦЕНА:</span> {formatNumber(parseFloat(hop.price), 7)}
-                </div>
-              )
-              : (
-                <div className="pl-2 text-warning-amber text-xs">
-                  НЕТ ДАННЫХ
-                </div>
-              )}
           </div>
         ))}
       </div>

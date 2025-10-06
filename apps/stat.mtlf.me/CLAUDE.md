@@ -49,7 +49,7 @@ interface PortfolioService {
 
 ### 2. PriceService (`src/lib/stellar/price-service.ts`)
 
-Two-tier price discovery: orderbook → path finding.
+Path finding-based price discovery using Stellar Horizon API.
 
 ```typescript
 interface PriceService {
@@ -58,7 +58,9 @@ interface PriceService {
 }
 ```
 
-**Concurrency**: 5 tokens parallel, 3 path hops parallel
+**Method**: `strictSendPaths` (fallback: `strictReceivePaths`)
+**Concurrency**: 5 tokens parallel
+**Test coverage**: `price-service.test.ts`
 
 **📘 Full guide**: `docs/guides/price-discovery.md`
 
