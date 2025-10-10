@@ -1,6 +1,9 @@
 @import "tailwindcss";
+@import "@dreadnought/ui/styles.css";
 
-@source "../../packages/ui/src";
+@source "../src";
+
+@variant dark (&:where(.dark, .dark *));
 
 :root {
   /* Light theme - Blue/Purple Brutalism (High Contrast) */
@@ -24,7 +27,7 @@
   --card-foreground: #0a0a0a;
 }
 
-[data-theme="dark"] {
+.dark {
   /* Dark theme - Purple/Blue Cyberpunk */
   --background: #0f0a1a;      /* Deep purple-black background */
   --foreground: #e0d7ff;      /* Light lavender foreground */

@@ -2,7 +2,7 @@
 
 import { useLocale } from "@/components/locale-client-provider";
 import { LocaleSwitcher } from "@/components/locale-switcher";
-import { ThemeSelector } from "@/components/theme-selector";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 import Link from "next/link";
 
 export function Header() {
@@ -33,7 +33,7 @@ export function Header() {
             >
               {t("header.projects")}
             </Link>
-            <ThemeSelector />
+            <ModeToggle />
             <LocaleSwitcher />
           </nav>
         </div>

@@ -1,9 +1,9 @@
 import { Hero } from "@/components/Hero";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { Footer } from "@/components/layout/Footer";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Programs } from "@/components/Programs";
 import { Projects } from "@/components/Projects";
-import { ThemeSelector } from "@/components/ThemeSelector";
 import { ContentServiceLive, ContentServiceTag } from "@/constants/content";
 import { LinksServiceLive, LinksServiceTag } from "@/constants/links";
 import { LocaleServiceServerLive } from "@/services/locale-server";
@@ -47,8 +47,8 @@ export default async function Home() {
   return (
     <>
       <div className="fixed top-6 right-6 z-50 flex gap-2">
+        <ModeToggle />
         <LanguageSelector />
-        <ThemeSelector />
       </div>
       <main className="h-screen overflow-y-scroll snap-y snap-mandatory bg-background">
         <Hero contentPromise={contentPromise} linksPromise={linksPromise} />

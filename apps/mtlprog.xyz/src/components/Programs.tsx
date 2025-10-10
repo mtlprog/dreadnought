@@ -139,7 +139,8 @@ export function Programs({ contentPromise, linksPromise }: ProgramsProps) {
                         href={programLinks[program.id] || "#"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full h-12 md:h-14 px-6 md:px-8 py-3 md:py-4 bg-secondary text-secondary-foreground text-sm md:text-base font-bold uppercase tracking-wide border-2 border-secondary transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,136,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex items-center justify-center"
+                        className="w-full h-12 md:h-14 px-6 md:px-8 py-3 md:py-4 bg-secondary text-sm md:text-base font-bold uppercase tracking-wide border-2 border-secondary transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,136,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 flex items-center justify-center"
+                        style={{ color: "hsl(var(--secondary-foreground))" }}
                       >
                         {content.programs.cta.apply}
                       </a>
@@ -172,7 +173,8 @@ export function Programs({ contentPromise, linksPromise }: ProgramsProps) {
               href={links.social.discord}
               target="_blank"
               rel="noopener noreferrer"
-              className="group relative inline-flex items-center justify-center h-14 md:h-16 px-12 md:px-16 py-4 md:py-6 bg-primary text-primary-foreground text-sm sm:text-base md:text-lg font-bold uppercase tracking-wide border-2 border-primary transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,217,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 overflow-hidden"
+              className="group relative inline-flex items-center justify-center h-14 md:h-16 px-12 md:px-16 py-4 md:py-6 bg-primary text-sm sm:text-base md:text-lg font-bold uppercase tracking-wide border-2 border-primary transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,217,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 overflow-hidden"
+              style={{ color: "hsl(var(--primary-foreground))" }}
             >
               <span className="relative z-10">
                 {content.programs.footer.button}

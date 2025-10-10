@@ -98,7 +98,8 @@ export function Projects({ contentPromise, linksPromise }: ProjectsProps) {
                     href={links.projects.mtlCrowd}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center gap-2 h-12 md:h-14 px-6 md:px-8 py-3 md:py-4 bg-primary text-primary-foreground text-sm md:text-base font-bold uppercase tracking-wide border-2 border-primary transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,217,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="inline-flex items-center justify-center gap-2 h-12 md:h-14 px-6 md:px-8 py-3 md:py-4 bg-primary text-sm md:text-base font-bold uppercase tracking-wide border-2 border-primary transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,217,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    style={{ color: "hsl(var(--primary-foreground))" }}
                   >
                     {content.projects.cta}
                     <span className="text-lg">→</span>

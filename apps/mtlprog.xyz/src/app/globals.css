@@ -1,85 +1,89 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "@dreadnought/ui/styles.css";
+
+@source "../src";
 
 :root {
-  /* Dark theme (default) - Deep blue-black background inspired by Ghost in the Shell */
-  --background: #0a0e1a;
-  --foreground: #e8f4f8;
-
-  /* Semantic colors - Refined teal/cyan palette */
-  --primary: #00d9ff;
-  --primary-foreground: #0a0e1a;
-  --secondary: #00ff88;
-  --secondary-foreground: #0a0e1a;
-
-  /* Component colors */
-  --card: #111827;
-  --card-foreground: #e8f4f8;
-  --border: #1e3a5f;
-  --input: #1a2332;
-  --ring: #00d9ff;
-
-  /* State colors */
-  --muted: #1a2332;
-  --muted-foreground: #94a3b8;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --accent: #8b5cf6;
-  --accent-foreground: #ffffff;
-  --hover: #1e293b;
-
-  /* Retrofuturistic accents - More sophisticated palette */
-  --cyber-green: #00ff88;
-  --electric-cyan: #00d9ff;
-  --warning-amber: #fbbf24;
-  --steel-gray: #64748b;
-  --neon-purple: #a855f7;
+  /* Dark theme - Cyber/tech aesthetic */
+  --background: 217 33% 8%;            /* #0a0e1a - Deep blue-gray */
+  --foreground: 193 50% 93%;           /* #e8f4f8 - Light cyan-white */
+  --primary: 189 100% 50%;             /* #00d9ff - Electric cyan */
+  --primary-foreground: 217 33% 8%;    /* #0a0e1a - Dark text on bright cyan */
+  --secondary: 152 100% 50%;           /* #00ff88 - Cyber green */
+  --secondary-foreground: 217 33% 8%;  /* #0a0e1a - Dark text on bright green */
+  --card: 217 27% 14%;                 /* #111827 - Card background */
+  --card-foreground: 193 50% 93%;      /* Light cyan on cards */
+  --border: 210 52% 24%;               /* #1e3a5f - Steel blue border */
+  --input: 215 23% 16%;                /* #1a2332 - Input background */
+  --ring: 189 100% 50%;                /* #00d9ff - Electric cyan ring */
+  --muted: 215 23% 16%;                /* #1a2332 - Muted background */
+  --muted-foreground: 214 32% 64%;     /* #94a3b8 - Muted text */
+  --destructive: 0 84% 60%;            /* #ef4444 - Red */
+  --destructive-foreground: 0 0% 100%; /* White on red */
+  --accent: 258 90% 66%;               /* #8b5cf6 - Purple */
+  --accent-foreground: 0 0% 100%;      /* White on purple */
+  --hover: 217 33% 15%;                /* #1e293b - Hover state */
+  --cyber-green: 152 100% 50%;         /* #00ff88 */
+  --electric-cyan: 189 100% 50%;       /* #00d9ff */
+  --warning-amber: 43 96% 56%;         /* #fbbf24 */
+  --steel-gray: 215 20% 65%;           /* #64748b */
+  --neon-purple: 271 81% 56%;          /* #a855f7 */
 }
 
 .light {
   /* Light theme - Clean, high contrast, retrofuturistic */
-  --background: #f5f5f7;
-  --foreground: #0a0e1a;
+  --background: 0 0% 96%;              /* #f5f5f7 - Light gray */
+  --foreground: 217 33% 8%;            /* #0a0e1a - Almost black */
+  --primary: 211 100% 40%;             /* #0066cc - Deep blue */
+  --primary-foreground: 0 0% 100%;     /* #ffffff - White on blue */
+  --secondary: 152 100% 33%;           /* #00a868 - Green */
+  --secondary-foreground: 0 0% 100%;   /* #ffffff - White on green */
+  --card: 0 0% 100%;                   /* #ffffff - White card */
+  --card-foreground: 217 33% 8%;       /* #0a0e1a - Dark text on white */
+  --border: 215 25% 27%;               /* #2d3748 - Dark border */
+  --input: 0 0% 100%;                  /* #ffffff - White input */
+  --ring: 211 100% 40%;                /* #0066cc - Blue ring */
+  --muted: 220 13% 91%;                /* #e5e7eb - Light muted */
+  --muted-foreground: 215 16% 31%;     /* #3f4b5b - Dark muted text */
+  --destructive: 0 73% 50%;            /* #dc2626 - Red */
+  --destructive-foreground: 0 0% 100%; /* #ffffff - White on red */
+  --accent: 258 85% 53%;               /* #7c3aed - Purple */
+  --accent-foreground: 0 0% 100%;      /* #ffffff - White on purple */
+  --hover: 201 96% 92%;                /* #dbeafe - Light blue hover */
+  --cyber-green: 152 100% 33%;         /* #00a868 */
+  --electric-cyan: 211 100% 40%;       /* #0066cc */
+  --warning-amber: 27 95% 54%;         /* #ea580c */
+  --steel-gray: 215 25% 27%;           /* #334155 */
+  --neon-purple: 271 76% 53%;          /* #9333ea */
+}
 
-  /* Semantic colors - Electric, saturated colors for retrofuturistic aesthetic */
-  --primary: #0066cc;
-  --primary-foreground: #ffffff;
-  --secondary: #00a868;
-  --secondary-foreground: #ffffff;
-
-  /* Component colors - High contrast for readability */
-  --card: #ffffff;
-  --card-foreground: #0a0e1a;
-  --border: #2d3748;
-  --input: #ffffff;
-  --ring: #0066cc;
-
-  /* State colors */
-  --muted: #e5e7eb;
-  --muted-foreground: #3f4b5b;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --accent: #7c3aed;
-  --accent-foreground: #ffffff;
-  --hover: #dbeafe;
-
-  /* Retrofuturistic accents - Electric, saturated colors */
-  --cyber-green: #00a868;
-  --electric-cyan: #0066cc;
-  --warning-amber: #ea580c;
-  --steel-gray: #334155;
-  --neon-purple: #9333ea;
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-hover: hsl(var(--hover));
+  --color-cyber-green: hsl(var(--cyber-green));
+  --color-electric-cyan: hsl(var(--electric-cyan));
+  --color-warning-amber: hsl(var(--warning-amber));
+  --color-steel-gray: hsl(var(--steel-gray));
+  --color-neon-purple: hsl(var(--neon-purple));
 }
 
 @layer base {
-  * {
-    @apply border-border;
-    box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-  }
-
   html {
     scroll-behavior: smooth;
   }
@@ -101,71 +105,75 @@
       transition: none !important;
     }
   }
+}
 
-  html,
-  body {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
+* {
+  border-color: hsl(var(--border));
+  box-sizing: border-box;
+}
 
-  body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-mono);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
 
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 12px;
-  }
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
-  ::-webkit-scrollbar-track {
-    background: var(--background);
-  }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
 
-  ::-webkit-scrollbar-thumb {
-    background: var(--steel-gray);
-    border: 2px solid var(--background);
-  }
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--cyber-green);
-  }
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--steel-gray));
+  border: 2px solid hsl(var(--background));
+}
 
-  /* Selection */
-  ::selection {
-    background: var(--cyber-green);
-    color: var(--background);
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--cyber-green));
+}
+
+/* Selection */
+::selection {
+  background: hsl(var(--cyber-green));
+  color: hsl(var(--background));
 }
 
 /* Subtle grid background effect */
-@layer base {
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background:
-      linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px, 50px 50px;
-    pointer-events: none;
-    z-index: 0;
-  }
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(rgba(30, 58, 95, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 95, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px, 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
 
-  main {
-    position: relative;
-    z-index: 1;
-  }
+main {
+  position: relative;
+  z-index: 1;
 }
 
 /* Motion preferences */

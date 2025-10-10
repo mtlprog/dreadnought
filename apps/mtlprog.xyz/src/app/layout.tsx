@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@/components/theme-provider";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
@@ -48,9 +49,11 @@ export default async function RootLayout({
   const resolvedTheme = theme === "system" ? "dark" : theme;
 
   return (
-    <html lang={locale} className={resolvedTheme}>
+    <html lang={locale} className={resolvedTheme} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

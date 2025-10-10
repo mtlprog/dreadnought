@@ -62,9 +62,24 @@ export function LanguageSelector() {
                 onClick={() => handleSelect(locale.value)}
                 className={`w-full h-10 px-4 text-sm font-bold uppercase tracking-wider transition-all duration-200 border-b border-border last:border-b-0 ${
                   currentLocale === locale.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-foreground hover:bg-primary hover:text-primary-foreground"
+                    ? "bg-primary"
+                    : "text-foreground hover:bg-primary"
                 }`}
+                style={
+                  currentLocale === locale.value || undefined
+                    ? { color: "hsl(var(--primary-foreground))" }
+                    : undefined
+                }
+                onMouseEnter={(e) => {
+                  if (currentLocale !== locale.value) {
+                    e.currentTarget.style.color = "hsl(var(--primary-foreground))";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentLocale !== locale.value) {
+                    e.currentTarget.style.color = "";
+                  }
+                }}
               >
                 {locale.label}
               </button>

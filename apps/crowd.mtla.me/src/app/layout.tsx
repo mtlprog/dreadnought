@@ -1,6 +1,7 @@
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { LocaleClientProvider } from "@/components/locale-client-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -71,24 +72,26 @@ export default async function RootLayout({
   const resolvedTheme = theme === "system" ? "dark" : theme;
 
   return (
-    <html lang={locale} className={resolvedTheme}>
+    <html lang={locale} className={resolvedTheme} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LocaleClientProvider initialLocale={locale}>
-          <TooltipProvider
-            delayDuration={300}
-            skipDelayDuration={100}
-          >
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </TooltipProvider>
-        </LocaleClientProvider>
+        <ThemeProvider>
+          <LocaleClientProvider initialLocale={locale}>
+            <TooltipProvider
+              delayDuration={300}
+              skipDelayDuration={100}
+            >
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </TooltipProvider>
+          </LocaleClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

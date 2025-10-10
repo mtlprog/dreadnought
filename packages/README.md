@@ -227,20 +227,48 @@ When using React components with Tailwind CSS from packages like `@dreadnought/u
 
 ### Tailwind CSS v4 Setup (Next.js 15+)
 
-For apps using Tailwind CSS v4 with `@tailwindcss/postcss`, add `@source` directive to your `globals.css`:
+The `@dreadnought/ui` package exports a `styles.css` file that contains the `@source` directive for scanning UI components.
+
+**In your app's `globals.css`:**
 
 ```css
 @import "tailwindcss";
+@import "@dreadnought/ui/styles.css";
 
-/* Scan UI package for Tailwind classes */
-@source "../../packages/ui/src";
+@source "../src";
+
+@variant dark (&:where(.dark, .dark *));
 
 :root {
-  /* Your theme variables... */
+  /* Light theme variables... */
+}
+
+.dark {
+  /* Dark theme variables... */
 }
 ```
 
-**Why this is needed**: Tailwind CSS v4 by default only scans files in your app directory. Without the `@source` directive, classes from package components won't be included in the generated CSS, causing components to appear unstyled.
+**Why this is needed**:
+1. Tailwind CSS v4 by default only scans files in your app directory
+2. `@dreadnought/ui/styles.css` tells Tailwind to scan the UI package
+3. `@source "../src"` scans your app's local components (e.g., mode-toggle.tsx)
+4. `@variant dark` enables `dark:` utility classes for theme switching
+
+**Theme Switching Setup:**
+
+If using `next-themes` for dark mode, configure it to use `class` attribute (not `data-theme`):
+
+```typescript
+// components/theme-provider.tsx
+<NextThemesProvider
+  attribute="class"      // IMPORTANT: use "class" not "data-theme"
+  defaultTheme="system"
+  enableSystem
+  {...props}
+>
+```
+
+**How it works**: The `packages/ui/styles.css` file contains `@source "./src"`, which tells Tailwind to scan the UI package source directory. Combined with your app's `@source "../src"` and `@variant dark`, this ensures all Tailwind classes (including `dark:` variants) work correctly across both package components and app components.
 
 ### Tailwind CSS v3 Setup
 

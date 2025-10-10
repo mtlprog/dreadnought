@@ -7,7 +7,7 @@
     "./use-local-storage": "./src/use-local-storage.ts"
   },
   "peerDependencies": {
-    "effect": "^3.0.0",
+    "effect": "latest",
     "react": "^19.0.0"
   },
   "devDependencies": {

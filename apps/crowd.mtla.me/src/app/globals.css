@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@import "@dreadnought/ui/styles.css";
+
+@source "../src";
 
 :root {
   /* Light theme - Retrofuturistic with high contrast */
