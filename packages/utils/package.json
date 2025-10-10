@@ -7,7 +7,7 @@
   },
   "peerDependencies": {
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.7.0"
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@types/bun": "latest",
