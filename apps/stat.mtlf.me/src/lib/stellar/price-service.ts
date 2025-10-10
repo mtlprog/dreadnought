@@ -224,7 +224,7 @@ const getTokenPriceImpl = (
 ): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError | EnvironmentError> =>
   pipe(
     getStellarConfig(),
-    Effect.flatMap((config) =>
+    Effect.flatMap((config): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError> =>
       pipe(
         tryPathFinding(tokenA, tokenB, config),
         Effect.tap(() => Effect.log(`Path finding for ${tokenA.code} -> ${tokenB.code}`)),
