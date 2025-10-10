@@ -112,6 +112,12 @@ const FUND_ACCOUNTS_RAW = [
     type: "other",
     description: "Montelibero Meta (не входит в общий счёт фонда)",
   },
+  {
+    id: "GDRLJC6EOKRR3BPKWGJPGI5GUN4GZFZRWQFDG3RJNZJEIBYA7B3EPROG",
+    name: "PROGRAMMERS GUILD",
+    type: "other",
+    description: "Гильдия программистов (не входит в общий счёт фонда)",
+  },
 ] as const;
 
 const FUND_ACCOUNTS: readonly FundAccount[] = S.decodeUnknownSync(

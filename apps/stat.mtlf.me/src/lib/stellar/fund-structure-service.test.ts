@@ -14,7 +14,8 @@ describe("FundStructureService", () => {
 
       const result = await testRuntime.runPromise(program);
 
-      expect(result).toHaveLength(6);
+      // 1 Issuer + 3 Subfonds + 2 Mutuals + 1 Operational + 3 Others = 10 accounts
+      expect(result).toHaveLength(10);
       expect(result[0]).toMatchObject({
         id: "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
         name: "MAIN ISSUER",
@@ -26,9 +27,10 @@ describe("FundStructureService", () => {
         type: "subfond",
       });
 
-      expect(result[2]).toMatchObject({
+      // LABR is now type "other"
+      expect(result[7]).toMatchObject({
         name: "LABR",
-        type: "subfond",
+        type: "other",
       });
     } finally {
       await testRuntime.dispose();
@@ -54,7 +56,7 @@ describe("FundStructureService", () => {
         expect(typeof account.id).toBe("string");
         expect(typeof account.name).toBe("string");
         expect(typeof account.description).toBe("string");
-        expect(["issuer", "subfond", "operational"]).toContain(account.type);
+        expect(["issuer", "subfond", "mutual", "operational", "other"]).toContain(account.type);
       }
     } finally {
       await testRuntime.dispose();
@@ -76,11 +78,21 @@ describe("FundStructureService", () => {
         .filter(account => account.type === "subfond")
         .map(account => account.name);
 
+      // Only 3 subfonds: MABIZ, CITY, DEFI
       expect(subfondNames).toContain("MABIZ");
-      expect(subfondNames).toContain("LABR");
       expect(subfondNames).toContain("CITY");
-      expect(subfondNames).toContain("MTLM");
       expect(subfondNames).toContain("DEFI");
+      expect(subfondNames).toHaveLength(3);
+
+      // LABR and MTLM are now type "other"
+      const otherNames = result
+        .filter(account => account.type === "other")
+        .map(account => account.name);
+
+      expect(otherNames).toContain("LABR");
+      expect(otherNames).toContain("MTLM");
+      expect(otherNames).toContain("PROGRAMMERS GUILD");
+      expect(otherNames).toHaveLength(3);
     } finally {
       await testRuntime.dispose();
     }

@@ -9,6 +9,7 @@ import type { FundAccountPortfolio, FundStructureData } from "@/lib/stellar/fund
 import type { PriceDetails } from "@/lib/stellar/types";
 import { formatNumber } from "@/lib/utils";
 import React from "react";
+import { FundSummaryMetrics } from "./fund-summary-metrics";
 
 interface FundStructureTableProps {
   fundData: FundStructureData;
@@ -193,6 +194,15 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
   return (
     <TooltipProvider>
       <div className="space-y-8">
+        {/* Fund Summary Metrics */}
+        <FundSummaryMetrics
+          totalEURMTL={fundData.aggregatedTotals.totalEURMTL}
+          totalXLM={fundData.aggregatedTotals.totalXLM}
+          accountCount={fundData.aggregatedTotals.accountCount}
+          tokenCount={fundData.aggregatedTotals.tokenCount}
+          isLoading={isLoading}
+        />
+
         <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
           <div className="bg-cyber-green text-background p-6">
             <h2 className="text-3xl font-mono uppercase tracking-wider">СТРУКТУРА ФОНДА MONTELIBERO</h2>
