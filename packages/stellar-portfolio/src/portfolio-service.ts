@@ -95,7 +95,7 @@ const getAccountPortfolioImpl = (
       pipe(
         loadAccount(config.server, accountId),
         Effect.flatMap(parseBalances),
-        Effect.map(({ tokens, xlmBalance }) => ({
+        Effect.map(({ tokens, xlmBalance }): AccountPortfolio => ({
           accountId,
           tokens,
           xlmBalance,

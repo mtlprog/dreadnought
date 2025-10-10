@@ -12,12 +12,12 @@
     "@stellar/stellar-sdk": "^12.3.0"
   },
   "peerDependencies": {
-    "effect": "^3.11.0",
-    "@effect/schema": "latest"
+    "effect": "catalog:default",
+    "@effect/schema": "catalog:default"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "effect": "^3.11.0",
-    "@effect/schema": "latest"
+    "effect": "catalog:default",
+    "@effect/schema": "catalog:default"
   }
 }

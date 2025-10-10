@@ -9,7 +9,7 @@
     "./runtime": "./src/runtime.ts"
   },
   "peerDependencies": {
-    "effect": "latest",
+    "effect": "catalog:default",
     "lucide-react": "^0.469.0",
     "react": "^19.0.0"
   },

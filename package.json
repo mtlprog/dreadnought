@@ -17,15 +17,25 @@
     "check": "bun run type-check && bun run lint",
     "verify": "bun run lint && bun run typecheck && bun run test && bun run build"
   },
+  "catalogs": {
+    "default": {
+      "effect": "latest",
+      "@effect/platform": "latest",
+      "@effect/platform-bun": "latest",
+      "@effect/platform-node": "latest",
+      "@effect/schema": "latest",
+      "@effect/eslint-plugin": "latest"
+    }
+  },
   "dependencies": {
-    "effect": "latest",
-    "@effect/platform": "latest",
-    "@effect/platform-bun": "latest",
-    "@effect/platform-node": "latest",
-    "@effect/schema": "latest"
+    "effect": "catalog:default",
+    "@effect/platform": "catalog:default",
+    "@effect/platform-bun": "catalog:default",
+    "@effect/platform-node": "catalog:default",
+    "@effect/schema": "catalog:default"
   },
   "devDependencies": {
-    "@effect/eslint-plugin": "latest",
+    "@effect/eslint-plugin": "catalog:default",
     "@happy-dom/global-registrator": "^19.0.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
