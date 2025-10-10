@@ -8,11 +8,11 @@
   },
   "peerDependencies": {
     "effect": "catalog:default",
-    "react": "^19.0.0"
+    "react": "catalog:default"
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/react": "^19.0.0",
-    "typescript": "^5.0.0"
+    "@types/react": "catalog:default",
+    "typescript": "catalog:default"
   }
 }

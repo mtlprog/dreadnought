@@ -24,7 +24,15 @@
       "@effect/platform-bun": "latest",
       "@effect/platform-node": "latest",
       "@effect/schema": "latest",
-      "@effect/eslint-plugin": "latest"
+      "@effect/eslint-plugin": "latest",
+      "@stellar/stellar-sdk": "^12.3.0",
+      "react": "^19.0.0",
+      "react-dom": "^19.0.0",
+      "next": "15.5.2",
+      "typescript": "^5.0.0",
+      "@types/react": "^19.0.0",
+      "@types/react-dom": "^19.0.0",
+      "@types/node": "^20"
     }
   },
   "dependencies": {
