@@ -16,7 +16,7 @@ interface FundStructureTableProps {
   isLoading?: boolean;
 }
 
-function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
+function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true): React.ReactNode {
   if (details === null || details === undefined) {
     return (
       <div className="font-mono">
@@ -60,7 +60,7 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
               <div className="font-semibold text-foreground">
                 {hop.from} → {hop.to}
               </div>
-              {hop.orderbook !== null && hop.orderbook !== undefined && (
+              {showOrderbookDetails && hop.orderbook !== null && hop.orderbook !== undefined && (
                 <div className="pl-2 space-y-1.5 text-[10px]">
                   {/* Best source indicator */}
                   {hop.orderbook.bestSource !== "none" && (
@@ -261,7 +261,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {formatPriceTooltip(token.detailsEURMTLFullBalance)}
+                      {formatPriceTooltip(token.detailsEURMTLFullBalance, false)}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
@@ -273,7 +273,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {formatPriceTooltip(token.detailsXLMFullBalance)}
+                      {formatPriceTooltip(token.detailsXLMFullBalance, false)}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
