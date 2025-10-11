@@ -36,6 +36,8 @@ export interface TokenPriceWithBalance {
   readonly valueInXLM: string | null;
   readonly detailsEURMTL?: PriceDetails;
   readonly detailsXLM?: PriceDetails;
+  readonly detailsEURMTLFullBalance?: PriceDetails; // Path details for selling entire balance
+  readonly detailsXLMFullBalance?: PriceDetails; // Path details for selling entire balance
 }
 
 export interface PriceService {
@@ -221,6 +223,7 @@ const tryPathFinding = (
   tokenA: AssetInfo,
   tokenB: AssetInfo,
   config: { server: Horizon.Server },
+  amount: string = "1", // Default to 1 for spot price, but can specify full balance
 ): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError> =>
   pipe(
     Effect.all({
@@ -229,11 +232,11 @@ const tryPathFinding = (
     }),
     Effect.flatMap(({ sourceAsset, destAsset }) =>
       pipe(
-        // Try strictSendPaths first with amount "1"
+        // Try strictSendPaths first with specified amount
         Effect.tryPromise({
           try: () =>
             config.server
-              .strictSendPaths(sourceAsset, "1", [destAsset])
+              .strictSendPaths(sourceAsset, amount, [destAsset])
               .call() as Promise<PathResponse>,
           catch: (error) =>
             new StellarError({
@@ -411,6 +414,7 @@ const tryPathFinding = (
             tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
             tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
             price,
+            destinationAmount: destinationAmount.toString(),
             timestamp: new Date(),
             details: pathDetails,
           };
@@ -422,12 +426,13 @@ const tryPathFinding = (
 const getTokenPriceImpl = (
   tokenA: AssetInfo,
   tokenB: AssetInfo,
+  amount?: string, // Optional amount, defaults to "1" in tryPathFinding
 ): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError | EnvironmentError> =>
   pipe(
     getStellarConfig(),
     Effect.flatMap((config): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError> =>
       pipe(
-        tryPathFinding(tokenA, tokenB, config),
+        tryPathFinding(tokenA, tokenB, config, amount),
         Effect.tap(() => Effect.log(`Path finding for ${tokenA.code} -> ${tokenB.code}`)),
         Effect.catchTag("StellarError", (error) => Effect.fail(error)),
         Effect.catchTag("TokenPriceError", (error) => Effect.fail(error)),
@@ -463,45 +468,79 @@ const getTokensWithPricesImpl = (
       tokens.map((token) =>
         pipe(
           Effect.all({
-            eurmtlData: pipe(
-              getTokenPriceImpl(token.asset, baseTokens.eurmtl),
+            // Spot price (amount = 1)
+            eurmtlSpotData: pipe(
+              getTokenPriceImpl(token.asset, baseTokens.eurmtl, "1"),
               Effect.map((result) => ({ price: result.price, details: result.details })),
               Effect.catchAll((error) =>
                 pipe(
-                  Effect.logError(`EURMTL pricing failed for ${token.asset.code}: ${error}`),
+                  Effect.logError(`EURMTL spot pricing failed for ${token.asset.code}: ${error}`),
                   Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
                 )
               ),
             ),
-            xlmData: pipe(
-              getTokenPriceImpl(token.asset, baseTokens.xlm),
+            xlmSpotData: pipe(
+              getTokenPriceImpl(token.asset, baseTokens.xlm, "1"),
               Effect.map((result) => ({ price: result.price, details: result.details })),
               Effect.catchAll((error) =>
                 pipe(
-                  Effect.logError(`XLM pricing failed for ${token.asset.code}: ${error}`),
+                  Effect.logError(`XLM spot pricing failed for ${token.asset.code}: ${error}`),
                   Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
+                )
+              ),
+            ),
+            // Full balance price (amount = token.balance)
+            eurmtlFullData: pipe(
+              getTokenPriceImpl(token.asset, baseTokens.eurmtl, token.balance),
+              Effect.map((result) => ({
+                destinationAmount: result.destinationAmount,
+                details: result.details
+              })),
+              Effect.catchAll((error) =>
+                pipe(
+                  Effect.logError(`EURMTL full balance pricing failed for ${token.asset.code}: ${error}`),
+                  Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
+                )
+              ),
+            ),
+            xlmFullData: pipe(
+              getTokenPriceImpl(token.asset, baseTokens.xlm, token.balance),
+              Effect.map((result) => ({
+                destinationAmount: result.destinationAmount,
+                details: result.details
+              })),
+              Effect.catchAll((error) =>
+                pipe(
+                  Effect.logError(`XLM full balance pricing failed for ${token.asset.code}: ${error}`),
+                  Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
                 )
               ),
             ),
           }),
-          Effect.map(({ eurmtlData, xlmData }) => {
-            const balance = parseFloat(token.balance);
-            const valueInEURMTL = eurmtlData.price != null && eurmtlData.price !== ""
-              ? (balance * parseFloat(eurmtlData.price)).toFixed(2)
+          Effect.map(({ eurmtlSpotData, xlmSpotData, eurmtlFullData, xlmFullData }) => {
+            // Use spot price for "ЦЕНА" columns
+            const priceInEURMTL = eurmtlSpotData.price;
+            const priceInXLM = xlmSpotData.price;
+
+            // Use full balance destination amount for "СТОИМОСТЬ" columns
+            const valueInEURMTL = eurmtlFullData.destinationAmount != null && eurmtlFullData.destinationAmount !== ""
+              ? parseFloat(eurmtlFullData.destinationAmount).toFixed(2)
               : null;
-            const valueInXLM = xlmData.price != null && xlmData.price !== ""
-              ? (balance * parseFloat(xlmData.price)).toFixed(7)
+            const valueInXLM = xlmFullData.destinationAmount != null && xlmFullData.destinationAmount !== ""
+              ? parseFloat(xlmFullData.destinationAmount).toFixed(7)
               : null;
 
             return {
               asset: token.asset,
               balance: token.balance,
-              priceInEURMTL: eurmtlData.price,
-              priceInXLM: xlmData.price,
+              priceInEURMTL,
+              priceInXLM,
               valueInEURMTL,
               valueInXLM,
-              ...(eurmtlData.details != null ? { detailsEURMTL: eurmtlData.details } : {}),
-              ...(xlmData.details != null ? { detailsXLM: xlmData.details } : {}),
+              ...(eurmtlSpotData.details != null ? { detailsEURMTL: eurmtlSpotData.details } : {}),
+              ...(xlmSpotData.details != null ? { detailsXLM: xlmSpotData.details } : {}),
+              ...(eurmtlFullData.details != null ? { detailsEURMTLFullBalance: eurmtlFullData.details } : {}),
+              ...(xlmFullData.details != null ? { detailsXLMFullBalance: xlmFullData.details } : {}),
             };
           }),
         )

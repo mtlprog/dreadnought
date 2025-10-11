@@ -232,10 +232,28 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
-                  {token.valueInEURMTL != null ? formatNumber(parseFloat(token.valueInEURMTL), 2) : "—"}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help underline-offset-2 hover:underline">
+                        {token.valueInEURMTL != null ? formatNumber(parseFloat(token.valueInEURMTL), 2) : "—"}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      {formatPriceTooltip(token.detailsEURMTLFullBalance)}
+                    </TooltipContent>
+                  </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
-                  {token.valueInXLM != null ? formatNumber(parseFloat(token.valueInXLM), 7) : "—"}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="cursor-help underline-offset-2 hover:underline">
+                        {token.valueInXLM != null ? formatNumber(parseFloat(token.valueInXLM), 7) : "—"}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      {formatPriceTooltip(token.detailsXLMFullBalance)}
+                    </TooltipContent>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}

@@ -28,7 +28,8 @@ export interface PriceDetails {
 export interface TokenPairPrice {
   readonly tokenA: string;
   readonly tokenB: string;
-  readonly price: string;
+  readonly price: string; // Price per 1 token (destination_amount / source_amount)
+  readonly destinationAmount: string; // Actual destination amount received
   readonly timestamp: Date;
   readonly details?: PriceDetails;
 }
