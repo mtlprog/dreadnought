@@ -17,6 +17,8 @@ export interface OrderbookData {
 // Price calculation details
 export interface PriceDetails {
   readonly source: "path";
+  readonly sourceAmount?: string; // Amount of source asset being sold
+  readonly destinationAmount?: string; // Amount of destination asset received
   readonly path: readonly {
     readonly from: string;
     readonly to: string;

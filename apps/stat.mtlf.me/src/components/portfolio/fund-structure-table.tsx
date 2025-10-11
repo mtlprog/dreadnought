@@ -32,6 +32,28 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
         <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
           ПОИСК ПУТИ
         </div>
+
+        {/* Show trade amounts if available (for full balance tooltips) */}
+        {details.sourceAmount !== null && details.sourceAmount !== undefined &&
+         details.destinationAmount !== null && details.destinationAmount !== undefined && (
+          <div className="text-[10px] space-y-0.5 pb-2 border-b border-steel-gray/30">
+            <div className="flex justify-between gap-4">
+              <span className="text-steel-gray uppercase font-bold">ПРОДАЖА:</span>
+              <span className="text-warning-amber">{formatNumber(parseFloat(details.sourceAmount), 7)}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-steel-gray uppercase font-bold">ПОЛУЧЕНИЕ:</span>
+              <span className="text-cyber-green">{formatNumber(parseFloat(details.destinationAmount), 7)}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-steel-gray uppercase font-bold">ЭФФЕКТ. ЦЕНА:</span>
+              <span className="text-electric-cyan">
+                {formatNumber(parseFloat(details.destinationAmount) / parseFloat(details.sourceAmount), 7)}
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2">
           {details.path.map((hop, index) => (
             <div key={index} className="text-xs pl-2 border-l-2 border-steel-gray/50 ml-1 space-y-1">

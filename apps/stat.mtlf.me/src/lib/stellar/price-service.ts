@@ -407,6 +407,8 @@ const tryPathFinding = (
 
           const pathDetails: PriceDetails = {
             source: "path" as const,
+            sourceAmount: sourceAmount.toString(),
+            destinationAmount: destinationAmount.toString(),
             path: pathHops,
           };
 
