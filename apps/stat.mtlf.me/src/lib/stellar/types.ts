@@ -1,12 +1,17 @@
 // Re-export from @dreadnought/stellar-utils
 export type { AssetInfo } from "@dreadnought/stellar-utils";
 
-// Orderbook data for a single hop
+// Price data from a single source
+export interface PriceSource {
+  readonly ask: string | null;
+  readonly bid: string | null;
+}
+
+// Orderbook data for a single hop (includes both orderbook and AMM)
 export interface OrderbookData {
-  readonly ask: string | null; // Best ask price (lowest sell offer)
-  readonly bid: string | null; // Best bid price (highest buy offer)
-  readonly source: "orderbook" | "amm" | "none"; // Price source
-  readonly poolId?: string; // Liquidity pool ID if source is AMM
+  readonly orderbook: PriceSource; // Traditional orderbook prices
+  readonly amm: PriceSource & { readonly poolId?: string }; // AMM pool prices with pool ID
+  readonly bestSource: "orderbook" | "amm" | "none"; // Which source has better price
 }
 
 // Price calculation details

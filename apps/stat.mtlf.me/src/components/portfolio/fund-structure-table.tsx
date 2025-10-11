@@ -39,35 +39,68 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
                 {hop.from} → {hop.to}
               </div>
               {hop.orderbook !== null && hop.orderbook !== undefined && (
-                <div className="pl-2 space-y-0.5 text-[10px]">
-                  {/* Source indicator */}
-                  {hop.orderbook.source !== "none" && (
-                    <div className="text-electric-cyan uppercase text-[9px] font-bold mb-1">
-                      {hop.orderbook.source === "orderbook" ? "ORDERBOOK" : "AMM POOL"}
+                <div className="pl-2 space-y-1.5 text-[10px]">
+                  {/* Best source indicator */}
+                  {hop.orderbook.bestSource !== "none" && (
+                    <div className="text-electric-cyan uppercase text-[9px] font-bold">
+                      BEST: {hop.orderbook.bestSource.toUpperCase()}
                     </div>
                   )}
 
-                  <div className="flex justify-between gap-3">
-                    <span className="text-cyber-green uppercase font-bold">ASK:</span>
-                    <span className="text-cyber-green font-mono">
-                      {hop.orderbook.ask !== null ? formatNumber(parseFloat(hop.orderbook.ask), 7) : "—"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-warning-amber uppercase font-bold">BID:</span>
-                    <span className="text-warning-amber font-mono">
-                      {hop.orderbook.bid !== null ? formatNumber(parseFloat(hop.orderbook.bid), 7) : "—"}
-                    </span>
-                  </div>
+                  {/* Orderbook prices */}
+                  {(hop.orderbook.orderbook.ask !== null || hop.orderbook.orderbook.bid !== null) && (
+                    <div className="space-y-0.5">
+                      <div className="text-steel-gray uppercase text-[9px] font-bold">ORDERBOOK:</div>
+                      <div className="flex justify-between gap-3">
+                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                          ASK:
+                        </span>
+                        <span className={`font-mono ${hop.orderbook.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                          {hop.orderbook.orderbook.ask !== null ? formatNumber(parseFloat(hop.orderbook.orderbook.ask), 7) : "—"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "orderbook" ? "text-warning-amber" : "text-steel-gray"}`}>
+                          BID:
+                        </span>
+                        <span className={`font-mono ${hop.orderbook.bestSource === "orderbook" ? "text-warning-amber" : "text-steel-gray"}`}>
+                          {hop.orderbook.orderbook.bid !== null ? formatNumber(parseFloat(hop.orderbook.orderbook.bid), 7) : "—"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
-                  {hop.orderbook.source === "none" && (
+                  {/* AMM prices */}
+                  {(hop.orderbook.amm.ask !== null || hop.orderbook.amm.bid !== null) && (
+                    <div className="space-y-0.5 pt-1">
+                      <div className="text-steel-gray uppercase text-[9px] font-bold">AMM POOL:</div>
+                      <div className="flex justify-between gap-3">
+                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                          ASK:
+                        </span>
+                        <span className={`font-mono ${hop.orderbook.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                          {hop.orderbook.amm.ask !== null ? formatNumber(parseFloat(hop.orderbook.amm.ask), 7) : "—"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "amm" ? "text-warning-amber" : "text-steel-gray"}`}>
+                          BID:
+                        </span>
+                        <span className={`font-mono ${hop.orderbook.bestSource === "amm" ? "text-warning-amber" : "text-steel-gray"}`}>
+                          {hop.orderbook.amm.bid !== null ? formatNumber(parseFloat(hop.orderbook.amm.bid), 7) : "—"}
+                        </span>
+                      </div>
+                      {hop.orderbook.amm.poolId !== null && hop.orderbook.amm.poolId !== undefined && (
+                        <div className="text-steel-gray text-[9px] mt-0.5 truncate" title={hop.orderbook.amm.poolId}>
+                          Pool: {hop.orderbook.amm.poolId.substring(0, 8)}...
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* No data message */}
+                  {hop.orderbook.bestSource === "none" && (
                     <div className="text-steel-gray italic">нет данных</div>
-                  )}
-
-                  {hop.orderbook.source === "amm" && hop.orderbook.poolId !== null && hop.orderbook.poolId !== undefined && (
-                    <div className="text-steel-gray text-[9px] mt-1 truncate" title={hop.orderbook.poolId}>
-                      Pool: {hop.orderbook.poolId.substring(0, 8)}...
-                    </div>
                   )}
                 </div>
               )}

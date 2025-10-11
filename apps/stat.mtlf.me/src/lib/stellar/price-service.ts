@@ -3,7 +3,7 @@ import { Context, Effect, Layer, pipe } from "effect";
 import { fetchOrderbook } from "@dreadnought/stellar-core";
 import { getStellarConfig } from "./config";
 import { type EnvironmentError, StellarError, TokenPriceError } from "./errors";
-import type { AssetInfo, OrderbookData, PriceDetails, TokenPairPrice } from "./types";
+import type { AssetInfo, OrderbookData, PriceDetails, PriceSource, TokenPairPrice } from "./types";
 
 // Horizon API response interfaces
 interface PathRecord {
@@ -87,7 +87,7 @@ const fetchLiquidityPoolPrice = (
   server: Horizon.Server,
   assetA: Asset,
   assetB: Asset,
-): Effect.Effect<OrderbookData, never> =>
+): Effect.Effect<PriceSource & { readonly poolId?: string }, never> =>
   pipe(
     Effect.tryPromise({
       try: () => server.liquidityPools().forAssets(assetA, assetB).limit(1).call(),
@@ -100,14 +100,14 @@ const fetchLiquidityPoolPrice = (
     Effect.map((poolsResponse) => {
       const pool = poolsResponse.records?.[0];
       if (pool === null || pool === undefined || pool.reserves.length !== 2) {
-        return { ask: null, bid: null, source: "none" as const };
+        return { ask: null, bid: null };
       }
 
       // Extract reserves - pool.reserves is array of {asset: string, amount: string}
       const reserveA = pool.reserves[0];
       const reserveB = pool.reserves[1];
       if (reserveA === undefined || reserveB === undefined) {
-        return { ask: null, bid: null, source: "none" as const };
+        return { ask: null, bid: null };
       }
 
       const amountA = parseFloat(reserveA.amount);
@@ -121,7 +121,6 @@ const fetchLiquidityPoolPrice = (
       return {
         ask: spotPrice,
         bid: spotPrice,
-        source: "amm" as const,
         poolId: pool.id,
       };
     }),
@@ -132,12 +131,33 @@ const fetchLiquidityPoolPrice = (
             error instanceof Error ? error.message : String(error)
           }`,
         ),
-        Effect.flatMap(() => Effect.succeed({ ask: null, bid: null, source: "none" as const })),
+        Effect.flatMap(() => Effect.succeed({ ask: null, bid: null })),
       )
     ),
   );
 
-// Fetch orderbook data for a trading pair (with AMM fallback)
+// Helper to determine best price source
+const determineBestSource = (
+  orderbookPrice: PriceSource,
+  ammPrice: PriceSource,
+): "orderbook" | "amm" | "none" => {
+  const obAsk = orderbookPrice.ask !== null ? parseFloat(orderbookPrice.ask) : null;
+  const ammAsk = ammPrice.ask !== null ? parseFloat(ammPrice.ask) : null;
+
+  // If both have prices, compare (lower ask is better for buying)
+  if (obAsk !== null && ammAsk !== null) {
+    return obAsk <= ammAsk ? "orderbook" : "amm";
+  }
+
+  // If only one has price, use it
+  if (obAsk !== null) return "orderbook";
+  if (ammAsk !== null) return "amm";
+
+  // Neither has price
+  return "none";
+};
+
+// Fetch orderbook data for a trading pair (fetches BOTH orderbook and AMM)
 const fetchOrderbookData = (
   server: Horizon.Server,
   sellingCode: string,
@@ -152,45 +172,30 @@ const fetchOrderbookData = (
     }),
     Effect.flatMap(({ selling, buying }) =>
       pipe(
-        // Try orderbook first
-        fetchOrderbook(server, selling, buying),
-        Effect.map((orderbookResponse) => {
-          const bestAsk = orderbookResponse.asks?.[0]?.price ?? null;
-          const bestBid = orderbookResponse.bids?.[0]?.price ?? null;
-
-          // If orderbook has data, return it
-          if (bestAsk !== null || bestBid !== null) {
-            return { ask: bestAsk, bid: bestBid, source: "orderbook" as const };
-          }
-
-          // Orderbook is empty, signal to try AMM
-          return null;
-        }),
-        Effect.flatMap((orderbookData) => {
-          // If orderbook had data, use it
-          if (orderbookData !== null) {
-            return Effect.succeed(orderbookData);
-          }
-
-          // Otherwise, try liquidity pool
-          return pipe(
-            Effect.log(`Orderbook empty for ${sellingCode}->${buyingCode}, trying liquidity pool`),
-            Effect.flatMap(() => fetchLiquidityPoolPrice(server, selling, buying)),
-          );
-        }),
-        Effect.catchAll((error) =>
-          pipe(
-            Effect.log(
-              `Failed to fetch orderbook for ${sellingCode}->${buyingCode}: ${
-                error instanceof Error ? error.message : String(error)
-              }`,
+        // Fetch BOTH sources in parallel
+        Effect.all(
+          {
+            orderbookData: pipe(
+              fetchOrderbook(server, selling, buying),
+              Effect.map((orderbookResponse) => ({
+                ask: orderbookResponse.asks?.[0]?.price ?? null,
+                bid: orderbookResponse.bids?.[0]?.price ?? null,
+              })),
+              Effect.catchAll(() => Effect.succeed({ ask: null, bid: null })),
             ),
-            Effect.flatMap(() =>
-              // Try liquidity pool as fallback
-              fetchLiquidityPoolPrice(server, selling, buying)
-            ),
-          )
+            ammData: fetchLiquidityPoolPrice(server, selling, buying),
+          },
+          { concurrency: 2 }, // Fetch both in parallel
         ),
+        Effect.map(({ orderbookData, ammData }) => {
+          const bestSource = determineBestSource(orderbookData, ammData);
+
+          return {
+            orderbook: orderbookData,
+            amm: ammData,
+            bestSource,
+          };
+        }),
       )
     ),
     // Catch any TokenPriceError from createAsset and return empty orderbook data
@@ -201,7 +206,13 @@ const fetchOrderbookData = (
             error instanceof Error ? error.message : String(error)
           }`,
         ),
-        Effect.flatMap(() => Effect.succeed({ ask: null, bid: null, source: "none" as const })),
+        Effect.flatMap(() =>
+          Effect.succeed({
+            orderbook: { ask: null, bid: null },
+            amm: { ask: null, bid: null },
+            bestSource: "none" as const,
+          })
+        ),
       )
     ),
   );
