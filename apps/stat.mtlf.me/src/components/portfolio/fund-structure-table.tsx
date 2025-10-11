@@ -6,9 +6,11 @@ import { StellarAsset } from "@/components/ui/stellar-asset";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { FundAccountPortfolio, FundStructureData } from "@/lib/stellar/fund-structure-service";
+import type { TokenPriceWithBalance } from "@/lib/stellar/price-service";
 import type { PriceDetails } from "@/lib/stellar/types";
 import { formatNumber } from "@/lib/utils";
 import React from "react";
+import { FilterTogglePanel } from "./filter-toggle-panel";
 import { FundSummaryMetrics } from "./fund-summary-metrics";
 
 interface FundStructureTableProps {
@@ -160,7 +162,12 @@ function AccountTypeIndicator({ type }: { type: "issuer" | "subfond" | "mutual" 
   );
 }
 
-function AccountSection({ account }: { account: FundAccountPortfolio }) {
+function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountPortfolio; hideIlliquidTokens: boolean }) {
+  // Filter tokens based on hideIlliquidTokens setting
+  const filteredTokens = hideIlliquidTokens
+    ? account.tokens.filter((token) => token.valueInEURMTL !== null && token.valueInEURMTL !== undefined)
+    : account.tokens;
+
   return (
     <div className="space-y-2">
       {/* Account Header */}
@@ -218,7 +225,7 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
             </TableRow>
 
             {/* Token Rows */}
-            {account.tokens.map((token, index) => (
+            {filteredTokens.map((token, index) => (
               <TableRow key={index} className="border-steel-gray/30">
                 <TableCell>
                   <StellarAsset
@@ -287,6 +294,8 @@ function AccountSection({ account }: { account: FundAccountPortfolio }) {
 }
 
 export function FundStructureTable({ fundData, isLoading = false }: FundStructureTableProps) {
+  const [hideIlliquidTokens, setHideIlliquidTokens] = React.useState(false);
+
   if (isLoading) {
     return (
       <Card className="p-8 border-0 bg-background text-white">
@@ -308,6 +317,12 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
           accountCount={fundData.aggregatedTotals.accountCount}
           tokenCount={fundData.aggregatedTotals.tokenCount}
           isLoading={isLoading}
+        />
+
+        {/* Filter Toggle Panel */}
+        <FilterTogglePanel
+          hideIlliquidTokens={hideIlliquidTokens}
+          onHideIlliquidTokensChange={setHideIlliquidTokens}
         />
 
         <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
@@ -397,7 +412,9 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
 
             {/* Account Sections */}
             <div className="space-y-6">
-              {fundData.accounts.map((account, index) => <AccountSection key={index} account={account} />)}
+              {fundData.accounts.map((account, index) => (
+                <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} />
+              ))}
             </div>
           </div>
 
@@ -519,7 +536,9 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
 
               {/* Other Account Sections */}
               <div className="space-y-6">
-                {fundData.otherAccounts.map((account, index) => <AccountSection key={index} account={account} />)}
+                {fundData.otherAccounts.map((account, index) => (
+                  <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} />
+                ))}
               </div>
             </div>
           </Card>
