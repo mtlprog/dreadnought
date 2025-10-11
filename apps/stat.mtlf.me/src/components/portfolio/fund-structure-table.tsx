@@ -291,16 +291,64 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
                       БАЛАНС
                     </TableHead>
                     <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
-                      ЦЕНА (EURMTL)
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help underline-offset-2 hover:underline">
+                            ЦЕНА (EURMTL)
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <div className="font-mono text-xs space-y-1">
+                            <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
+                            <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в EURMTL</div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
                     </TableHead>
                     <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
-                      ЦЕНА (XLM)
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help underline-offset-2 hover:underline">
+                            ЦЕНА (XLM)
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <div className="font-mono text-xs space-y-1">
+                            <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
+                            <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в XLM</div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
                     </TableHead>
                     <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
-                      СТОИМОСТЬ (EURMTL)
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help underline-offset-2 hover:underline">
+                            СТОИМОСТЬ (EURMTL)
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <div className="font-mono text-xs space-y-1">
+                            <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                            <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в EURMTL</div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
                     </TableHead>
                     <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
-                      СТОИМОСТЬ (XLM)
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="cursor-help underline-offset-2 hover:underline">
+                            СТОИМОСТЬ (XLM)
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs">
+                          <div className="font-mono text-xs space-y-1">
+                            <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                            <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в XLM</div>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -365,16 +413,64 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
                         БАЛАНС
                       </TableHead>
                       <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
-                        ЦЕНА (EURMTL)
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help underline-offset-2 hover:underline">
+                              ЦЕНА (EURMTL)
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <div className="font-mono text-xs space-y-1">
+                              <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
+                              <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в EURMTL</div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableHead>
                       <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
-                        ЦЕНА (XLM)
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help underline-offset-2 hover:underline">
+                              ЦЕНА (XLM)
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <div className="font-mono text-xs space-y-1">
+                              <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
+                              <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в XLM</div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableHead>
                       <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
-                        СТОИМОСТЬ (EURMTL)
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help underline-offset-2 hover:underline">
+                              СТОИМОСТЬ (EURMTL)
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <div className="font-mono text-xs space-y-1">
+                              <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                              <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в EURMTL</div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableHead>
                       <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-40 bg-background">
-                        СТОИМОСТЬ (XLM)
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help underline-offset-2 hover:underline">
+                              СТОИМОСТЬ (XLM)
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <div className="font-mono text-xs space-y-1">
+                              <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                              <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в XLM</div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableHead>
                     </TableRow>
                   </TableHeader>
