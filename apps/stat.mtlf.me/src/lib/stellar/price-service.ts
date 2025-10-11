@@ -1,8 +1,9 @@
 import { Asset, type Horizon } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
+import { fetchOrderbook } from "@dreadnought/stellar-core";
 import { getStellarConfig } from "./config";
 import { type EnvironmentError, StellarError, TokenPriceError } from "./errors";
-import type { AssetInfo, PriceDetails, TokenPairPrice } from "./types";
+import type { AssetInfo, OrderbookData, PriceDetails, TokenPairPrice } from "./types";
 
 // Horizon API response interfaces
 interface PathRecord {
@@ -73,6 +74,44 @@ const createAsset = (assetInfo: AssetInfo): Effect.Effect<Asset, TokenPriceError
       }),
   });
 };
+
+// Helper to create AssetInfo from code and issuer
+const createAssetInfo = (code: string, issuer?: string): AssetInfo => ({
+  code,
+  issuer: issuer ?? "",
+  type: code === "XLM" || !issuer ? "native" : "credit_alphanum4",
+});
+
+// Fetch orderbook data for a trading pair
+const fetchOrderbookData = (
+  server: Horizon.Server,
+  sellingCode: string,
+  sellingIssuer: string | undefined,
+  buyingCode: string,
+  buyingIssuer: string | undefined,
+): Effect.Effect<OrderbookData, never> =>
+  pipe(
+    Effect.all({
+      selling: createAsset(createAssetInfo(sellingCode, sellingIssuer)),
+      buying: createAsset(createAssetInfo(buyingCode, buyingIssuer)),
+    }),
+    Effect.flatMap(({ selling, buying }) => fetchOrderbook(server, selling, buying)),
+    Effect.map((orderbookResponse) => {
+      const bestAsk = orderbookResponse.asks?.[0]?.price ?? null;
+      const bestBid = orderbookResponse.bids?.[0]?.price ?? null;
+      return { ask: bestAsk, bid: bestBid };
+    }),
+    Effect.catchAll((error) =>
+      pipe(
+        Effect.log(
+          `Failed to fetch orderbook for ${sellingCode}->${buyingCode}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+        Effect.flatMap(() => Effect.succeed({ ask: null, bid: null })),
+      )
+    ),
+  );
 
 const tryPathFinding = (
   tokenA: AssetInfo,
@@ -172,49 +211,107 @@ const tryPathFinding = (
       const destinationAmount = parseFloat(bestPath.destination_amount);
       const price = (destinationAmount / sourceAmount).toString();
 
-      // Build simplified path without orderbook details
-      const pathHops: Array<{ from: string; to: string }> = [];
+      // Build path with hop information for orderbook fetching
+      interface HopInfo {
+        from: string;
+        fromIssuer?: string;
+        to: string;
+        toIssuer?: string;
+      }
+
+      const hopsInfo: HopInfo[] = [];
 
       if (bestPath.path != null && bestPath.path.length > 0) {
         let currentAssetCode = tokenA.code;
+        let currentAssetIssuer = tokenA.issuer !== "" ? tokenA.issuer : undefined;
 
         // Process each intermediate hop
         for (const hop of bestPath.path) {
           const nextAssetCode = hop.asset_code ?? "XLM";
-          pathHops.push({
+          const nextAssetIssuer = hop.asset_issuer ?? undefined;
+
+          hopsInfo.push({
             from: currentAssetCode,
             to: nextAssetCode,
+            ...(currentAssetIssuer !== undefined ? { fromIssuer: currentAssetIssuer } : {}),
+            ...(nextAssetIssuer !== undefined ? { toIssuer: nextAssetIssuer } : {}),
           });
+
           currentAssetCode = nextAssetCode;
+          currentAssetIssuer = nextAssetIssuer;
         }
 
         // Add final hop to destination if needed
         if (currentAssetCode !== tokenB.code) {
-          pathHops.push({
+          const toIssuer = tokenB.issuer !== "" ? tokenB.issuer : undefined;
+          hopsInfo.push({
             from: currentAssetCode,
             to: tokenB.code,
+            ...(currentAssetIssuer !== undefined ? { fromIssuer: currentAssetIssuer } : {}),
+            ...(toIssuer !== undefined ? { toIssuer } : {}),
           });
         }
       } else {
         // Direct path
-        pathHops.push({
+        const fromIssuer = tokenA.issuer !== "" ? tokenA.issuer : undefined;
+        const toIssuer = tokenB.issuer !== "" ? tokenB.issuer : undefined;
+        hopsInfo.push({
           from: tokenA.code,
           to: tokenB.code,
+          ...(fromIssuer !== undefined ? { fromIssuer } : {}),
+          ...(toIssuer !== undefined ? { toIssuer } : {}),
         });
       }
 
-      const pathDetails: PriceDetails = {
-        source: "path" as const,
-        path: pathHops,
-      };
+      // Fetch orderbook data for all hops (with caching via Map)
+      const orderbookCache = new Map<string, OrderbookData>();
 
-      return Effect.succeed({
-        tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
-        tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
-        price,
-        timestamp: new Date(),
-        details: pathDetails,
-      });
+      return pipe(
+        Effect.all(
+          hopsInfo.map((hop) => {
+            // Create cache key for this trading pair
+            const cacheKey = `${hop.from}:${hop.fromIssuer ?? "native"}->${hop.to}:${hop.toIssuer ?? "native"}`;
+
+            // Check cache first
+            const cached = orderbookCache.get(cacheKey);
+            if (cached !== undefined) {
+              return Effect.succeed({ hop, orderbook: cached });
+            }
+
+            // Fetch orderbook data
+            return pipe(
+              fetchOrderbookData(config.server, hop.from, hop.fromIssuer, hop.to, hop.toIssuer),
+              Effect.map((orderbook) => {
+                // Store in cache
+                orderbookCache.set(cacheKey, orderbook);
+                return { hop, orderbook };
+              }),
+            );
+          }),
+          { concurrency: 3 }, // Limit concurrent orderbook requests
+        ),
+        Effect.map((hopsWithOrderbook) => {
+          // Build final path details with orderbook data
+          const pathHops = hopsWithOrderbook.map(({ hop, orderbook }) => ({
+            from: hop.from,
+            to: hop.to,
+            orderbook,
+          }));
+
+          const pathDetails: PriceDetails = {
+            source: "path" as const,
+            path: pathHops,
+          };
+
+          return {
+            tokenA: `${tokenA.code}${tokenA.issuer !== "" && tokenA.issuer != null ? `:${tokenA.issuer}` : ""}`,
+            tokenB: `${tokenB.code}${tokenB.issuer !== "" && tokenB.issuer != null ? `:${tokenB.issuer}` : ""}`,
+            price,
+            timestamp: new Date(),
+            details: pathDetails,
+          };
+        }),
+      );
     }),
   );
 

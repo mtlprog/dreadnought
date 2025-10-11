@@ -28,18 +28,38 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
 
   if (details.source === "path" && details.path !== null && details.path !== undefined) {
     return (
-      <div className="font-mono space-y-1">
-        <div className="text-electric-cyan uppercase text-xs">ПОИСК ПУТИ</div>
-        <div className="text-xs">
-          <span className="text-steel-gray">ПУТЬ:</span>
+      <div className="font-mono space-y-2">
+        <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+          ПОИСК ПУТИ
         </div>
-        {details.path.map((hop, index) => (
-          <div key={index} className="text-xs pl-2 border-l border-steel-gray/50 ml-1">
-            <div className="font-semibold">
-              {hop.from} → {hop.to}
+        <div className="space-y-2">
+          {details.path.map((hop, index) => (
+            <div key={index} className="text-xs pl-2 border-l-2 border-steel-gray/50 ml-1 space-y-1">
+              <div className="font-semibold text-foreground">
+                {hop.from} → {hop.to}
+              </div>
+              {hop.orderbook !== null && hop.orderbook !== undefined && (
+                <div className="pl-2 space-y-0.5 text-[10px]">
+                  <div className="flex justify-between gap-3">
+                    <span className="text-cyber-green uppercase font-bold">ASK:</span>
+                    <span className="text-cyber-green font-mono">
+                      {hop.orderbook.ask !== null ? formatNumber(parseFloat(hop.orderbook.ask), 7) : "—"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-warning-amber uppercase font-bold">BID:</span>
+                    <span className="text-warning-amber font-mono">
+                      {hop.orderbook.bid !== null ? formatNumber(parseFloat(hop.orderbook.bid), 7) : "—"}
+                    </span>
+                  </div>
+                  {(hop.orderbook.ask === null && hop.orderbook.bid === null) && (
+                    <div className="text-steel-gray italic">нет orderbook</div>
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
