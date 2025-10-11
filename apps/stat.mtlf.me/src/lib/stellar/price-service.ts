@@ -1,9 +1,29 @@
 import { Asset, type Horizon } from "@stellar/stellar-sdk";
-import { Context, Effect, Layer, pipe } from "effect";
+import { Context, Effect, Layer, pipe, Schedule } from "effect";
 import { fetchOrderbook } from "@dreadnought/stellar-core";
 import { getStellarConfig } from "./config";
 import { type EnvironmentError, StellarError, TokenPriceError } from "./errors";
 import type { AssetInfo, OrderbookData, PriceDetails, PriceSource, TokenPairPrice } from "./types";
+
+// Retry policy for rate limit errors (429)
+const retryPolicy = pipe(
+  // Start with 1 second, exponential backoff with max 5 retries
+  Schedule.exponential("1 seconds"),
+  Schedule.compose(Schedule.recurs(5)), // Max 5 retries
+  Schedule.whileInput((error: StellarError | TokenPriceError) => {
+    // Only retry on rate limit errors
+    if (error._tag === "StellarError") {
+      const errorMessage = error.cause instanceof Error ? error.cause.message : String(error.cause);
+      return errorMessage.includes("Too Many Requests") || errorMessage.includes("429");
+    }
+    return false;
+  }),
+);
+
+// Global price cache to avoid duplicate requests
+// Key: "tokenA:tokenB:amount" -> TokenPairPrice
+const priceCache = new Map<string, { data: TokenPairPrice; timestamp: number }>();
+const CACHE_TTL_MS = 30000; // 30 seconds
 
 // Horizon API response interfaces
 interface PathRecord {
@@ -429,19 +449,55 @@ const getTokenPriceImpl = (
   tokenA: AssetInfo,
   tokenB: AssetInfo,
   amount?: string, // Optional amount, defaults to "1" in tryPathFinding
-): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError | EnvironmentError> =>
-  pipe(
+): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError | EnvironmentError> => {
+  const actualAmount = amount ?? "1";
+  const cacheKey = `${tokenA.code}:${tokenA.issuer}=>${tokenB.code}:${tokenB.issuer}:${actualAmount}`;
+
+  // Check cache first
+  const cached = priceCache.get(cacheKey);
+  if (cached !== undefined && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return Effect.succeed(cached.data);
+  }
+
+  return pipe(
     getStellarConfig(),
     Effect.flatMap((config): Effect.Effect<TokenPairPrice, TokenPriceError | StellarError> =>
       pipe(
-        tryPathFinding(tokenA, tokenB, config, amount),
-        Effect.tap(() => Effect.log(`Path finding for ${tokenA.code} -> ${tokenB.code}`)),
+        tryPathFinding(tokenA, tokenB, config, actualAmount),
+        Effect.tap((result) =>
+          pipe(
+            Effect.sync(() => {
+              // Store in cache
+              priceCache.set(cacheKey, { data: result, timestamp: Date.now() });
+            }),
+            Effect.flatMap(() => Effect.log(`✓ Price cached: ${tokenA.code} -> ${tokenB.code} (${actualAmount})`)),
+          )
+        ),
+        // Apply retry policy for rate limit errors
+        Effect.retry({
+          schedule: retryPolicy,
+          while: (error) => {
+            if (error._tag === "StellarError") {
+              const errorMessage = error.cause instanceof Error ? error.cause.message : String(error.cause);
+              const isRateLimit = errorMessage.includes("Too Many Requests") || errorMessage.includes("429");
+              if (isRateLimit) {
+                Effect.runSync(
+                  Effect.logWarning(
+                    `⚠ RATE LIMIT: ${tokenA.code} -> ${tokenB.code}, retrying with backoff...`
+                  )
+                );
+              }
+              return isRateLimit;
+            }
+            return false;
+          },
+        }),
         Effect.catchTag("StellarError", (error) => Effect.fail(error)),
         Effect.catchTag("TokenPriceError", (error) => Effect.fail(error)),
         Effect.catchAll((error) =>
           pipe(
-            Effect.log(
-              `Path finding error for ${tokenA.code} -> ${tokenB.code}: ${
+            Effect.logError(
+              `🚨 CRITICAL: Price calculation failed for ${tokenA.code} -> ${tokenB.code} (${actualAmount}): ${
                 error instanceof Error ? error.message : String(error)
               }`,
             ),
@@ -460,6 +516,7 @@ const getTokenPriceImpl = (
       )
     ),
   );
+};
 
 const getTokensWithPricesImpl = (
   tokens: readonly { asset: AssetInfo; balance: string }[],
@@ -547,7 +604,7 @@ const getTokensWithPricesImpl = (
           }),
         )
       ),
-      { concurrency: 5 }, // Limit concurrent requests
+      { concurrency: 2 }, // Reduced from 5 to 2 to avoid rate limiting
     ),
   );
 
