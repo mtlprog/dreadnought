@@ -5,6 +5,8 @@ export type { AssetInfo } from "@dreadnought/stellar-utils";
 export interface OrderbookData {
   readonly ask: string | null; // Best ask price (lowest sell offer)
   readonly bid: string | null; // Best bid price (highest buy offer)
+  readonly source: "orderbook" | "amm" | "none"; // Price source
+  readonly poolId?: string; // Liquidity pool ID if source is AMM
 }
 
 // Price calculation details

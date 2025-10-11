@@ -82,7 +82,62 @@ const createAssetInfo = (code: string, issuer?: string): AssetInfo => ({
   type: code === "XLM" || !issuer ? "native" : "credit_alphanum4",
 });
 
-// Fetch orderbook data for a trading pair
+// Fetch liquidity pool price for a trading pair
+const fetchLiquidityPoolPrice = (
+  server: Horizon.Server,
+  assetA: Asset,
+  assetB: Asset,
+): Effect.Effect<OrderbookData, never> =>
+  pipe(
+    Effect.tryPromise({
+      try: () => server.liquidityPools().forAssets(assetA, assetB).limit(1).call(),
+      catch: (error) =>
+        new StellarError({
+          operation: "fetchLiquidityPools",
+          cause: error,
+        }),
+    }),
+    Effect.map((poolsResponse) => {
+      const pool = poolsResponse.records?.[0];
+      if (pool === null || pool === undefined || pool.reserves.length !== 2) {
+        return { ask: null, bid: null, source: "none" as const };
+      }
+
+      // Extract reserves - pool.reserves is array of {asset: string, amount: string}
+      const reserveA = pool.reserves[0];
+      const reserveB = pool.reserves[1];
+      if (reserveA === undefined || reserveB === undefined) {
+        return { ask: null, bid: null, source: "none" as const };
+      }
+
+      const amountA = parseFloat(reserveA.amount);
+      const amountB = parseFloat(reserveB.amount);
+
+      // Calculate spot price: how much of assetA to get 1 assetB
+      // AMM price = reserveB / reserveA (assuming reserve order matches asset order)
+      const spotPrice = (amountB / amountA).toFixed(7);
+
+      // In AMM, ask and bid are the same (spot price)
+      return {
+        ask: spotPrice,
+        bid: spotPrice,
+        source: "amm" as const,
+        poolId: pool.id,
+      };
+    }),
+    Effect.catchAll((error) =>
+      pipe(
+        Effect.log(
+          `Failed to fetch liquidity pool: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+        Effect.flatMap(() => Effect.succeed({ ask: null, bid: null, source: "none" as const })),
+      )
+    ),
+  );
+
+// Fetch orderbook data for a trading pair (with AMM fallback)
 const fetchOrderbookData = (
   server: Horizon.Server,
   sellingCode: string,
@@ -95,20 +150,58 @@ const fetchOrderbookData = (
       selling: createAsset(createAssetInfo(sellingCode, sellingIssuer)),
       buying: createAsset(createAssetInfo(buyingCode, buyingIssuer)),
     }),
-    Effect.flatMap(({ selling, buying }) => fetchOrderbook(server, selling, buying)),
-    Effect.map((orderbookResponse) => {
-      const bestAsk = orderbookResponse.asks?.[0]?.price ?? null;
-      const bestBid = orderbookResponse.bids?.[0]?.price ?? null;
-      return { ask: bestAsk, bid: bestBid };
-    }),
+    Effect.flatMap(({ selling, buying }) =>
+      pipe(
+        // Try orderbook first
+        fetchOrderbook(server, selling, buying),
+        Effect.map((orderbookResponse) => {
+          const bestAsk = orderbookResponse.asks?.[0]?.price ?? null;
+          const bestBid = orderbookResponse.bids?.[0]?.price ?? null;
+
+          // If orderbook has data, return it
+          if (bestAsk !== null || bestBid !== null) {
+            return { ask: bestAsk, bid: bestBid, source: "orderbook" as const };
+          }
+
+          // Orderbook is empty, signal to try AMM
+          return null;
+        }),
+        Effect.flatMap((orderbookData) => {
+          // If orderbook had data, use it
+          if (orderbookData !== null) {
+            return Effect.succeed(orderbookData);
+          }
+
+          // Otherwise, try liquidity pool
+          return pipe(
+            Effect.log(`Orderbook empty for ${sellingCode}->${buyingCode}, trying liquidity pool`),
+            Effect.flatMap(() => fetchLiquidityPoolPrice(server, selling, buying)),
+          );
+        }),
+        Effect.catchAll((error) =>
+          pipe(
+            Effect.log(
+              `Failed to fetch orderbook for ${sellingCode}->${buyingCode}: ${
+                error instanceof Error ? error.message : String(error)
+              }`,
+            ),
+            Effect.flatMap(() =>
+              // Try liquidity pool as fallback
+              fetchLiquidityPoolPrice(server, selling, buying)
+            ),
+          )
+        ),
+      )
+    ),
+    // Catch any TokenPriceError from createAsset and return empty orderbook data
     Effect.catchAll((error) =>
       pipe(
         Effect.log(
-          `Failed to fetch orderbook for ${sellingCode}->${buyingCode}: ${
+          `Failed to create assets for ${sellingCode}->${buyingCode}: ${
             error instanceof Error ? error.message : String(error)
           }`,
         ),
-        Effect.flatMap(() => Effect.succeed({ ask: null, bid: null })),
+        Effect.flatMap(() => Effect.succeed({ ask: null, bid: null, source: "none" as const })),
       )
     ),
   );

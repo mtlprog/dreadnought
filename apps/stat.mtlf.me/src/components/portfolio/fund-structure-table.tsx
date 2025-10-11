@@ -40,6 +40,13 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
               </div>
               {hop.orderbook !== null && hop.orderbook !== undefined && (
                 <div className="pl-2 space-y-0.5 text-[10px]">
+                  {/* Source indicator */}
+                  {hop.orderbook.source !== "none" && (
+                    <div className="text-electric-cyan uppercase text-[9px] font-bold mb-1">
+                      {hop.orderbook.source === "orderbook" ? "ORDERBOOK" : "AMM POOL"}
+                    </div>
+                  )}
+
                   <div className="flex justify-between gap-3">
                     <span className="text-cyber-green uppercase font-bold">ASK:</span>
                     <span className="text-cyber-green font-mono">
@@ -52,8 +59,15 @@ function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
                       {hop.orderbook.bid !== null ? formatNumber(parseFloat(hop.orderbook.bid), 7) : "—"}
                     </span>
                   </div>
-                  {(hop.orderbook.ask === null && hop.orderbook.bid === null) && (
-                    <div className="text-steel-gray italic">нет orderbook</div>
+
+                  {hop.orderbook.source === "none" && (
+                    <div className="text-steel-gray italic">нет данных</div>
+                  )}
+
+                  {hop.orderbook.source === "amm" && hop.orderbook.poolId !== null && hop.orderbook.poolId !== undefined && (
+                    <div className="text-steel-gray text-[9px] mt-1 truncate" title={hop.orderbook.poolId}>
+                      Pool: {hop.orderbook.poolId.substring(0, 8)}...
+                    </div>
                   )}
                 </div>
               )}
