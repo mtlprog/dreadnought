@@ -257,7 +257,7 @@ const tryPathFinding = (
               Effect.tryPromise({
                 try: () =>
                   config.server
-                    .strictReceivePaths([sourceAsset], destAsset, "1")
+                    .strictReceivePaths([sourceAsset], destAsset, amount)
                     .call() as Promise<PathResponse>,
                 catch: (error) =>
                   new StellarError({
