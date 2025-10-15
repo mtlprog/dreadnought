@@ -23,16 +23,20 @@ export interface FundAccountPortfolio extends FundAccount {
   readonly tokens: readonly TokenPriceWithBalance[];
   readonly xlmBalance: string;
   readonly xlmPriceInEURMTL: string | null;
-  readonly totalEURMTL: number;
-  readonly totalXLM: number;
+  readonly totalEURMTL: number; // Liquid total (with slippage)
+  readonly totalXLM: number; // Liquid total (with slippage)
+  readonly nominalEURMTL: number; // Nominal total (spot price * balance)
+  readonly nominalXLM: number; // Nominal total (spot price * balance)
 }
 
 export interface FundStructureData {
   readonly accounts: readonly FundAccountPortfolio[];
   readonly otherAccounts: readonly FundAccountPortfolio[];
   readonly aggregatedTotals: {
-    readonly totalEURMTL: number;
-    readonly totalXLM: number;
+    readonly totalEURMTL: number; // Liquid total
+    readonly totalXLM: number; // Liquid total
+    readonly nominalEURMTL: number; // Nominal total (spot * balance)
+    readonly nominalXLM: number; // Nominal total (spot * balance)
     readonly accountCount: number;
     readonly tokenCount: number;
   };
@@ -149,7 +153,13 @@ const calculateAccountTotals = (
   tokens: readonly TokenPriceWithBalance[],
   xlmBalance: string,
   xlmPriceInEURMTL: string | null,
-): { totalEURMTL: number; totalXLM: number } => {
+): {
+  totalEURMTL: number;
+  totalXLM: number;
+  nominalEURMTL: number;
+  nominalXLM: number;
+} => {
+  // Liquid totals (with slippage from full balance execution)
   const totalEURMTL = tokens.reduce((sum, token) => {
     if (token.valueInEURMTL !== null && token.valueInEURMTL !== undefined) {
       return sum + parseFloat(token.valueInEURMTL);
@@ -166,7 +176,24 @@ const calculateAccountTotals = (
     return sum;
   }, 0) + parseFloat(xlmBalance);
 
-  return { totalEURMTL, totalXLM };
+  // Nominal totals (spot price * balance, no slippage)
+  const nominalEURMTL = tokens.reduce((sum, token) => {
+    if (token.priceInEURMTL !== null && token.priceInEURMTL !== undefined) {
+      return sum + parseFloat(token.balance) * parseFloat(token.priceInEURMTL);
+    }
+    return sum;
+  }, 0) + (xlmPriceInEURMTL !== null && xlmPriceInEURMTL !== undefined
+    ? parseFloat(xlmBalance) * parseFloat(xlmPriceInEURMTL)
+    : 0);
+
+  const nominalXLM = tokens.reduce((sum, token) => {
+    if (token.priceInXLM !== null && token.priceInXLM !== undefined) {
+      return sum + parseFloat(token.balance) * parseFloat(token.priceInXLM);
+    }
+    return sum;
+  }, 0) + parseFloat(xlmBalance);
+
+  return { totalEURMTL, totalXLM, nominalEURMTL, nominalXLM };
 };
 
 const getAccountPortfolio = (
@@ -200,7 +227,7 @@ const getAccountPortfolio = (
                 priceService.getTokenPrice(XLM_ASSET, EURMTL_ASSET),
                 Effect.map((xlmPrice) => {
                   const xlmPriceInEURMTL = xlmPrice.price;
-                  const { totalEURMTL, totalXLM } = calculateAccountTotals(
+                  const { totalEURMTL, totalXLM, nominalEURMTL, nominalXLM } = calculateAccountTotals(
                     tokensWithPrices,
                     portfolio.xlmBalance,
                     xlmPriceInEURMTL,
@@ -213,6 +240,8 @@ const getAccountPortfolio = (
                     xlmPriceInEURMTL,
                     totalEURMTL,
                     totalXLM,
+                    nominalEURMTL,
+                    nominalXLM,
                   };
                 }),
                 Effect.catchAll(() =>
@@ -223,6 +252,8 @@ const getAccountPortfolio = (
                     xlmPriceInEURMTL: null,
                     totalEURMTL: 0,
                     totalXLM: parseFloat(portfolio.xlmBalance),
+                    nominalEURMTL: 0,
+                    nominalXLM: parseFloat(portfolio.xlmBalance),
                   })
                 ),
               )
@@ -243,6 +274,8 @@ const getAccountPortfolio = (
                 xlmPriceInEURMTL: null,
                 totalEURMTL: 0,
                 totalXLM: parseFloat(portfolio.xlmBalance),
+                nominalEURMTL: 0,
+                nominalXLM: parseFloat(portfolio.xlmBalance),
               })
             ),
           )
@@ -258,8 +291,14 @@ const getFundStructureImpl = (): Effect.Effect<
 > =>
   pipe(
     Effect.all(
-      FUND_ACCOUNTS.map(getAccountPortfolio),
-      { concurrency: 3 }, // Limit concurrent requests
+      FUND_ACCOUNTS.map((account, index) =>
+        pipe(
+          // Add delay before each account (except first) to avoid rate limiting
+          index > 0 ? Effect.sleep("200 millis") : Effect.void,
+          Effect.flatMap(() => getAccountPortfolio(account)),
+        )
+      ),
+      { concurrency: 1 }, // Sequential to minimize rate limiting
     ),
     Effect.map((allAccounts) => {
       // Separate "other" accounts from main fund accounts
@@ -271,12 +310,16 @@ const getFundStructureImpl = (): Effect.Effect<
         (totals, account) => ({
           totalEURMTL: totals.totalEURMTL + account.totalEURMTL,
           totalXLM: totals.totalXLM + account.totalXLM,
+          nominalEURMTL: totals.nominalEURMTL + account.nominalEURMTL,
+          nominalXLM: totals.nominalXLM + account.nominalXLM,
           accountCount: totals.accountCount + 1,
           tokenCount: totals.tokenCount + account.tokens.length,
         }),
         {
           totalEURMTL: 0,
           totalXLM: 0,
+          nominalEURMTL: 0,
+          nominalXLM: 0,
           accountCount: 0,
           tokenCount: 0,
         },

@@ -5,7 +5,7 @@ import { useFundData } from "@/hooks/use-fund-data";
 import { FundStructureTable } from "./fund-structure-table";
 
 export function PortfolioDemo() {
-  const { data: fundData, isLoading, error, progress: loadingProgress } = useFundData();
+  const { data: fundData, isLoading, error, progress: loadingProgress, statusMessages, rateLimitWarning } = useFundData();
 
   if (error != null) {
     return (
@@ -32,6 +32,8 @@ export function PortfolioDemo() {
         title="ЗАГРУЗКА ФОНДА MONTELIBERO"
         subtitle="Получение данных со всех счетов фонда..."
         progress={loadingProgress}
+        statusMessages={statusMessages}
+        rateLimitWarning={rateLimitWarning}
       />
     );
   }

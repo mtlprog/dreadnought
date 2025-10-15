@@ -117,13 +117,26 @@ interface SystemLoadingProps {
   title?: string;
   subtitle?: string;
   progress?: number;
+  statusMessages?: readonly string[];
+  rateLimitWarning?: boolean;
 }
 
 export function SystemLoading({
   title = "ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ",
   subtitle = "Подключение к Stellar Network...",
   progress = 0,
+  statusMessages,
+  rateLimitWarning = false,
 }: SystemLoadingProps) {
+  // Default status messages if none provided
+  const defaultMessages = [
+    "✓ STELLAR HORIZON CONNECTED",
+    "✓ ACCOUNT DATA LOADING",
+    "⏳ PRICE CALCULATION IN PROGRESS",
+  ];
+
+  const messages = statusMessages ?? defaultMessages;
+
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-2xl mx-auto text-center space-y-8">
@@ -145,6 +158,18 @@ export function SystemLoading({
             />
           </div>
 
+          {/* Rate limit warning */}
+          {rateLimitWarning && (
+            <div className="mb-6 border-2 border-warning-amber bg-warning-amber/10 p-4">
+              <div className="font-mono text-warning-amber text-sm uppercase tracking-wider">
+                ⚠ RATE LIMIT DETECTED
+              </div>
+              <div className="font-mono text-xs text-steel-gray mt-1">
+                Stellar API rate limit encountered. Retrying with exponential backoff...
+              </div>
+            </div>
+          )}
+
           {/* Animated dots */}
           <div className="flex justify-center items-center space-x-2">
             <div className="font-mono text-cyber-green text-2xl">
@@ -164,10 +189,23 @@ export function SystemLoading({
           </div>
 
           {/* System status */}
-          <div className="mt-6 space-y-2 text-left font-mono text-sm">
-            <div className="text-cyber-green">✓ STELLAR HORIZON CONNECTED</div>
-            <div className="text-cyber-green">✓ ACCOUNT DATA LOADING</div>
-            <div className="text-steel-gray">⏳ PRICE CALCULATION IN PROGRESS</div>
+          <div className="mt-6 space-y-2 text-left font-mono text-sm max-h-48 overflow-y-auto">
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={
+                  message.startsWith("✓")
+                    ? "text-cyber-green"
+                    : message.startsWith("⚠")
+                      ? "text-warning-amber"
+                      : message.startsWith("❌")
+                        ? "text-red-500"
+                        : "text-steel-gray"
+                }
+              >
+                {message}
+              </div>
+            ))}
           </div>
         </div>
       </div>

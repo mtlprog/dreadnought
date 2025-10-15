@@ -7,8 +7,8 @@ import type { AssetInfo, OrderbookData, PriceDetails, PriceSource, TokenPairPric
 
 // Retry policy for rate limit errors (429)
 const retryPolicy = pipe(
-  // Start with 1 second, exponential backoff with max 5 retries
-  Schedule.exponential("1 seconds"),
+  // Start with 2 seconds, exponential backoff with max 5 retries
+  Schedule.exponential("2 seconds"),
   Schedule.compose(Schedule.recurs(5)), // Max 5 retries
   Schedule.whileInput((error: StellarError | TokenPriceError) => {
     // Only retry on rate limit errors
@@ -207,7 +207,7 @@ const fetchOrderbookData = (
             ),
             ammData: fetchLiquidityPoolPrice(server, selling, buying),
           },
-          { concurrency: 2 }, // Fetch both in parallel
+          { concurrency: 1 }, // Sequential to reduce API load
         ),
         Effect.map(({ orderbookData, ammData }) => {
           const bestSource = determineBestSource(orderbookData, ammData);
@@ -415,7 +415,7 @@ const tryPathFinding = (
               }),
             );
           }),
-          { concurrency: 3 }, // Limit concurrent orderbook requests
+          { concurrency: 1 }, // Sequential to minimize rate limiting
         ),
         Effect.map((hopsWithOrderbook) => {
           // Build final path details with orderbook data
@@ -524,87 +524,93 @@ const getTokensWithPricesImpl = (
 ): Effect.Effect<readonly TokenPriceWithBalance[], TokenPriceError | StellarError | EnvironmentError> =>
   pipe(
     Effect.all(
-      tokens.map((token) =>
+      tokens.map((token, index) =>
         pipe(
-          Effect.all({
-            // Spot price (amount = 1)
-            eurmtlSpotData: pipe(
-              getTokenPriceImpl(token.asset, baseTokens.eurmtl, "1"),
-              Effect.map((result) => ({ price: result.price, details: result.details })),
-              Effect.catchAll((error) =>
-                pipe(
-                  Effect.logError(`EURMTL spot pricing failed for ${token.asset.code}: ${error}`),
-                  Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
-                )
-              ),
-            ),
-            xlmSpotData: pipe(
-              getTokenPriceImpl(token.asset, baseTokens.xlm, "1"),
-              Effect.map((result) => ({ price: result.price, details: result.details })),
-              Effect.catchAll((error) =>
-                pipe(
-                  Effect.logError(`XLM spot pricing failed for ${token.asset.code}: ${error}`),
-                  Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
-                )
-              ),
-            ),
-            // Full balance price (amount = token.balance)
-            eurmtlFullData: pipe(
-              getTokenPriceImpl(token.asset, baseTokens.eurmtl, token.balance),
-              Effect.map((result) => ({
-                destinationAmount: result.destinationAmount,
-                details: result.details
-              })),
-              Effect.catchAll((error) =>
-                pipe(
-                  Effect.logError(`EURMTL full balance pricing failed for ${token.asset.code}: ${error}`),
-                  Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
-                )
-              ),
-            ),
-            xlmFullData: pipe(
-              getTokenPriceImpl(token.asset, baseTokens.xlm, token.balance),
-              Effect.map((result) => ({
-                destinationAmount: result.destinationAmount,
-                details: result.details
-              })),
-              Effect.catchAll((error) =>
-                pipe(
-                  Effect.logError(`XLM full balance pricing failed for ${token.asset.code}: ${error}`),
-                  Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
-                )
-              ),
-            ),
-          }),
-          Effect.map(({ eurmtlSpotData, xlmSpotData, eurmtlFullData, xlmFullData }) => {
-            // Use spot price for "ЦЕНА" columns
-            const priceInEURMTL = eurmtlSpotData.price;
-            const priceInXLM = xlmSpotData.price;
+          // Add delay before each token (except first) to avoid rate limiting
+          index > 0 ? Effect.sleep("100 millis") : Effect.void,
+          Effect.flatMap(() =>
+            pipe(
+              Effect.all({
+                // Spot price (amount = 1) for nominal calculations
+                eurmtlSpotData: pipe(
+                  getTokenPriceImpl(token.asset, baseTokens.eurmtl, "1"),
+                  Effect.map((result) => ({ price: result.price, details: result.details })),
+                  Effect.catchAll((error) =>
+                    pipe(
+                      Effect.logError(`EURMTL spot pricing failed for ${token.asset.code}: ${error}`),
+                      Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
+                    )
+                  ),
+                ),
+                xlmSpotData: pipe(
+                  getTokenPriceImpl(token.asset, baseTokens.xlm, "1"),
+                  Effect.map((result) => ({ price: result.price, details: result.details })),
+                  Effect.catchAll((error) =>
+                    pipe(
+                      Effect.logError(`XLM spot pricing failed for ${token.asset.code}: ${error}`),
+                      Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
+                    )
+                  ),
+                ),
+                // Full balance price (amount = token.balance) for liquid calculations
+                eurmtlFullData: pipe(
+                  getTokenPriceImpl(token.asset, baseTokens.eurmtl, token.balance),
+                  Effect.map((result) => ({
+                    destinationAmount: result.destinationAmount,
+                    details: result.details
+                  })),
+                  Effect.catchAll((error) =>
+                    pipe(
+                      Effect.logError(`EURMTL full balance pricing failed for ${token.asset.code}: ${error}`),
+                      Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
+                    )
+                  ),
+                ),
+                xlmFullData: pipe(
+                  getTokenPriceImpl(token.asset, baseTokens.xlm, token.balance),
+                  Effect.map((result) => ({
+                    destinationAmount: result.destinationAmount,
+                    details: result.details
+                  })),
+                  Effect.catchAll((error) =>
+                    pipe(
+                      Effect.logError(`XLM full balance pricing failed for ${token.asset.code}: ${error}`),
+                      Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
+                    )
+                  ),
+                ),
+              }),
+              Effect.map(({ eurmtlSpotData, xlmSpotData, eurmtlFullData, xlmFullData }) => {
+                // Use spot price for "ЦЕНА" columns (nominal calculation)
+                const priceInEURMTL = eurmtlSpotData.price;
+                const priceInXLM = xlmSpotData.price;
 
-            // Use full balance destination amount for "СТОИМОСТЬ" columns
-            const valueInEURMTL = eurmtlFullData.destinationAmount != null && eurmtlFullData.destinationAmount !== ""
-              ? parseFloat(eurmtlFullData.destinationAmount).toFixed(2)
-              : null;
-            const valueInXLM = xlmFullData.destinationAmount != null && xlmFullData.destinationAmount !== ""
-              ? parseFloat(xlmFullData.destinationAmount).toFixed(7)
-              : null;
+                // Use full balance destination amount for "СТОИМОСТЬ" columns (liquid calculation)
+                const valueInEURMTL = eurmtlFullData.destinationAmount != null && eurmtlFullData.destinationAmount !== ""
+                  ? parseFloat(eurmtlFullData.destinationAmount).toFixed(2)
+                  : null;
+                const valueInXLM = xlmFullData.destinationAmount != null && xlmFullData.destinationAmount !== ""
+                  ? parseFloat(xlmFullData.destinationAmount).toFixed(7)
+                  : null;
 
-            return {
-              asset: token.asset,
-              balance: token.balance,
-              priceInEURMTL,
-              priceInXLM,
-              valueInEURMTL,
-              valueInXLM,
-              ...(eurmtlSpotData.details != null ? { detailsEURMTL: eurmtlSpotData.details } : {}),
-              ...(xlmSpotData.details != null ? { detailsXLM: xlmSpotData.details } : {}),
-              ...(eurmtlFullData.details != null ? { detailsEURMTLFullBalance: eurmtlFullData.details } : {}),
-              ...(xlmFullData.details != null ? { detailsXLMFullBalance: xlmFullData.details } : {}),
-            };
-          }),
+                return {
+                  asset: token.asset,
+                  balance: token.balance,
+                  priceInEURMTL,
+                  priceInXLM,
+                  valueInEURMTL,
+                  valueInXLM,
+                  ...(eurmtlSpotData.details != null ? { detailsEURMTL: eurmtlSpotData.details } : {}),
+                  ...(xlmSpotData.details != null ? { detailsXLM: xlmSpotData.details } : {}),
+                  ...(eurmtlFullData.details != null ? { detailsEURMTLFullBalance: eurmtlFullData.details } : {}),
+                  ...(xlmFullData.details != null ? { detailsXLMFullBalance: xlmFullData.details } : {}),
+                };
+              }),
+            )
+          )
         )
       ),
-      { concurrency: 2 }, // Reduced from 5 to 2 to avoid rate limiting
+      { concurrency: 1 }, // Reduced to 1 to minimize rate limiting
     ),
   );
 

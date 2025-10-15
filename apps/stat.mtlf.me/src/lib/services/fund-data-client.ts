@@ -19,6 +19,8 @@ const FundStructureDataSchema = S.Struct({
   aggregatedTotals: S.Struct({
     totalEURMTL: S.Number,
     totalXLM: S.Number,
+    nominalEURMTL: S.Number,
+    nominalXLM: S.Number,
     accountCount: S.Number,
     tokenCount: S.Number,
   }),
