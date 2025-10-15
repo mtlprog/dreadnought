@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { formatNumber } from "@/lib/utils";
+import { TruncatedNumber } from "@/components/ui/truncated-number";
 import React from "react";
 
 interface FundSummaryMetricsProps {
@@ -53,7 +54,12 @@ export function FundSummaryMetrics({
                 НОМИНАЛ EURMTL
               </div>
               <div className="text-4xl font-mono text-electric-cyan break-all">
-                {formatNumber(nominalEURMTL ?? 0, 2)}
+                <TruncatedNumber
+                  value={nominalEURMTL ?? 0}
+                  truncatedDecimals={0}
+                  fullDecimals={2}
+                  className="text-electric-cyan"
+                />
               </div>
             </div>
             <div className="space-y-2 min-w-0">
@@ -61,7 +67,12 @@ export function FundSummaryMetrics({
                 НОМИНАЛ XLM
               </div>
               <div className="text-4xl font-mono text-electric-cyan break-all">
-                {formatNumber(nominalXLM ?? 0, 7)}
+                <TruncatedNumber
+                  value={nominalXLM ?? 0}
+                  truncatedDecimals={0}
+                  fullDecimals={7}
+                  className="text-electric-cyan"
+                />
               </div>
             </div>
             <div className="space-y-2 min-w-0">
@@ -101,7 +112,12 @@ export function FundSummaryMetrics({
                 ЛИКВИД EURMTL
               </div>
               <div className="text-4xl font-mono text-warning-amber break-all">
-                {formatNumber(totalEURMTL ?? 0, 2)}
+                <TruncatedNumber
+                  value={totalEURMTL ?? 0}
+                  truncatedDecimals={0}
+                  fullDecimals={2}
+                  className="text-warning-amber"
+                />
               </div>
             </div>
             <div className="space-y-2 min-w-0">
@@ -109,7 +125,12 @@ export function FundSummaryMetrics({
                 ЛИКВИД XLM
               </div>
               <div className="text-4xl font-mono text-warning-amber break-all">
-                {formatNumber(totalXLM ?? 0, 7)}
+                <TruncatedNumber
+                  value={totalXLM ?? 0}
+                  truncatedDecimals={0}
+                  fullDecimals={7}
+                  className="text-warning-amber"
+                />
               </div>
             </div>
             <div className="space-y-2 min-w-0">
@@ -117,7 +138,12 @@ export function FundSummaryMetrics({
                 ПРОСКАЛЬЗЫВАНИЕ EURMTL
               </div>
               <div className="text-3xl font-mono text-warning-amber break-all">
-                {formatNumber((nominalEURMTL ?? 0) - (totalEURMTL ?? 0), 2)}
+                <TruncatedNumber
+                  value={(nominalEURMTL ?? 0) - (totalEURMTL ?? 0)}
+                  truncatedDecimals={0}
+                  fullDecimals={2}
+                  className="text-warning-amber"
+                />
               </div>
             </div>
             <div className="space-y-2 min-w-0">
@@ -125,7 +151,12 @@ export function FundSummaryMetrics({
                 ПРОСКАЛЬЗЫВАНИЕ XLM
               </div>
               <div className="text-3xl font-mono text-warning-amber break-all">
-                {formatNumber((nominalXLM ?? 0) - (totalXLM ?? 0), 7)}
+                <TruncatedNumber
+                  value={(nominalXLM ?? 0) - (totalXLM ?? 0)}
+                  truncatedDecimals={0}
+                  fullDecimals={7}
+                  className="text-warning-amber"
+                />
               </div>
             </div>
           </div>
