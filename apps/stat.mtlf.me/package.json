@@ -16,6 +16,8 @@
     "@dreadnought/stellar-core": "workspace:*",
     "@dreadnought/stellar-portfolio": "workspace:*",
     "@dreadnought/stellar-utils": "workspace:*",
+    "@dreadnought/ui": "workspace:*",
+    "@dreadnought/utils": "workspace:*",
     "@effect/platform": "catalog:default",
     "@effect/platform-node": "catalog:default",
     "@effect/schema": "catalog:default",
@@ -31,6 +33,7 @@
     "lucide-react": "^0.542.0",
     "next": "catalog:default",
     "next-themes": "^0.4.6",
+    "postgres": "^3.4.5",
     "react": "catalog:default",
     "react-dom": "catalog:default",
     "tailwind-merge": "^3.3.1"
