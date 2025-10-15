@@ -156,6 +156,10 @@ bun lint            # Run linter
   "default": {
     "effect": "latest",
     "@effect/platform": "latest",
+    "@effect/platform-node": "latest",
+    "@effect/schema": "latest",
+    "@effect/sql": "latest",
+    "@effect/sql-pg": "latest",
     "@stellar/stellar-sdk": "^12.3.0",
     "react": "^19.0.0",
     "next": "15.5.2",
@@ -286,6 +290,7 @@ test("should update value", () => {
 
 - **[Effect-TS Patterns](/docs/guides/effect-ts-patterns.md)** - Service definition, layers, runtime
 - **[Effect-TS Testing](/docs/guides/effect-ts-testing.md)** - ManagedRuntime, mocks, patterns
+- **[PostgreSQL with Effect-TS](/apps/stat.mtlf.me/docs/guides/postgresql-effect-integration.md)** - Database setup, migrations, repositories, Next.js integration
 - **[Bun Testing](/docs/guides/bun-testing.md)** - Bun test framework, React Testing Library, Happy DOM
 - **[Stellar Integration](/docs/guides/stellar-integration.md)** - Network config, wallets, transactions
 - **[TypeScript Config](/docs/guides/typescript-config.md)** - Strict mode, branded types, utilities
@@ -324,5 +329,13 @@ All packages documented in `/packages/README.md`
 - Используй conditional spread для optional полей
 - Всегда используй pipe() для Effect chains
 - Оборачивай все внешние API в Effect.tryPromise
+
+**PostgreSQL with Effect**:
+- Всегда используй catalog для `@effect/sql` и `@effect/sql-pg`
+- Миграции: `Effect.flatMap(SqlClient.SqlClient, ...)` pattern
+- CLI scripts: Полные Effect layers с NodeRuntime
+- Next.js API routes: Прямой `postgres` клиент (Effect layers не работают из-за webpack)
+- JSONB данные: Парсить при получении из БД (`JSON.parse` если строка)
+- См. `/apps/stat.mtlf.me/docs/guides/postgresql-effect-integration.md`
 
 Remember: The goal is sustainable, reusable code that grows thoughtfully from proven app implementations.

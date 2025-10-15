@@ -25,6 +25,8 @@
       "@effect/platform-node": "latest",
       "@effect/schema": "latest",
       "@effect/eslint-plugin": "latest",
+      "@effect/sql": "latest",
+      "@effect/sql-pg": "latest",
       "@stellar/stellar-sdk": "^12.3.0",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",

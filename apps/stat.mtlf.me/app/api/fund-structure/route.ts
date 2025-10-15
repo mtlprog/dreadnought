@@ -1,43 +1,76 @@
-import {
-  FundStructureServiceLive,
-  FundStructureServiceTag,
-  PortfolioServiceLive,
-  PriceServiceLive,
-} from "@/lib/stellar";
-import { Effect, Layer, pipe } from "effect";
 import { NextResponse } from "next/server";
+import postgres from "postgres";
+import type { FundStructureData } from "@/lib/stellar/fund-structure-service";
 
-const fetchFundStructure = () =>
-  pipe(
-    FundStructureServiceTag,
-    Effect.flatMap((service) => service.getFundStructure()),
-    Effect.tap(() => Effect.log("Fund structure data fetched successfully")),
-    Effect.catchAll((error) =>
-      pipe(
-        Effect.log(`Fund structure API error: ${error}`),
-        Effect.flatMap(() =>
-          Effect.fail({
-            error: "Failed to fetch fund structure data",
-            message: error instanceof Error ? error.message : "Unknown error occurred",
-            details: error instanceof Error && error.stack !== undefined ? error.stack : String(error),
-          })
-        ),
-      )
-    ),
-  );
+// Direct database access without Effect layers to avoid Next.js webpack issues
+const sql = postgres(process.env.DATABASE_URL as string, {
+  max: 1, // Single connection for API route
+});
 
-const AppLayer = Layer.merge(
-  FundStructureServiceLive,
-  Layer.merge(PortfolioServiceLive, PriceServiceLive),
-);
+// Cache for 1 hour since data is in DB and updated daily
+export const revalidate = 3600;
 
 export async function GET() {
-  const program = pipe(
-    fetchFundStructure(),
-    Effect.provide(AppLayer),
-    Effect.map(result => NextResponse.json(result)),
-    Effect.catchAll(error => Effect.succeed(NextResponse.json(error, { status: 500 }))),
-  );
+  try {
+    // Get entity ID
+    const entities = await sql<Array<{ id: number }>>`
+      SELECT id FROM fund_entities WHERE slug = 'mtlf'
+    `;
 
-  return Effect.runPromise(program as Effect.Effect<NextResponse, never, never>);
+    if (entities.length === 0) {
+      return NextResponse.json(
+        { error: "Fund entity not found" },
+        { status: 404 }
+      );
+    }
+
+    const entity = entities[0];
+    if (!entity) {
+      return NextResponse.json(
+        { error: "Fund entity not found" },
+        { status: 404 }
+      );
+    }
+
+    const entityId = entity.id;
+
+    // Get latest snapshot
+    const snapshots = await sql<Array<{ data: FundStructureData }>>`
+      SELECT data
+      FROM fund_snapshots
+      WHERE entity_id = ${entityId}
+      ORDER BY snapshot_date DESC
+      LIMIT 1
+    `;
+
+    if (snapshots.length === 0) {
+      return NextResponse.json(
+        { error: "No snapshot data available" },
+        { status: 404 }
+      );
+    }
+
+    const snapshot = snapshots[0];
+    if (!snapshot) {
+      return NextResponse.json(
+        { error: "No snapshot data available" },
+        { status: 404 }
+      );
+    }
+
+    // Parse JSONB data if it's a string
+    const data = typeof snapshot.data === 'string'
+      ? JSON.parse(snapshot.data)
+      : snapshot.data;
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Fund structure API error:", error);
+    return NextResponse.json(
+      {
+        error: "Failed to fetch fund structure data",
+        message: error instanceof Error ? error.message : "Unknown error occurred",
+      },
+      { status: 500 }
+    );
+  }
 }

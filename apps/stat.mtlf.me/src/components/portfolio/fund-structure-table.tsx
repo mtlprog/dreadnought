@@ -6,7 +6,6 @@ import { StellarAsset } from "@/components/ui/stellar-asset";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { FundAccountPortfolio, FundStructureData } from "@/lib/stellar/fund-structure-service";
-import type { TokenPriceWithBalance } from "@/lib/stellar/price-service";
 import type { PriceDetails } from "@/lib/stellar/types";
 import { formatNumber } from "@/lib/utils";
 import React from "react";
@@ -314,6 +313,8 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
         <FundSummaryMetrics
           totalEURMTL={fundData.aggregatedTotals.totalEURMTL}
           totalXLM={fundData.aggregatedTotals.totalXLM}
+          nominalEURMTL={fundData.aggregatedTotals.nominalEURMTL}
+          nominalXLM={fundData.aggregatedTotals.nominalXLM}
           accountCount={fundData.aggregatedTotals.accountCount}
           tokenCount={fundData.aggregatedTotals.tokenCount}
           isLoading={isLoading}

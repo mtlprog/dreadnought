@@ -36,6 +36,8 @@ apps/stat.mtlf.me/
 
 All services use Effect-TS patterns (see `/docs/guides/effect-ts-patterns.md`).
 
+**Database integration**: PostgreSQL with `@effect/sql-pg` (see `docs/guides/postgresql-effect-integration.md`)
+
 ### 1. PortfolioService (`src/lib/stellar/portfolio-service.ts`)
 
 Fetches account balances from Horizon API.
@@ -135,7 +137,11 @@ bun dev              # Dev server
 bun build            # Production build
 bun lint             # Linter
 bun run cli          # CLI tools
+bun run db:migrate   # Run database migrations
+bun run db:snapshot  # Generate fund snapshot
 ```
+
+**Database**: PostgreSQL via Railway, snapshots cached for 1 hour. See `docs/guides/postgresql-effect-integration.md` for complete setup.
 
 ## Testing
 
@@ -188,6 +194,7 @@ Effect.all(items.map(process), { concurrency: 3 });
 ## Documentation
 
 ### App Guides
+- **[PostgreSQL Integration](/apps/stat.mtlf.me/docs/guides/postgresql-effect-integration.md)** - Database setup, migrations, repositories, API routes
 - **[Services](/apps/stat.mtlf.me/docs/guides/services.md)** - Detailed service documentation
 - **[Price Discovery](/apps/stat.mtlf.me/docs/guides/price-discovery.md)** - Price algorithms
 - **[Fund Structure](/apps/stat.mtlf.me/docs/guides/fund-structure-service.md)** - Fund architecture
@@ -200,11 +207,31 @@ Effect.all(items.map(process), { concurrency: 3 });
 - **[Stellar Integration](/docs/guides/stellar-integration.md)** - Stellar SDK integration
 - **[Design System](/docs/guides/design-system.md)** - Retrofuturistic UI/UX
 
+## PostgreSQL Snapshot System
+
+**Status**: ✅ Implemented (2025-10-15)
+
+**Architecture**:
+- Daily snapshots generated via CLI (`bun run db:snapshot`)
+- Stored in PostgreSQL (Railway) as JSONB
+- Served via Next.js API route with 1-hour cache
+- Performance: ~1 second (vs 90-150s direct from Stellar)
+
+**Tables**:
+- `fund_entities` - Fund configurations (mtlf, etc.)
+- `fund_snapshots` - Daily snapshots with JSONB data
+
+**Scripts**:
+- `bun run db:migrate` - Run migrations
+- `bun run db:snapshot` - Generate snapshot for today
+
+**See**: `docs/guides/postgresql-effect-integration.md` for complete guide
+
 ## Future Enhancements
 
-- [ ] Server-side rendering for fund data
-- [ ] Historical price charts
+- [ ] Historical price charts from snapshots
 - [ ] Price alerts and notifications
-- [ ] Export reports (CSV, PDF)
+- [ ] Export reports (CSV, PDF) from snapshot data
 - [ ] WebSocket real-time updates
-- [ ] Price data caching layer
+- [ ] Automated daily snapshot generation (cron)
+- [ ] Snapshot comparison and analytics
