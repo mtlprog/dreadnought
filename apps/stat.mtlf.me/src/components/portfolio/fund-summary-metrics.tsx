@@ -47,24 +47,24 @@ export function FundSummaryMetrics({
               Цена за 1 токен × Баланс (без учета проскальзывания)
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 НОМИНАЛ EURMTL
               </div>
-              <div className="text-4xl font-mono text-electric-cyan">
+              <div className="text-4xl font-mono text-electric-cyan break-all">
                 {formatNumber(nominalEURMTL ?? 0, 2)}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 НОМИНАЛ XLM
               </div>
-              <div className="text-4xl font-mono text-electric-cyan">
+              <div className="text-4xl font-mono text-electric-cyan break-all">
                 {formatNumber(nominalXLM ?? 0, 7)}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 СЧЕТОВ
               </div>
@@ -72,7 +72,7 @@ export function FundSummaryMetrics({
                 {accountCount}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 ТОКЕНОВ
               </div>
@@ -95,36 +95,36 @@ export function FundSummaryMetrics({
               Реальная стоимость при продаже всего баланса (с учетом проскальзывания)
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 ЛИКВИД EURMTL
               </div>
-              <div className="text-4xl font-mono text-warning-amber">
+              <div className="text-4xl font-mono text-warning-amber break-all">
                 {formatNumber(totalEURMTL ?? 0, 2)}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 ЛИКВИД XLM
               </div>
-              <div className="text-4xl font-mono text-warning-amber">
+              <div className="text-4xl font-mono text-warning-amber break-all">
                 {formatNumber(totalXLM ?? 0, 7)}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 ПРОСКАЛЬЗЫВАНИЕ EURMTL
               </div>
-              <div className="text-3xl font-mono text-warning-amber">
+              <div className="text-3xl font-mono text-warning-amber break-all">
                 {formatNumber((nominalEURMTL ?? 0) - (totalEURMTL ?? 0), 2)}
               </div>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 ПРОСКАЛЬЗЫВАНИЕ XLM
               </div>
-              <div className="text-3xl font-mono text-warning-amber">
+              <div className="text-3xl font-mono text-warning-amber break-all">
                 {formatNumber((nominalXLM ?? 0) - (totalXLM ?? 0), 7)}
               </div>
             </div>
