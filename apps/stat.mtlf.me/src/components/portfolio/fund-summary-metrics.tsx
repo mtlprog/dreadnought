@@ -1,7 +1,6 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { formatNumber } from "@/lib/utils";
 import { TruncatedNumber } from "@/components/ui/truncated-number";
 import React from "react";
 
