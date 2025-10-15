@@ -10,7 +10,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@dreadnought/ui": "../../packages/ui",
+    "@dreadnought/theme": "workspace:*",
+    "@dreadnought/ui": "workspace:*",
     "@effect/platform": "catalog:default",
     "@effect/schema": "catalog:default",
     "effect": "catalog:default",
