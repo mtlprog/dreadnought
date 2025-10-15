@@ -1,11 +1,11 @@
 "use client";
 
-import { SystemLoading } from "@/components/ui/loading-skeleton";
+import { FundStructureLoading } from "@/components/ui/loading-skeleton";
 import { useFundData } from "@/hooks/use-fund-data";
 import { FundStructureTable } from "./fund-structure-table";
 
 export function PortfolioDemo() {
-  const { data: fundData, isLoading, error, progress: loadingProgress, statusMessages, rateLimitWarning } = useFundData();
+  const { data: fundData, isLoading, error } = useFundData();
 
   if (error != null) {
     return (
@@ -28,13 +28,9 @@ export function PortfolioDemo() {
 
   if (isLoading === true) {
     return (
-      <SystemLoading
-        title="ЗАГРУЗКА ФОНДА MONTELIBERO"
-        subtitle="Получение данных со всех счетов фонда..."
-        progress={loadingProgress}
-        statusMessages={statusMessages}
-        rateLimitWarning={rateLimitWarning}
-      />
+      <div className="container mx-auto px-4 py-16">
+        <FundStructureLoading accountCount={8} />
+      </div>
     );
   }
 
