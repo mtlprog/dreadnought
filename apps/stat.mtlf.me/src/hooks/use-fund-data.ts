@@ -7,7 +7,7 @@ interface UseFundDataState {
   error: string | null;
 }
 
-export function useFundData(): UseFundDataState {
+export function useFundData(selectedDate?: string | null): UseFundDataState {
   const [state, setState] = useState<UseFundDataState>({
     data: null,
     isLoading: true,
@@ -21,7 +21,12 @@ export function useFundData(): UseFundDataState {
       try {
         setState({ data: null, isLoading: true, error: null });
 
-        const response = await fetch("/api/fund-structure");
+        // Build URL with optional date parameter
+        const url = selectedDate
+          ? `/api/fund-structure?date=${selectedDate}`
+          : "/api/fund-structure";
+
+        const response = await fetch(url);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -48,7 +53,7 @@ export function useFundData(): UseFundDataState {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [selectedDate]);
 
   return state;
 }

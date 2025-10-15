@@ -9,9 +9,15 @@ const sql = postgres(process.env.DATABASE_URL as string, {
 
 // Cache for 1 hour since data is in DB and updated daily
 export const revalidate = 3600;
+// Mark as dynamic since we use request.url for query params
+export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Get optional date parameter from query string
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get("date");
+
     // Get entity ID
     const entities = await sql<Array<{ id: number }>>`
       SELECT id FROM fund_entities WHERE slug = 'mtlf'
@@ -34,14 +40,21 @@ export async function GET() {
 
     const entityId = entity.id;
 
-    // Get latest snapshot
-    const snapshots = await sql<Array<{ data: FundStructureData }>>`
-      SELECT data
-      FROM fund_snapshots
-      WHERE entity_id = ${entityId}
-      ORDER BY snapshot_date DESC
-      LIMIT 1
-    `;
+    // Get snapshot - either by date or latest
+    const snapshots = date
+      ? await sql<Array<{ data: FundStructureData }>>`
+          SELECT data
+          FROM fund_snapshots
+          WHERE entity_id = ${entityId}
+            AND snapshot_date = ${date}
+        `
+      : await sql<Array<{ data: FundStructureData }>>`
+          SELECT data
+          FROM fund_snapshots
+          WHERE entity_id = ${entityId}
+          ORDER BY snapshot_date DESC
+          LIMIT 1
+        `;
 
     if (snapshots.length === 0) {
       return NextResponse.json(

@@ -21,6 +21,7 @@
     "@effect/schema": "catalog:default",
     "@effect/sql": "catalog:default",
     "@effect/sql-pg": "catalog:default",
+    "@radix-ui/react-select": "^2.2.6",
     "@stellar/stellar-sdk": "catalog:default",
     "chalk": "^5.3.0",
     "class-variance-authority": "^0.7.1",
