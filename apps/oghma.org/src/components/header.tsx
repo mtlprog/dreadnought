@@ -41,6 +41,13 @@ export function Header() {
               COURSES
             </Link>
 
+            <Link
+              href="/profile"
+              className="text-sm md:text-lg font-bold uppercase text-foreground hover:text-primary transition-colors"
+            >
+              PROFILE
+            </Link>
+
             {/* Theme toggle */}
             <Button
               variant="ghost"
