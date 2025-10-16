@@ -18,13 +18,12 @@ const PgLive = PgClient.layer({
   url: Redacted.make(process.env["DATABASE_URL"]!),
 });
 
-const MainLayer = Layer.mergeAll(
-  CourseParserServiceLive,
-  LessonRepositoryLive,
-  CourseRepositoryLive,
-  PgLive,
-  NodeFileSystem.layer,
-  NodeContext.layer
+const MainLayer = CourseParserServiceLive.pipe(
+  Layer.provideMerge(CourseRepositoryLive),
+  Layer.provideMerge(LessonRepositoryLive),
+  Layer.provide(PgLive),
+  Layer.provideMerge(NodeFileSystem.layer),
+  Layer.provide(NodeContext.layer)
 );
 
 const program = pipe(

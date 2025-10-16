@@ -1,0 +1,21 @@
+{
+  "slug": "intro-to-panarchy",
+  "title": "Introduction to Panarchy",
+  "description": "Learn the fundamentals of panarchy theory and adaptive governance systems",
+  "author": "Panarchy Institute",
+  "tags": ["panarchy", "governance", "theory", "intro"],
+  "lessons": [
+    {
+      "slug": "welcome",
+      "title": "Welcome to Panarchy"
+    },
+    {
+      "slug": "what-is-panarchy",
+      "title": "What is Panarchy?"
+    },
+    {
+      "slug": "adaptive-cycles",
+      "title": "Understanding Adaptive Cycles"
+    }
+  ]
+}
