@@ -36,11 +36,11 @@ async function getCourse(slug: string): Promise<Course | null> {
       return null;
     }
 
-    const course = courses[0];
+    const course = courses[0]!;
     return {
       ...course,
       tags: typeof course.tags === "string" ? JSON.parse(course.tags) : course.tags,
-    };
+    } as Course;
   } finally {
     await sql.end();
   }
