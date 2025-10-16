@@ -1,0 +1,152 @@
+@import "tailwindcss";
+@import "@dreadnought/ui/styles.css";
+
+@source "../";
+
+@variant dark (&:where(.dark, .dark *));
+
+/* Retrofuturistic Brutalism Theme (Evangelion-inspired) */
+:root {
+  /* Base colors */
+  --background: 250 250 250;
+  --foreground: 10 10 10;
+
+  /* Semantic colors */
+  --primary: 274 60% 37%; /* Purple */
+  --primary-foreground: 142 100% 50%; /* Cyber green */
+
+  --secondary: 25 100% 50%; /* Orange */
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 10 10% 10%;
+
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 274 60% 37%;
+
+  --destructive: 340 100% 50%; /* Pink */
+  --destructive-foreground: 0 0% 100%;
+
+  /* Accent colors */
+  --accent: 142 100% 50%; /* Cyber green */
+  --accent-foreground: 10 10% 10%;
+
+  /* Retrofuturistic accents */
+  --cyber-green: 142 100% 50%;
+  --electric-cyan: 180 100% 50%;
+  --warning-amber: 25 100% 50%;
+  --steel-gray: 210 10% 40%;
+}
+
+.dark {
+  --background: 272 65% 8%; /* Dark purple */
+  --foreground: 142 100% 50%; /* Cyber green */
+
+  --primary: 274 60% 37%; /* Purple */
+  --primary-foreground: 142 100% 50%; /* Cyber green */
+
+  --secondary: 25 100% 50%; /* Orange */
+  --secondary-foreground: 0 0% 100%;
+
+  --muted: 272 40% 15%;
+  --muted-foreground: 215 40% 70%;
+
+  --card: 272 50% 10%;
+  --card-foreground: 142 100% 50%;
+
+  --border: 274 40% 20%;
+  --input: 274 40% 20%;
+  --ring: 274 60% 50%;
+
+  --destructive: 340 100% 50%; /* Pink */
+  --destructive-foreground: 0 0% 100%;
+
+  --accent: 142 100% 50%; /* Cyber green */
+  --accent-foreground: 10 10% 10%;
+
+  /* Retrofuturistic accents */
+  --cyber-green: 142 100% 50%;
+  --electric-cyan: 180 100% 50%;
+  --warning-amber: 25 100% 50%;
+  --steel-gray: 210 10% 60%;
+}
+
+/* Theme mapping for Tailwind v4 */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-cyber-green: var(--cyber-green);
+  --color-electric-cyan: var(--electric-cyan);
+  --color-warning-amber: var(--warning-amber);
+  --color-steel-gray: var(--steel-gray);
+}
+
+/* Global styles */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: var(--font-geist-mono, monospace);
+}
+
+/* Typography defaults */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-geist-sans, sans-serif);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Scrollbar styling (optional) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent));
+}

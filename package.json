@@ -28,6 +28,7 @@
       "@effect/sql": "latest",
       "@effect/sql-pg": "latest",
       "@stellar/stellar-sdk": "^12.3.0",
+      "postgres": "^3.4.5",
       "react": "^19.0.0",
       "react-dom": "^19.0.0",
       "next": "15.5.2",
