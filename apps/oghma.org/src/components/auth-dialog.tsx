@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@dreadnought/ui";
 import { Copy, ExternalLink, Loader2, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { isFreighterInstalled, connectFreighter } from "@/lib/stellar/freighter";
 import { toast } from "sonner";
 
 interface AuthDialogProps {
@@ -14,55 +13,41 @@ interface AuthDialogProps {
 
 export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
   const [step, setStep] = useState<"connect" | "sign">("connect");
-  const [publicKey, setPublicKey] = useState<string>("");
+  const [inputValue, setInputValue] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const { startAuth, getStellarUri, sendToMMWB, challengeXDR, isLoading } = useAuth();
 
   if (!isOpen) return null;
 
-  const handleConnect = async () => {
-    if (!isFreighterInstalled()) {
-      toast.error("Please install Freighter wallet extension");
-      window.open("https://www.freighter.app/", "_blank");
+  const handleSubmit = () => {
+    const key = inputValue.trim();
+
+    // Validate public key
+    if (!key.startsWith("G") || key.length !== 56) {
+      toast.error("Invalid public key format. Must start with G and be 56 characters.");
       return;
     }
 
-    const key = await connectFreighter();
-    if (key) {
-      setPublicKey(key);
-      const xdr = await startAuth(key);
+    void startAuth(key).then((xdr) => {
       if (xdr) {
         setStep("sign");
       }
-    }
-  };
-
-  const handleManualInput = async () => {
-    const key = prompt("Enter your Stellar public key (G...):");
-    if (key && key.startsWith("G") && key.length === 56) {
-      setPublicKey(key);
-      const xdr = await startAuth(key);
-      if (xdr) {
-        setStep("sign");
-      }
-    } else {
-      toast.error("Invalid public key format");
-    }
+    });
   };
 
   const handleCopy = () => {
     if (challengeXDR) {
-      navigator.clipboard.writeText(challengeXDR);
+      void navigator.clipboard.writeText(challengeXDR);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast.success("XDR copied to clipboard");
     }
   };
 
-  const handleMMWB = async () => {
+  const handleMMWB = () => {
     if (challengeXDR) {
       const stellarUri = getStellarUri(challengeXDR);
-      await sendToMMWB(stellarUri);
+      void sendToMMWB(stellarUri);
     }
   };
 
@@ -83,34 +68,41 @@ export function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
         {step === "connect" ? (
           <div className="space-y-6">
             <p className="text-sm text-muted-foreground font-mono">
-              Connect your Stellar wallet to track progress and earn achievements
+              Enter your Stellar public key to track progress and earn achievements
             </p>
 
             <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground uppercase">
+                  Stellar Public Key
+                </label>
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="G..."
+                  className="w-full p-3 bg-muted font-mono text-sm border-2 border-border"
+                  maxLength={56}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your public key should start with G and be 56 characters long
+                </p>
+              </div>
+
               <Button
-                onClick={handleConnect}
-                disabled={isLoading}
+                onClick={handleSubmit}
+                disabled={isLoading || !inputValue.trim()}
                 className="w-full uppercase"
                 size="lg"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    CONNECTING...
+                    GENERATING CHALLENGE...
                   </>
                 ) : (
-                  "CONNECT WITH FREIGHTER"
+                  "CONTINUE"
                 )}
-              </Button>
-
-              <Button
-                onClick={handleManualInput}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full uppercase"
-                size="lg"
-              >
-                ENTER PUBLIC KEY MANUALLY
               </Button>
             </div>
           </div>

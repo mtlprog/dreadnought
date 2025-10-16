@@ -24,11 +24,11 @@ export function useAuth() {
 
   // Check authentication status on mount and after window focus
   useEffect(() => {
-    checkAuthStatus();
+    void checkAuthStatus();
 
     // Recheck auth when window gains focus (after signing in widget)
     const handleFocus = () => {
-      checkAuthStatus();
+      void checkAuthStatus();
     };
 
     window.addEventListener("focus", handleFocus);

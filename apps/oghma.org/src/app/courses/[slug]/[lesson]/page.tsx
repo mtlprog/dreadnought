@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Button } from "@dreadnought/ui";
 import { Header } from "@/components/header";
+import { CompleteLessonButton } from "@/components/complete-lesson-button";
 import { renderMarkdown } from "@/lib/markdown";
 import postgres from "postgres";
+import { getSession } from "@/lib/stellar/session";
 import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 
 interface Course {
@@ -88,6 +89,22 @@ async function getAdjacentLessons(courseId: number, currentOrderIndex: number) {
   }
 }
 
+async function checkLessonProgress(userId: number, lessonId: number): Promise<boolean> {
+  const sql = postgres(process.env["DATABASE_URL"]!);
+
+  try {
+    const progress = await sql<{ completed: boolean }[]>`
+      SELECT completed
+      FROM lesson_progress
+      WHERE user_id = ${userId} AND lesson_id = ${lessonId}
+    `;
+
+    return progress[0]?.completed ?? false;
+  } finally {
+    await sql.end();
+  }
+}
+
 export default async function LessonPage({
   params,
 }: {
@@ -107,6 +124,13 @@ export default async function LessonPage({
 
   const { prev, next } = await getAdjacentLessons(course.id, lesson.order_index);
   const htmlContent = await renderMarkdown(lesson.markdown);
+
+  // Check authentication and progress
+  const session = await getSession();
+  const isAuthenticated = !!session;
+  const isCompleted = isAuthenticated
+    ? await checkLessonProgress(session.userId, lesson.id)
+    : false;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -169,22 +193,11 @@ export default async function LessonPage({
         </article>
 
         {/* Complete Lesson Button */}
-        <div className="border-4 border-secondary bg-card p-6 mb-8">
-          <div className="flex items-center gap-4">
-            <CheckCircle2 className="w-8 h-8 text-secondary" />
-            <div className="flex-1">
-              <p className="font-bold uppercase text-lg">
-                MARK AS COMPLETE
-              </p>
-              <p className="text-sm font-mono text-muted-foreground">
-                Connect wallet to track your progress
-              </p>
-            </div>
-            <Button size="lg" disabled>
-              COMPLETE LESSON
-            </Button>
-          </div>
-        </div>
+        <CompleteLessonButton
+          lessonId={lesson.id}
+          isAuthenticated={isAuthenticated}
+          isCompleted={isCompleted}
+        />
 
         {/* Navigation */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   Keypair,
   Networks,
@@ -7,11 +7,11 @@ import {
 import postgres from "postgres";
 import { createSession, setSessionCookie } from "@/lib/stellar/session";
 
-const STELLAR_NETWORK = process.env.STELLAR_NETWORK || "testnet";
-const STELLAR_SERVER_SECRET = process.env.STELLAR_SERVER_SECRET!;
+const STELLAR_NETWORK = process.env["STELLAR_NETWORK"] || "testnet";
+const STELLAR_SERVER_SECRET = process.env["STELLAR_SERVER_SECRET"]!;
 const HOME_DOMAIN = "oghma.org";
 
-const sql = postgres(process.env.DATABASE_URL!);
+const sql = postgres(process.env["DATABASE_URL"]!);
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const operation = transaction.operations[0];
-    if (operation.type !== "manageData") {
+    if (!operation || operation.type !== "manageData") {
       return NextResponse.json(
         { error: "Invalid transaction: operation must be manageData" },
         { status: 400 }
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create JWT session
-    const token = await createSession(clientPublicKey, user.id);
+    const token = await createSession(clientPublicKey, user["id"]);
     await setSessionCookie(token);
 
     // Return success with redirect
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: "Authentication successful",
       publicKey: clientPublicKey,
-      userId: user.id,
+      userId: user["id"],
     });
   } catch (error) {
     console.error("Callback error:", error);

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   Keypair,
   Networks,
@@ -9,12 +9,12 @@ import {
 } from "@stellar/stellar-sdk";
 import postgres from "postgres";
 
-const STELLAR_NETWORK = process.env.STELLAR_NETWORK || "testnet";
-const STELLAR_SERVER_SECRET = process.env.STELLAR_SERVER_SECRET!;
+const STELLAR_NETWORK = process.env["STELLAR_NETWORK"] || "testnet";
+const STELLAR_SERVER_SECRET = process.env["STELLAR_SERVER_SECRET"]!;
 const HOME_DOMAIN = "oghma.org";
 const CHALLENGE_TIMEOUT = 300; // 5 minutes
 
-const sql = postgres(process.env.DATABASE_URL!);
+const sql = postgres(process.env["DATABASE_URL"]!);
 
 export async function POST(request: NextRequest) {
   try {

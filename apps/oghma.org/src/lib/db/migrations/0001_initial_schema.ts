@@ -9,15 +9,23 @@ export default Effect.flatMap(
       yield* sql`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        stellar_account_id VARCHAR(56) UNIQUE NOT NULL,
+        stellar_public_key VARCHAR(56) UNIQUE NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP WITH TIME ZONE
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
     `;
 
+      // Create index only if column exists (handles case where table already exists with old schema)
       yield* sql`
-      CREATE INDEX IF NOT EXISTS idx_users_stellar_account
-      ON users(stellar_account_id)
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'stellar_public_key'
+        ) THEN
+          CREATE INDEX IF NOT EXISTS idx_users_stellar_public_key ON users(stellar_public_key);
+        END IF;
+      END $$;
     `;
 
       // Courses table

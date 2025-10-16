@@ -82,7 +82,7 @@ export function Header() {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={logout}
+                    onClick={() => void logout()}
                     disabled={isLoading}
                     className="border-2"
                   >

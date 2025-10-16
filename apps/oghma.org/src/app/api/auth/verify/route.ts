@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   Keypair,
   Networks,
@@ -7,11 +7,11 @@ import {
 import { createSession, setSessionCookie } from "@/lib/stellar/session";
 import postgres from "postgres";
 
-const STELLAR_NETWORK = process.env.STELLAR_NETWORK || "testnet";
-const STELLAR_SERVER_SECRET = process.env.STELLAR_SERVER_SECRET!;
-const HOME_DOMAIN = "oghma.org";
+const STELLAR_NETWORK = process.env["STELLAR_NETWORK"] || "testnet";
+const STELLAR_SERVER_SECRET = process.env["STELLAR_SERVER_SECRET"]!;
+// const HOME_DOMAIN = "oghma.org"; // Unused in this route
 
-const sql = postgres(process.env.DATABASE_URL!);
+const sql = postgres(process.env["DATABASE_URL"]!);
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     const operation = transaction.operations[0];
-    if (operation.type !== "manageData") {
+    if (!operation || operation.type !== "manageData") {
       return NextResponse.json(
         { error: "Invalid transaction: operation must be manageData" },
         { status: 400 }
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session token
-    const token = await createSession(publicKey, user.id);
+    const token = await createSession(publicKey, user["id"]);
 
     // Set session cookie
     await setSessionCookie(token);
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       publicKey,
-      userId: user.id,
+      userId: user["id"],
     });
   } catch (error) {
     console.error("Verification error:", error);

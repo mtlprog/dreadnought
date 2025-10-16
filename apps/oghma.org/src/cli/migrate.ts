@@ -4,6 +4,8 @@ import { Effect, Layer, pipe, Redacted } from "effect";
 import { PgClient } from "@effect/sql-pg";
 import { NodeContext, NodeRuntime } from "@effect/platform-node";
 import migration0001 from "@/lib/db/migrations/0001_initial_schema";
+import * as migration0002 from "@/lib/db/migrations/0002_auth_sessions";
+import * as migration0003 from "@/lib/db/migrations/0003_fix_users_column";
 
 const PgLive = PgClient.layer({
   url: Redacted.make(process.env["DATABASE_URL"]!),
@@ -22,6 +24,14 @@ const program = pipe(
     // Run migration 0001
     yield* migration0001;
     yield* Effect.log("Migration 0001 executed successfully");
+
+    // Run migration 0002
+    yield* migration0002.up;
+    yield* Effect.log("Migration 0002 executed successfully");
+
+    // Run migration 0003
+    yield* migration0003.up;
+    yield* Effect.log("Migration 0003 executed successfully");
 
     // Verify tables
     const tables = yield* pg<{ tablename: string }>`

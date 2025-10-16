@@ -3,7 +3,7 @@ import { SqlClient } from "@effect/sql";
 
 export const up = Effect.flatMap(SqlClient.SqlClient, (sql) =>
   sql`
-    CREATE TABLE auth_sessions (
+    CREATE TABLE IF NOT EXISTS auth_sessions (
       id SERIAL PRIMARY KEY,
       nonce TEXT NOT NULL UNIQUE,
       public_key TEXT NOT NULL,
@@ -12,8 +12,8 @@ export const up = Effect.flatMap(SqlClient.SqlClient, (sql) =>
       used BOOLEAN DEFAULT FALSE
     );
 
-    CREATE INDEX idx_auth_sessions_nonce ON auth_sessions(nonce);
-    CREATE INDEX idx_auth_sessions_expires_at ON auth_sessions(expires_at);
+    CREATE INDEX IF NOT EXISTS idx_auth_sessions_nonce ON auth_sessions(nonce);
+    CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires_at);
   `
 );
 
