@@ -7,11 +7,14 @@ import {
   BASE_FEE,
   Horizon,
 } from "@stellar/stellar-sdk";
+import postgres from "postgres";
 
 const STELLAR_NETWORK = process.env.STELLAR_NETWORK || "testnet";
 const STELLAR_SERVER_SECRET = process.env.STELLAR_SERVER_SECRET!;
 const HOME_DOMAIN = "oghma.org";
 const CHALLENGE_TIMEOUT = 300; // 5 minutes
+
+const sql = postgres(process.env.DATABASE_URL!);
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,12 +57,19 @@ export async function POST(request: NextRequest) {
     // Load server account
     const serverAccount = await server.loadAccount(serverKeypair.publicKey());
 
-    // Generate random challenge nonce
+    // Generate random challenge nonce (будет ID сессии)
     const nonce = Buffer.from(
       Array.from({ length: 48 }, () => Math.floor(Math.random() * 256))
     ).toString("base64");
 
-    // Create challenge transaction
+    // Save nonce to database
+    const expiresAt = new Date(Date.now() + CHALLENGE_TIMEOUT * 1000);
+    await sql`
+      INSERT INTO auth_sessions (nonce, public_key, expires_at)
+      VALUES (${nonce}, ${publicKey}, ${expiresAt})
+    `;
+
+    // Create challenge transaction with nonce in manageData
     const transaction = new TransactionBuilder(serverAccount, {
       fee: BASE_FEE,
       networkPassphrase,
@@ -67,7 +77,7 @@ export async function POST(request: NextRequest) {
       .addOperation(
         Operation.manageData({
           name: `${HOME_DOMAIN} auth`,
-          value: nonce,
+          value: nonce, // Nonce будет в manageData
           source: publicKey,
         })
       )
@@ -80,6 +90,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       transaction: transaction.toXDR(),
       networkPassphrase,
+      nonce, // Возвращаем nonce для отладки (можно убрать в продакшене)
     });
   } catch (error) {
     console.error("Challenge generation error:", error);

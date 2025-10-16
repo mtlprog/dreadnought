@@ -1,11 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  isFreighterInstalled,
-  connectFreighter,
-  signWithFreighter,
-} from "@/lib/stellar/freighter";
 import { toast } from "sonner";
 
 interface AuthState {
@@ -13,6 +8,8 @@ interface AuthState {
   publicKey: string | null;
   userId: number | null;
   isLoading: boolean;
+  challengeXDR: string | null;
+  telegramUrl: string | null;
 }
 
 export function useAuth() {
@@ -21,11 +18,21 @@ export function useAuth() {
     publicKey: null,
     userId: null,
     isLoading: true,
+    challengeXDR: null,
+    telegramUrl: null,
   });
 
-  // Check authentication status on mount
+  // Check authentication status on mount and after window focus
   useEffect(() => {
     checkAuthStatus();
+
+    // Recheck auth when window gains focus (after signing in widget)
+    const handleFocus = () => {
+      checkAuthStatus();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, []);
 
   const checkAuthStatus = async () => {
@@ -33,41 +40,24 @@ export function useAuth() {
       const response = await fetch("/api/auth/status");
       const data = await response.json();
 
-      setState({
+      setState((prev) => ({
+        ...prev,
         isAuthenticated: data.authenticated,
         publicKey: data.publicKey || null,
         userId: data.userId || null,
         isLoading: false,
-      });
+      }));
     } catch (error) {
       console.error("Failed to check auth status:", error);
       setState((prev) => ({ ...prev, isLoading: false }));
     }
   };
 
-  const login = useCallback(async () => {
-    // Check if Freighter is installed
-    if (!isFreighterInstalled()) {
-      toast.error("Please install Freighter wallet extension");
-      window.open("https://www.freighter.app/", "_blank");
-      return;
-    }
-
+  const startAuth = useCallback(async (publicKey: string) => {
     setState((prev) => ({ ...prev, isLoading: true }));
 
     try {
-      // Step 1: Connect to Freighter
-      toast.info("Connecting to Freighter...");
-      const publicKey = await connectFreighter();
-
-      if (!publicKey) {
-        toast.error("Failed to connect to Freighter");
-        setState((prev) => ({ ...prev, isLoading: false }));
-        return;
-      }
-
-      // Step 2: Request challenge from server
-      toast.info("Requesting challenge from server...");
+      // Request challenge from server
       const challengeResponse = await fetch("/api/auth/challenge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,55 +68,66 @@ export function useAuth() {
         const error = await challengeResponse.json();
         toast.error(`Challenge failed: ${error.error}`);
         setState((prev) => ({ ...prev, isLoading: false }));
-        return;
+        return null;
       }
 
-      const { transaction, networkPassphrase } = await challengeResponse.json();
+      const { transaction } = await challengeResponse.json();
 
-      // Step 3: Sign transaction with Freighter
-      toast.info("Please sign the transaction in Freighter...");
-      const signedTransaction = await signWithFreighter(
-        transaction,
-        networkPassphrase
-      );
+      setState((prev) => ({
+        ...prev,
+        challengeXDR: transaction,
+        isLoading: false,
+      }));
 
-      if (!signedTransaction) {
-        toast.error("Failed to sign transaction");
-        setState((prev) => ({ ...prev, isLoading: false }));
-        return;
-      }
+      return transaction;
+    } catch (error) {
+      console.error("Start auth error:", error);
+      toast.error("Failed to start authentication");
+      setState((prev) => ({ ...prev, isLoading: false }));
+      return null;
+    }
+  }, []);
 
-      // Step 4: Verify signed transaction with server
-      toast.info("Verifying signature...");
-      const verifyResponse = await fetch("/api/auth/verify", {
+  const getStellarUri = useCallback((xdr: string) => {
+    const callbackUrl = `${window.location.origin}/api/auth/callback`;
+    const params = new URLSearchParams({
+      xdr,
+      callback: `url:${callbackUrl}`,
+    });
+
+    return `web+stellar:tx?${params.toString()}`;
+  }, []);
+
+  const sendToMMWB = useCallback(async (stellarUri: string) => {
+    setState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      const response = await fetch("/api/stellar-uri", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transaction: signedTransaction,
-          publicKey,
-        }),
+        body: JSON.stringify({ stellarUri }),
       });
 
-      if (!verifyResponse.ok) {
-        const error = await verifyResponse.json();
-        toast.error(`Verification failed: ${error.error}`);
-        setState((prev) => ({ ...prev, isLoading: false }));
-        return;
+      if (!response.ok) {
+        throw new Error("Failed to send to MMWB");
       }
 
-      const { userId } = await verifyResponse.json();
+      const { telegramUrl } = await response.json();
 
-      // Success!
-      toast.success("Successfully authenticated!");
-      setState({
-        isAuthenticated: true,
-        publicKey,
-        userId,
+      setState((prev) => ({
+        ...prev,
+        telegramUrl,
         isLoading: false,
-      });
+      }));
+
+      // Open Telegram URL
+      if (telegramUrl) {
+        window.open(telegramUrl, "_blank");
+        toast.info("Please sign the transaction in Telegram bot");
+      }
     } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Authentication failed");
+      console.error("MMWB error:", error);
+      toast.error("Failed to send to signing widget. Please use SEP-0007 link instead.");
       setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, []);
@@ -142,6 +143,8 @@ export function useAuth() {
         publicKey: null,
         userId: null,
         isLoading: false,
+        challengeXDR: null,
+        telegramUrl: null,
       });
 
       toast.success("Logged out successfully");
@@ -154,7 +157,9 @@ export function useAuth() {
 
   return {
     ...state,
-    login,
+    startAuth,
+    getStellarUri,
+    sendToMMWB,
     logout,
     refresh: checkAuthStatus,
   };
