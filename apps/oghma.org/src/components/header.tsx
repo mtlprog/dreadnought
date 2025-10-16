@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, LogOut } from "lucide-react";
 import { Button } from "@dreadnought/ui";
+import { useAuth } from "@/hooks/use-auth";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
+  const { isAuthenticated, publicKey, isLoading, login, logout } = useAuth();
+
+  const formatPublicKey = (key: string) => {
+    return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
+  };
 
   return (
     <header className="border-b-4 border-primary bg-background sticky top-0 z-50">
@@ -63,10 +69,32 @@ export function Header() {
               <span className="sr-only">Toggle theme</span>
             </Button>
 
-            {/* Wallet connection (placeholder for now) */}
-            <Button className="hidden md:inline-flex uppercase tracking-wide">
-              CONNECT WALLET
-            </Button>
+            {/* Wallet connection */}
+            {isAuthenticated && publicKey ? (
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-sm font-mono text-muted-foreground">
+                  {formatPublicKey(publicKey)}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={logout}
+                  disabled={isLoading}
+                  className="border-2"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="sr-only">Disconnect wallet</span>
+                </Button>
+              </div>
+            ) : (
+              <Button
+                className="hidden md:inline-flex uppercase tracking-wide"
+                onClick={login}
+                disabled={isLoading}
+              >
+                {isLoading ? "CONNECTING..." : "CONNECT WALLET"}
+              </Button>
+            )}
           </nav>
         </div>
       </div>
