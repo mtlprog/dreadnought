@@ -12,6 +12,7 @@ Comprehensive guidance for working with the Dreadnought monorepo - an Effect-TS 
 3. **Reuse over rebuild** - Check existing packages before creating new code
 4. **Test-driven package changes** - All package modifications need tests
 5. **Use Bun** - Not Node.js, npm, pnpm, or yarn
+6. **ALWAYS use Context7** - Automatically use Context7 MCP tools (`resolve-library-id` and `get-library-docs`) for code generation, setup/configuration steps, or library/API documentation without explicit user request
 
 ## 📋 Development Workflow
 
@@ -306,14 +307,15 @@ All packages documented in `/packages/README.md`
 
 1. ✅ Effect-TS everywhere - no exceptions
 2. ✅ ManagedRuntime for tests - always dispose()
-3. ✅ Ask before coding - requirements first
-4. ✅ Check existing packages - reuse over rebuild
-5. ✅ Develop in /apps - packages only when requested
-6. ✅ Test package changes - maintain compatibility
-7. ✅ Use Bun - not Node/npm
-8. ✅ Zero border-radius - angular design
-9. ✅ Trunk-based git - direct to master
-10. ✅ Stellar with Effect - wrap all blockchain ops
+3. ✅ Context7 for docs - use MCP tools proactively
+4. ✅ Ask before coding - requirements first
+5. ✅ Check existing packages - reuse over rebuild
+6. ✅ Develop in /apps - packages only when requested
+7. ✅ Test package changes - maintain compatibility
+8. ✅ Use Bun - not Node/npm
+9. ✅ Zero border-radius - angular design
+10. ✅ Trunk-based git - direct to master
+11. ✅ Stellar with Effect - wrap all blockchain ops
 
 ## ⚠️ Critical Reminders
 
