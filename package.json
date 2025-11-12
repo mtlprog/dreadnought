@@ -27,6 +27,7 @@
       "@effect/eslint-plugin": "latest",
       "@effect/sql": "latest",
       "@effect/sql-pg": "latest",
+      "@effect/cluster": "latest",
       "@stellar/stellar-sdk": "^12.3.0",
       "postgres": "^3.4.5",
       "react": "^19.0.0",

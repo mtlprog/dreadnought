@@ -18,6 +18,7 @@
     "@dreadnought/stellar-utils": "workspace:*",
     "@dreadnought/ui": "workspace:*",
     "@dreadnought/utils": "workspace:*",
+    "@effect/cluster": "catalog:default",
     "@effect/platform": "catalog:default",
     "@effect/platform-node": "catalog:default",
     "@effect/schema": "catalog:default",
