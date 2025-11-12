@@ -53,14 +53,14 @@ export function TruncatedNumber({
 
   const content = (
     <span
-      onClick={handleClick}
+      onClick={() => void handleClick()}
       className={`cursor-pointer hover:underline underline-offset-2 ${className}`}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          handleClick();
+          void handleClick();
         }
       }}
     >

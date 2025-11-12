@@ -3,6 +3,7 @@ import { Context, Effect, Layer, pipe } from "effect";
 import type { EnvironmentError, StellarError, TokenPriceError } from "./errors";
 import { type PortfolioService, PortfolioServiceTag } from "./portfolio-service";
 import { type PriceService, PriceServiceTag, type TokenPriceWithBalance } from "./price-service";
+import { type NFTValuationService, NFTValuationServiceTag } from "./nft-valuation-service";
 import type { AssetInfo } from "./types";
 
 export interface FundAccount {
@@ -46,7 +47,7 @@ export interface FundStructureService {
   readonly getFundStructure: () => Effect.Effect<
     FundStructureData,
     TokenPriceError | StellarError | EnvironmentError,
-    PortfolioService | PriceService
+    PortfolioService | PriceService | NFTValuationService
   >;
   readonly getFundAccounts: () => Effect.Effect<readonly FundAccount[], never>;
 }
@@ -149,6 +150,9 @@ const XLM_ASSET_RAW = {
 const EURMTL_ASSET: AssetInfo = S.decodeUnknownSync(AssetInfoSchema)(EURMTL_ASSET_RAW);
 const XLM_ASSET: AssetInfo = S.decodeUnknownSync(AssetInfoSchema)(XLM_ASSET_RAW);
 
+// CITY account ID that contains NFT valuations in DATA entries
+const NFT_VALUATION_ACCOUNT_ID = "GCOJHUKGHI6IATN7AIEK4PSNBPXIAIZ7KB2AWTTUCNIAYVPUB2DMCITY";
+
 const calculateAccountTotals = (
   tokens: readonly TokenPriceWithBalance[],
   xlmBalance: string,
@@ -160,7 +164,12 @@ const calculateAccountTotals = (
   nominalXLM: number;
 } => {
   // Liquid totals (with slippage from full balance execution)
+  // IMPORTANT: NFTs are excluded from liquid totals (not liquid)
   const totalEURMTL = tokens.reduce((sum, token) => {
+    // Skip NFTs for liquid total
+    if (token.isNFT) {
+      return sum;
+    }
     if (token.valueInEURMTL !== null && token.valueInEURMTL !== undefined) {
       return sum + parseFloat(token.valueInEURMTL);
     }
@@ -170,6 +179,10 @@ const calculateAccountTotals = (
     : 0);
 
   const totalXLM = tokens.reduce((sum, token) => {
+    // Skip NFTs for liquid total
+    if (token.isNFT) {
+      return sum;
+    }
     if (token.valueInXLM !== null && token.valueInXLM !== undefined) {
       return sum + parseFloat(token.valueInXLM);
     }
@@ -177,8 +190,13 @@ const calculateAccountTotals = (
   }, 0) + parseFloat(xlmBalance);
 
   // Nominal totals (spot price * balance, no slippage)
+  // IMPORTANT: NFTs are included in nominal totals
   const nominalEURMTL = tokens.reduce((sum, token) => {
     if (token.priceInEURMTL !== null && token.priceInEURMTL !== undefined) {
+      // For NFTs, use the valuation directly (balance is 0.0000001)
+      if (token.isNFT) {
+        return sum + parseFloat(token.priceInEURMTL);
+      }
       return sum + parseFloat(token.balance) * parseFloat(token.priceInEURMTL);
     }
     return sum;
@@ -188,6 +206,10 @@ const calculateAccountTotals = (
 
   const nominalXLM = tokens.reduce((sum, token) => {
     if (token.priceInXLM !== null && token.priceInXLM !== undefined) {
+      // For NFTs, use the valuation directly (balance is 0.0000001)
+      if (token.isNFT) {
+        return sum + parseFloat(token.priceInXLM);
+      }
       return sum + parseFloat(token.balance) * parseFloat(token.priceInXLM);
     }
     return sum;
@@ -201,17 +223,21 @@ const getAccountPortfolio = (
 ): Effect.Effect<
   FundAccountPortfolio,
   TokenPriceError | StellarError | EnvironmentError,
-  PortfolioService | PriceService
+  PortfolioService | PriceService | NFTValuationService
 > =>
   pipe(
     Effect.all({
       portfolioService: PortfolioServiceTag,
       priceService: PriceServiceTag,
+      nftValuationService: NFTValuationServiceTag,
     }),
-    Effect.flatMap(({ portfolioService, priceService }) =>
+    Effect.flatMap(({ portfolioService, priceService, nftValuationService }) =>
       pipe(
-        portfolioService.getAccountPortfolio(account.id),
-        Effect.flatMap((portfolio) =>
+        Effect.all({
+          portfolio: portfolioService.getAccountPortfolio(account.id),
+          nftValuations: nftValuationService.getNFTValuations(NFT_VALUATION_ACCOUNT_ID),
+        }),
+        Effect.flatMap(({ portfolio, nftValuations }) =>
           pipe(
             // Get prices for all tokens
             priceService.getTokensWithPrices(
@@ -221,21 +247,71 @@ const getAccountPortfolio = (
               })),
               { eurmtl: EURMTL_ASSET, xlm: XLM_ASSET },
             ),
-            Effect.flatMap((tokensWithPrices) =>
+            Effect.map((tokensWithPrices) =>
+              // Enrich tokens with NFT valuation data
+              tokensWithPrices.map((token) => {
+                const isNFT = nftValuationService.isNFTBalance(token.balance);
+
+                if (!isNFT) {
+                  return token;
+                }
+
+                // Find NFT valuation for this token
+                const nftValuation = nftValuationService.findNFTValuation(
+                  token.asset.code,
+                  nftValuations,
+                );
+
+                if (!nftValuation) {
+                  // NFT without valuation - skip (as per requirement)
+                  return token;
+                }
+
+                // Convert EURMTL valuation to XLM using XLM price
+                // We'll need to get XLM price first, so we'll do this in the next step
+                return {
+                  ...token,
+                  isNFT: true,
+                  nftValuationAccount: nftValuation.sourceAccount,
+                  priceInEURMTL: nftValuation.valueInEURMTL,
+                  // XLM price will be calculated after we get XLM/EURMTL rate
+                };
+              }),
+            ),
+            Effect.flatMap((tokensWithNFTData) =>
               pipe(
                 // Get XLM price in EURMTL
                 priceService.getTokenPrice(XLM_ASSET, EURMTL_ASSET),
                 Effect.map((xlmPrice) => {
                   const xlmPriceInEURMTL = xlmPrice.price;
+
+                  // Update NFT XLM prices
+                  const enrichedTokens = tokensWithNFTData.map((token) => {
+                    if (token.isNFT && token.priceInEURMTL !== null) {
+                      // Convert EURMTL price to XLM
+                      const priceInXLM = (
+                        parseFloat(token.priceInEURMTL) / parseFloat(xlmPriceInEURMTL)
+                      ).toString();
+
+                      return {
+                        ...token,
+                        priceInXLM,
+                        valueInEURMTL: token.priceInEURMTL, // For NFT, value = price (1 stroop)
+                        valueInXLM: priceInXLM, // For NFT, value = price (1 stroop)
+                      };
+                    }
+                    return token;
+                  });
+
                   const { totalEURMTL, totalXLM, nominalEURMTL, nominalXLM } = calculateAccountTotals(
-                    tokensWithPrices,
+                    enrichedTokens,
                     portfolio.xlmBalance,
                     xlmPriceInEURMTL,
                   );
 
                   return {
                     ...account,
-                    tokens: tokensWithPrices,
+                    tokens: enrichedTokens,
                     xlmBalance: portfolio.xlmBalance,
                     xlmPriceInEURMTL,
                     totalEURMTL,
@@ -247,7 +323,7 @@ const getAccountPortfolio = (
                 Effect.catchAll(() =>
                   Effect.succeed({
                     ...account,
-                    tokens: tokensWithPrices,
+                    tokens: tokensWithNFTData,
                     xlmBalance: portfolio.xlmBalance,
                     xlmPriceInEURMTL: null,
                     totalEURMTL: 0,
@@ -287,7 +363,7 @@ const getAccountPortfolio = (
 const getFundStructureImpl = (): Effect.Effect<
   FundStructureData,
   TokenPriceError | StellarError | EnvironmentError,
-  PortfolioService | PriceService
+  PortfolioService | PriceService | NFTValuationService
 > =>
   pipe(
     Effect.all(

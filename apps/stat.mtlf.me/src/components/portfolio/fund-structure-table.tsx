@@ -238,48 +238,124 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                 <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="cursor-help underline-offset-2 hover:underline">
+                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
                         {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 4) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {formatPriceTooltip(token.detailsEURMTL)}
+                      {token.isNFT ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                            ОЦЕНКА NFT ФОНДА
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Источник оценки:</div>
+                            <div className="text-electric-cyan font-mono text-[9px] break-all">
+                              {token.nftValuationAccount}
+                            </div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Статус:</div>
+                            <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Баланс NFT:</div>
+                            <div className="text-foreground">0.0000001 (1 струп)</div>
+                          </div>
+                        </div>
+                      ) : (
+                        formatPriceTooltip(token.detailsEURMTL)
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="cursor-help underline-offset-2 hover:underline">
+                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
                         {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {formatPriceTooltip(token.detailsXLM)}
+                      {token.isNFT ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                            ОЦЕНКА NFT ФОНДА
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Источник оценки:</div>
+                            <div className="text-electric-cyan font-mono text-[9px] break-all">
+                              {token.nftValuationAccount}
+                            </div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Статус:</div>
+                            <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Конверсия:</div>
+                            <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
+                          </div>
+                        </div>
+                      ) : (
+                        formatPriceTooltip(token.detailsXLM)
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="cursor-help underline-offset-2 hover:underline">
+                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
                         {token.valueInEURMTL != null ? formatNumber(parseFloat(token.valueInEURMTL), 2) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {formatPriceTooltip(token.detailsEURMTLFullBalance, false)}
+                      {token.isNFT ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                            ОЦЕНКА NFT ФОНДА
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-warning-amber uppercase font-bold">
+                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                            </div>
+                            <div className="text-steel-gray mt-2">
+                              NFT включены только в номинальный итог фонда
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        formatPriceTooltip(token.detailsEURMTLFullBalance, false)
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="cursor-help underline-offset-2 hover:underline">
+                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
                         {token.valueInXLM != null ? formatNumber(parseFloat(token.valueInXLM), 7) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {formatPriceTooltip(token.detailsXLMFullBalance, false)}
+                      {token.isNFT ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                            ОЦЕНКА NFT ФОНДА
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-warning-amber uppercase font-bold">
+                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                            </div>
+                            <div className="text-steel-gray mt-2">
+                              NFT включены только в номинальный итог фонда
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        formatPriceTooltip(token.detailsXLMFullBalance, false)
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>

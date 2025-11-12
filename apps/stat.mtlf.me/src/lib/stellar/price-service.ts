@@ -58,6 +58,8 @@ export interface TokenPriceWithBalance {
   readonly detailsXLM?: PriceDetails;
   readonly detailsEURMTLFullBalance?: PriceDetails; // Path details for selling entire balance
   readonly detailsXLMFullBalance?: PriceDetails; // Path details for selling entire balance
+  readonly isNFT?: boolean; // True if balance = 0.0000001 (1 stroop)
+  readonly nftValuationAccount?: string; // Account ID where NFT valuation was found
 }
 
 export interface PriceService {

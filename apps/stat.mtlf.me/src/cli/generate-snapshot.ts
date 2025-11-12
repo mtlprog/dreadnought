@@ -13,6 +13,7 @@ import {
 } from "@/lib/services/snapshot-generator-service";
 import {
   FundStructureServiceLive,
+  NFTValuationServiceLive,
   PortfolioServiceLive,
   PriceServiceLive,
 } from "@/lib/stellar";
@@ -48,7 +49,7 @@ const program = pipe(
   Effect.provide(FundSnapshotRepositoryLive),
   Effect.provide(PgLive),
   Effect.provide(FundStructureServiceLive),
-  Effect.provide(Layer.merge(PortfolioServiceLive, PriceServiceLive)),
+  Effect.provide(Layer.mergeAll(PortfolioServiceLive, PriceServiceLive, NFTValuationServiceLive)),
   Effect.provide(NodeContext.layer),
   Effect.catchAll((error) =>
     pipe(
