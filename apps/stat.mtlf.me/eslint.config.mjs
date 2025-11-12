@@ -21,6 +21,9 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
       "src/cli/**",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "test-setup.ts",
     ],
   },
   {

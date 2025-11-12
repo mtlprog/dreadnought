@@ -29,5 +29,12 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "src/cli"]
+  "exclude": [
+    "node_modules",
+    "src/cli",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "test-setup.ts",
+    "bunfig.toml"
+  ]
 }
