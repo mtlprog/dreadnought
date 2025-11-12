@@ -102,10 +102,10 @@ export function FundSummaryMetrics({
               ЛИКВИДНЫЙ ИТОГ
             </h3>
             <p className="text-xs font-mono text-steel-gray uppercase mt-1">
-              Реальная стоимость при продаже всего баланса (с учетом проскальзывания)
+              Реальная стоимость при продаже всего баланса
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2 min-w-0">
               <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
                 ЛИКВИД EURMTL
@@ -126,32 +126,6 @@ export function FundSummaryMetrics({
               <div className="text-4xl font-mono text-warning-amber break-all">
                 <TruncatedNumber
                   value={totalXLM ?? 0}
-                  truncatedDecimals={0}
-                  fullDecimals={7}
-                  className="text-warning-amber"
-                />
-              </div>
-            </div>
-            <div className="space-y-2 min-w-0">
-              <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
-                ПРОСКАЛЬЗЫВАНИЕ EURMTL
-              </div>
-              <div className="text-3xl font-mono text-warning-amber break-all">
-                <TruncatedNumber
-                  value={(nominalEURMTL ?? 0) - (totalEURMTL ?? 0)}
-                  truncatedDecimals={0}
-                  fullDecimals={2}
-                  className="text-warning-amber"
-                />
-              </div>
-            </div>
-            <div className="space-y-2 min-w-0">
-              <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
-                ПРОСКАЛЬЗЫВАНИЕ XLM
-              </div>
-              <div className="text-3xl font-mono text-warning-amber break-all">
-                <TruncatedNumber
-                  value={(nominalXLM ?? 0) - (totalXLM ?? 0)}
                   truncatedDecimals={0}
                   fullDecimals={7}
                   className="text-warning-amber"

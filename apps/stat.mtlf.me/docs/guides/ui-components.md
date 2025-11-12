@@ -196,6 +196,152 @@ const colors = {
 };
 ```
 
+## FundSummaryMetrics
+
+Summary metrics component displaying nominal and liquid fund totals.
+
+**File**: `src/components/portfolio/fund-summary-metrics.tsx`
+
+### Features
+
+- **Nominal totals section** - Shows spot price × balance values (no slippage)
+- **Liquid totals section** - Shows real-world values with path finding (includes slippage)
+- **Responsive grid layout** - 4 columns for nominal, 2 columns for liquid
+- **Loading state** - Displays animated loading indicator
+- **TruncatedNumber integration** - Large numbers with configurable decimals
+- **Design system compliance** - Zero border-radius, monospace fonts, uppercase labels
+
+### Props
+
+```typescript
+interface FundSummaryMetricsProps {
+  totalEURMTL: number;          // Liquid total in EURMTL
+  totalXLM: number;             // Liquid total in XLM
+  nominalEURMTL: number;        // Nominal total in EURMTL (spot price × balance)
+  nominalXLM: number;           // Nominal total in XLM (spot price × balance)
+  accountCount: number;         // Number of accounts
+  tokenCount: number;           // Number of tokens
+  isLoading?: boolean;          // Loading state (default: false)
+}
+```
+
+### Component Structure
+
+```tsx
+export function FundSummaryMetrics({
+  totalEURMTL,
+  totalXLM,
+  nominalEURMTL,
+  nominalXLM,
+  accountCount,
+  tokenCount,
+  isLoading = false,
+}: FundSummaryMetricsProps) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <Card className="p-8 border-0 bg-card text-card-foreground">
+        <div className="text-center">
+          <div className="text-2xl text-cyber-green mb-4">⏳ ЗАГРУЗКА МЕТРИК...</div>
+          <div className="text-steel-gray">Получение суммарных данных фонда...</div>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Nominal Totals */}
+      <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
+        <div className="bg-electric-cyan/10 border-l-4 border-electric-cyan p-6">
+          <h3 className="text-xl font-mono uppercase tracking-wider text-foreground">
+            НОМИНАЛЬНЫЙ ИТОГ
+          </h3>
+          <p className="text-xs font-mono text-steel-gray uppercase mt-1">
+            Цена за 1 токен × Баланс (без учета проскальзывания)
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mt-4">
+            {/* НОМИНАЛ EURMTL, НОМИНАЛ XLM, СЧЕТОВ, ТОКЕНОВ */}
+          </div>
+        </div>
+      </Card>
+
+      {/* Liquid Totals */}
+      <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
+        <div className="bg-cyber-green/10 border-l-4 border-cyber-green p-6">
+          <h3 className="text-xl font-mono uppercase tracking-wider text-foreground">
+            ЛИКВИДНЫЙ ИТОГ
+          </h3>
+          <p className="text-xs font-mono text-steel-gray uppercase mt-1">
+            Реальная стоимость при продаже всего баланса
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+            {/* ЛИКВИД EURMTL, ЛИКВИД XLM */}
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
+}
+```
+
+### Usage
+
+```tsx
+import { FundSummaryMetrics } from "@/components/portfolio/fund-summary-metrics";
+
+<FundSummaryMetrics
+  totalEURMTL={121661.50}
+  totalXLM={526304.12}
+  nominalEURMTL={2457630.25}
+  nominalXLM={5953832.65}
+  accountCount={8}
+  tokenCount={150}
+  isLoading={false}
+/>
+```
+
+### Visual Design
+
+**Nominal Section** (electric-cyan):
+- Background: `bg-electric-cyan/10`
+- Border: `border-l-4 border-electric-cyan`
+- Text colors: `text-electric-cyan` for values
+- Grid: 4 columns (НОМИНАЛ EURMTL, НОМИНАЛ XLM, СЧЕТОВ, ТОКЕНОВ)
+
+**Liquid Section** (cyber-green):
+- Background: `bg-cyber-green/10`
+- Border: `border-l-4 border-cyber-green`
+- Text colors: `text-warning-amber` for values
+- Grid: 2 columns (ЛИКВИД EURMTL, ЛИКВИД XLM)
+
+### Key Changes (2025-11)
+
+- ✅ Removed slippage columns (ПРОСКАЛЬЗЫВАНИЕ EURMTL/XLM)
+- ✅ Removed slippage mention from description
+- ✅ Changed liquid grid from 4 to 2 columns
+- ✅ Comprehensive test coverage (16 tests)
+
+### Testing
+
+**File**: `src/components/portfolio/fund-summary-metrics.test.tsx`
+
+**Test Coverage**:
+- Loading state rendering
+- Nominal totals display and styling
+- Liquid totals display and styling
+- Verification that slippage columns are removed
+- Responsive grid layouts (2 vs 4 columns)
+- Design system compliance (uppercase, monospace, zero border-radius)
+- Null/undefined handling
+
+**Run tests**:
+```bash
+bun test src/components/portfolio/fund-summary-metrics.test.tsx
+```
+
 ## StellarAsset
 
 Component for displaying Stellar asset codes with optional issuer.

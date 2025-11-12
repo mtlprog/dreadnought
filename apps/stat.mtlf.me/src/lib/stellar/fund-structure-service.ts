@@ -345,6 +345,8 @@ const getAccountPortfolio = (
                   priceInXLM: null,
                   valueInEURMTL: null,
                   valueInXLM: null,
+                  nominalValueInEURMTL: null,
+                  nominalValueInXLM: null,
                 })),
                 xlmBalance: portfolio.xlmBalance,
                 xlmPriceInEURMTL: null,

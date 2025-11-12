@@ -91,7 +91,7 @@ const getAccountPortfolioImpl = (
 ): Effect.Effect<AccountPortfolio, StellarError | EnvironmentError, never> =>
   pipe(
     getStellarConfig(),
-    Effect.flatMap((config) =>
+    Effect.flatMap((config): Effect.Effect<AccountPortfolio, StellarError | EnvironmentError> =>
       pipe(
         loadAccount(config.server, accountId),
         Effect.flatMap(parseBalances),

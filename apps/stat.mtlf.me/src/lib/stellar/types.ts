@@ -15,16 +15,31 @@ export interface OrderbookData {
 }
 
 // Price calculation details
-export interface PriceDetails {
-  readonly source: "path";
-  readonly sourceAmount?: string; // Amount of source asset being sold
-  readonly destinationAmount?: string; // Amount of destination asset received
-  readonly path: readonly {
-    readonly from: string;
-    readonly to: string;
-    readonly orderbook?: OrderbookData; // Optional orderbook data for this hop
-  }[];
-}
+export type PriceDetails =
+  | {
+      readonly source: "path";
+      readonly sourceAmount?: string; // Amount of source asset being sold
+      readonly destinationAmount?: string; // Amount of destination asset received
+      readonly path: readonly {
+        readonly from: string;
+        readonly to: string;
+        readonly orderbook?: OrderbookData; // Optional orderbook data for this hop
+      }[];
+    }
+  | {
+      readonly source: "orderbook";
+      readonly priceType: "bid" | "ask"; // bid = buying asset, ask = selling asset
+      readonly orderbookData: OrderbookData;
+    }
+  | {
+      readonly source: "best"; // Best price from comparing path and orderbook
+      readonly priceType: "bid" | "ask"; // Which orderbook price was used (if orderbook won)
+      readonly pathPrice: string | null; // Price from path finding
+      readonly orderbookPrice: string | null; // Price from orderbook (bid or ask)
+      readonly chosenSource: "path" | "orderbook"; // Which source was chosen
+      readonly pathDetails?: PriceDetails & { readonly source: "path" }; // Original path details
+      readonly orderbookDetails?: PriceDetails & { readonly source: "orderbook" }; // Original orderbook details
+    };
 
 // Token price calculation types
 export interface TokenPairPrice {

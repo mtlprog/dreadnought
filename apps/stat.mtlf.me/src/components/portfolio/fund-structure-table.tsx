@@ -27,6 +27,125 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
     );
   }
 
+  // Handle "best" source (comparison of path and orderbook)
+  if (details.source === "best") {
+    return (
+      <div className="font-mono space-y-2">
+        <div className="text-cyber-green uppercase text-xs font-bold border-b border-cyber-green/30 pb-1">
+          ЛУЧШАЯ ЦЕНА: {details.chosenSource === "path" ? "ПОИСК ПУТИ" : "ORDERBOOK"}
+        </div>
+
+        {/* Price comparison */}
+        <div className="text-[10px] space-y-1 pb-2 border-b border-steel-gray/30">
+          <div className="flex justify-between gap-4">
+            <span className="text-steel-gray uppercase font-bold">PATH:</span>
+            <span className={`${details.chosenSource === "path" ? "text-cyber-green font-bold" : "text-steel-gray"}`}>
+              {details.pathPrice !== null ? formatNumber(parseFloat(details.pathPrice), 7) : "—"}
+            </span>
+          </div>
+          <div className="flex justify-between gap-4">
+            <span className="text-steel-gray uppercase font-bold">ORDERBOOK ({details.priceType.toUpperCase()}):</span>
+            <span className={`${details.chosenSource === "orderbook" ? "text-cyber-green font-bold" : "text-steel-gray"}`}>
+              {details.orderbookPrice !== null ? formatNumber(parseFloat(details.orderbookPrice), 7) : "—"}
+            </span>
+          </div>
+        </div>
+
+        {/* Show details of chosen source */}
+        {details.chosenSource === "path" && details.pathDetails !== null && details.pathDetails !== undefined && (
+          <div className="text-[10px] text-steel-gray">
+            <div className="uppercase font-bold mb-1">ДЕТАЛИ ПУТИ:</div>
+            {formatPriceTooltip(details.pathDetails, false)}
+          </div>
+        )}
+        {details.chosenSource === "orderbook" && details.orderbookDetails !== null && details.orderbookDetails !== undefined && (
+          <div className="text-[10px] text-steel-gray">
+            <div className="uppercase font-bold mb-1">ДЕТАЛИ ORDERBOOK:</div>
+            {formatPriceTooltip(details.orderbookDetails, true)}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Handle "orderbook" source (direct orderbook)
+  if (details.source === "orderbook") {
+    return (
+      <div className="font-mono space-y-2">
+        <div className="text-warning-amber uppercase text-xs font-bold border-b border-warning-amber/30 pb-1">
+          ПРЯМОЙ ORDERBOOK
+        </div>
+
+        <div className="text-[10px] space-y-1">
+          <div className="flex justify-between gap-4">
+            <span className="text-steel-gray uppercase font-bold">ТИП ЦЕНЫ:</span>
+            <span className={`${details.priceType === "bid" ? "text-cyber-green" : "text-warning-amber"} font-bold uppercase`}>
+              {details.priceType === "bid" ? "BID (ПОКУПКА)" : "ASK (ПРОДАЖА)"}
+            </span>
+          </div>
+        </div>
+
+        {details.orderbookData !== null && details.orderbookData !== undefined && (
+          <div className="text-[10px] space-y-2 pt-2 border-t border-steel-gray/30">
+            {/* Best source indicator */}
+            {details.orderbookData.bestSource !== "none" && (
+              <div className="text-electric-cyan uppercase text-[9px] font-bold">
+                BEST SOURCE: {details.orderbookData.bestSource.toUpperCase()}
+              </div>
+            )}
+
+            {/* Orderbook prices */}
+            {(details.orderbookData.orderbook.ask !== null || details.orderbookData.orderbook.bid !== null) && (
+              <div className="space-y-0.5">
+                <div className="text-steel-gray uppercase text-[9px] font-bold">ORDERBOOK:</div>
+                <div className="flex justify-between gap-3">
+                  <span className={`uppercase font-bold ${details.priceType === "ask" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    ASK:
+                  </span>
+                  <span className={`font-mono ${details.priceType === "ask" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    {details.orderbookData.orderbook.ask !== null ? formatNumber(parseFloat(details.orderbookData.orderbook.ask), 7) : "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className={`uppercase font-bold ${details.priceType === "bid" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    BID:
+                  </span>
+                  <span className={`font-mono ${details.priceType === "bid" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    {details.orderbookData.orderbook.bid !== null ? formatNumber(parseFloat(details.orderbookData.orderbook.bid), 7) : "—"}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* AMM prices */}
+            {(details.orderbookData.amm.ask !== null || details.orderbookData.amm.bid !== null) && (
+              <div className="space-y-0.5">
+                <div className="text-steel-gray uppercase text-[9px] font-bold">AMM POOL:</div>
+                <div className="flex justify-between gap-3">
+                  <span className={`uppercase font-bold ${details.priceType === "ask" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    ASK:
+                  </span>
+                  <span className={`font-mono ${details.priceType === "ask" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    {details.orderbookData.amm.ask !== null ? formatNumber(parseFloat(details.orderbookData.amm.ask), 7) : "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className={`uppercase font-bold ${details.priceType === "bid" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    BID:
+                  </span>
+                  <span className={`font-mono ${details.priceType === "bid" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                    {details.orderbookData.amm.bid !== null ? formatNumber(parseFloat(details.orderbookData.amm.bid), 7) : "—"}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Handle "path" source (existing logic)
   if (details.source === "path" && details.path !== null && details.path !== undefined) {
     return (
       <div className="font-mono space-y-2">
@@ -238,7 +357,13 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                 <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
+                      <span className={`cursor-help underline-offset-2 hover:underline ${
+                        token.isNFT
+                          ? "text-purple-400"
+                          : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInEURMTL != null
+                            ? "text-warning-amber"
+                            : ""
+                      }`}>
                         {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 4) : "—"}
                       </span>
                     </TooltipTrigger>
@@ -272,7 +397,13 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                 <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
+                      <span className={`cursor-help underline-offset-2 hover:underline ${
+                        token.isNFT
+                          ? "text-purple-400"
+                          : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInXLM != null
+                            ? "text-warning-amber"
+                            : ""
+                      }`}>
                         {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"}
                       </span>
                     </TooltipTrigger>
@@ -306,8 +437,19 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                 <TableCell className="text-right font-mono text-electric-cyan">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
-                        {token.valueInEURMTL != null ? formatNumber(parseFloat(token.valueInEURMTL), 2) : "—"}
+                      <span className={`cursor-help underline-offset-2 hover:underline ${
+                        token.isNFT
+                          ? "text-purple-400"
+                          : (token.valueInEURMTL === null || token.valueInXLM === null) && (token.priceInEURMTL != null || token.priceInXLM != null)
+                            ? "text-warning-amber"
+                            : ""
+                      }`}>
+                        {token.valueInEURMTL != null
+                          ? formatNumber(parseFloat(token.valueInEURMTL), 2)
+                          : token.nominalValueInEURMTL != null
+                            ? formatNumber(parseFloat(token.nominalValueInEURMTL), 2)
+                            : "—"
+                        }
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
@@ -325,6 +467,20 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                             </div>
                           </div>
                         </div>
+                      ) : token.valueInEURMTL === null && token.nominalValueInEURMTL != null ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-warning-amber uppercase text-xs font-bold border-b border-warning-amber/30 pb-1">
+                            НОМИНАЛЬНАЯ СТОИМОСТЬ
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-warning-amber uppercase font-bold">
+                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                            </div>
+                            <div className="text-steel-gray mt-2">
+                              Цена × Количество. Токен не имеет ликвидности для полного объема.
+                            </div>
+                          </div>
+                        </div>
                       ) : (
                         formatPriceTooltip(token.detailsEURMTLFullBalance, false)
                       )}
@@ -334,8 +490,19 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                 <TableCell className="text-right font-mono text-electric-cyan">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${token.isNFT ? "text-purple-400" : ""}`}>
-                        {token.valueInXLM != null ? formatNumber(parseFloat(token.valueInXLM), 7) : "—"}
+                      <span className={`cursor-help underline-offset-2 hover:underline ${
+                        token.isNFT
+                          ? "text-purple-400"
+                          : (token.valueInEURMTL === null || token.valueInXLM === null) && (token.priceInEURMTL != null || token.priceInXLM != null)
+                            ? "text-warning-amber"
+                            : ""
+                      }`}>
+                        {token.valueInXLM != null
+                          ? formatNumber(parseFloat(token.valueInXLM), 7)
+                          : token.nominalValueInXLM != null
+                            ? formatNumber(parseFloat(token.nominalValueInXLM), 7)
+                            : "—"
+                        }
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
@@ -350,6 +517,20 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                             </div>
                             <div className="text-steel-gray mt-2">
                               NFT включены только в номинальный итог фонда
+                            </div>
+                          </div>
+                        </div>
+                      ) : token.valueInXLM === null && token.nominalValueInXLM != null ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-warning-amber uppercase text-xs font-bold border-b border-warning-amber/30 pb-1">
+                            НОМИНАЛЬНАЯ СТОИМОСТЬ
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-warning-amber uppercase font-bold">
+                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                            </div>
+                            <div className="text-steel-gray mt-2">
+                              Цена × Количество. Токен не имеет ликвидности для полного объема.
                             </div>
                           </div>
                         </div>

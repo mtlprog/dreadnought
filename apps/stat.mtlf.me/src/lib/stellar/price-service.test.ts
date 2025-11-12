@@ -31,9 +31,23 @@ describe("PriceService", () => {
         expect(result.tokenB).toBe("EURMTL:GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V");
         expect(result.price).toBeDefined();
         expect(parseFloat(result.price)).toBeGreaterThan(0);
-        expect(result.details?.source).toBe("path");
-        expect(result.details?.path).toBeDefined();
-        expect(result.details?.path.length).toBeGreaterThan(0);
+
+        // New behavior: result can be "path", "orderbook", or "best"
+        expect(result.details).toBeDefined();
+        if (result.details !== null && result.details !== undefined) {
+          expect(["path", "orderbook", "best"]).toContain(result.details.source);
+        }
+
+        // If "best" source, check pathDetails has path
+        if (result.details?.source === "best") {
+          if (result.details.pathDetails !== null && result.details.pathDetails !== undefined) {
+            expect(result.details.pathDetails.path).toBeDefined();
+            expect(result.details.pathDetails.path.length).toBeGreaterThan(0);
+          }
+        } else if (result.details?.source === "path") {
+          expect(result.details.path).toBeDefined();
+          expect(result.details.path.length).toBeGreaterThan(0);
+        }
       } finally {
         await testRuntime.dispose();
       }
@@ -65,8 +79,12 @@ describe("PriceService", () => {
         expect(result.tokenB).toBe("EURMTL:GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V");
         expect(result.price).toBeDefined();
         expect(parseFloat(result.price)).toBeGreaterThan(0);
-        expect(result.details?.source).toBe("path");
-        expect(result.details?.path).toBeDefined();
+
+        // New behavior: result can be "path", "orderbook", or "best"
+        expect(result.details).toBeDefined();
+        if (result.details !== null && result.details !== undefined) {
+          expect(["path", "orderbook", "best"]).toContain(result.details.source);
+        }
       } finally {
         await testRuntime.dispose();
       }
@@ -95,16 +113,29 @@ describe("PriceService", () => {
         );
 
         expect(result.details).toBeDefined();
-        expect(result.details?.source).toBe("path");
-        expect(result.details?.path).toBeDefined();
 
-        // Verify path structure
-        const path = result.details?.path ?? [];
-        for (const hop of path) {
-          expect(hop.from).toBeDefined();
-          expect(hop.to).toBeDefined();
-          expect(typeof hop.from).toBe("string");
-          expect(typeof hop.to).toBe("string");
+        // Verify path structure based on source type
+        if (result.details?.source === "path") {
+          expect(result.details.path).toBeDefined();
+          const path = result.details.path ?? [];
+          for (const hop of path) {
+            expect(hop.from).toBeDefined();
+            expect(hop.to).toBeDefined();
+            expect(typeof hop.from).toBe("string");
+            expect(typeof hop.to).toBe("string");
+          }
+        } else if (result.details?.source === "best") {
+          // For "best", path may be in pathDetails
+          if (result.details.pathDetails !== null && result.details.pathDetails !== undefined) {
+            expect(result.details.pathDetails.path).toBeDefined();
+            const path = result.details.pathDetails.path ?? [];
+            for (const hop of path) {
+              expect(hop.from).toBeDefined();
+              expect(hop.to).toBeDefined();
+              expect(typeof hop.from).toBe("string");
+              expect(typeof hop.to).toBe("string");
+            }
+          }
         }
       } finally {
         await testRuntime.dispose();
@@ -204,14 +235,29 @@ describe("PriceService", () => {
         const mtlResult = result[0];
         expect(mtlResult).toBeDefined();
 
-        if (mtlResult?.priceInEURMTL != null) {
-          const expectedValueInEURMTL = (100 * parseFloat(mtlResult.priceInEURMTL)).toFixed(2);
-          expect(mtlResult.valueInEURMTL).toBe(expectedValueInEURMTL);
+        if (mtlResult?.priceInEURMTL != null && mtlResult?.valueInEURMTL != null) {
+          const spotPrice = parseFloat(mtlResult.priceInEURMTL);
+          const fullBalanceValue = parseFloat(mtlResult.valueInEURMTL);
+          const expectedFromSpot = 100 * spotPrice;
+
+          // Full balance value can differ from spot price * balance due to:
+          // 1. Slippage in path finding
+          // 2. Orderbook being chosen as best source with different price
+          // Allow up to 5% difference
+          const difference = Math.abs(fullBalanceValue - expectedFromSpot);
+          const percentDiff = (difference / expectedFromSpot) * 100;
+          expect(percentDiff).toBeLessThan(5);
         }
 
-        if (mtlResult?.priceInXLM != null) {
-          const expectedValueInXLM = (100 * parseFloat(mtlResult.priceInXLM)).toFixed(7);
-          expect(mtlResult.valueInXLM).toBe(expectedValueInXLM);
+        if (mtlResult?.priceInXLM != null && mtlResult?.valueInXLM != null) {
+          const spotPrice = parseFloat(mtlResult.priceInXLM);
+          const fullBalanceValue = parseFloat(mtlResult.valueInXLM);
+          const expectedFromSpot = 100 * spotPrice;
+
+          // Allow up to 5% difference
+          const difference = Math.abs(fullBalanceValue - expectedFromSpot);
+          const percentDiff = (difference / expectedFromSpot) * 100;
+          expect(percentDiff).toBeLessThan(5);
         }
       } finally {
         await testRuntime.dispose();

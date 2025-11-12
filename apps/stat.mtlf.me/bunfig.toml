@@ -1,0 +1,3 @@
+[test]
+# Preload Happy DOM before running tests
+preload = ["./test-setup.ts"]
