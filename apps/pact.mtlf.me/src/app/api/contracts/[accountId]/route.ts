@@ -49,7 +49,23 @@ export async function GET(
             IPFSServiceTag,
             Effect.flatMap((ipfsService) => ipfsService.fetchMetadata(cid)),
             Effect.flatMap((metadata) => {
-              if (metadata.url) {
+              // Priority 1: fulldescription field (base64 encoded markdown)
+              if (metadata.fulldescription) {
+                try {
+                  const markdown = Buffer.from(metadata.fulldescription, "base64").toString("utf-8");
+                  return Effect.succeed({ assetCode, metadata, markdown });
+                } catch {
+                  // If base64 decode fails, treat as plain text
+                  return Effect.succeed({
+                    assetCode,
+                    metadata,
+                    markdown: metadata.fulldescription
+                  });
+                }
+              }
+
+              // Priority 2: url field (only if it's a CID, not a full URL)
+              if (metadata.url && !metadata.url.startsWith("http")) {
                 const urlCid = metadata.url;
                 return pipe(
                   IPFSServiceTag,
@@ -62,6 +78,8 @@ export async function GET(
                   ),
                 );
               }
+
+              // No markdown available
               return Effect.succeed({ assetCode, metadata, markdown: null });
             }),
           )
