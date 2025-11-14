@@ -62,19 +62,51 @@ export const IPFSServiceLive = Layer.succeed(IPFSServiceTag, {
     ),
 
   fetchMarkdown: (cidOrUrl: string) => {
-    // If it's already a full URL, use it directly
-    const url = cidOrUrl.startsWith("http") ? cidOrUrl : `${IPFS_GATEWAY}/${cidOrUrl}`;
+    // Validate and construct URL
+    const getValidatedUrl = (): Effect.Effect<string, IPFSError> => {
+      // If it's already a full URL, validate it
+      if (cidOrUrl.startsWith("http")) {
+        try {
+          const parsedUrl = new URL(cidOrUrl);
+          // Only allow IPFS gateways (ipfs.io, cloudflare-ipfs.com, etc.)
+          const allowedHosts = ["ipfs.io", "cloudflare-ipfs.com", "gateway.pinata.cloud"];
+          if (!allowedHosts.some((host) => parsedUrl.hostname.endsWith(host))) {
+            return Effect.fail(
+              new IPFSError({
+                message: `URL host not allowed: ${parsedUrl.hostname}`,
+                cid: cidOrUrl,
+                cause: new Error("SSRF prevention: only IPFS gateways allowed"),
+              }),
+            );
+          }
+          return Effect.succeed(cidOrUrl);
+        } catch {
+          return Effect.fail(
+            new IPFSError({
+              message: "Invalid URL format",
+              cid: cidOrUrl,
+              cause: new Error("Failed to parse URL"),
+            }),
+          );
+        }
+      }
+      // Otherwise treat as CID
+      return Effect.succeed(`${IPFS_GATEWAY}/${cidOrUrl}`);
+    };
 
     return pipe(
-      Effect.tryPromise({
-        try: () => fetch(url),
-        catch: (error) =>
-          new IPFSError({
-            message: "Failed to fetch markdown from IPFS",
-            cid: cidOrUrl,
-            cause: error,
-          }),
-      }),
+      getValidatedUrl(),
+      Effect.flatMap((url) =>
+        Effect.tryPromise({
+          try: () => fetch(url),
+          catch: (error) =>
+            new IPFSError({
+              message: "Failed to fetch markdown from IPFS",
+              cid: cidOrUrl,
+              cause: error,
+            }),
+        })
+      ),
       Effect.flatMap((response) =>
         Effect.tryPromise({
           try: () => response.text(),
@@ -86,7 +118,7 @@ export const IPFSServiceLive = Layer.succeed(IPFSServiceTag, {
             }),
         })
       ),
-      Effect.tap(() => Effect.log(`Fetched markdown from IPFS: ${url}`)),
+      Effect.tap((text) => Effect.log(`Fetched markdown from IPFS (${text.length} bytes)`)),
     );
   },
 });

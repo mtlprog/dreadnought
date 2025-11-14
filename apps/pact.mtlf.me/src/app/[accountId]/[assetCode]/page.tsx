@@ -13,18 +13,32 @@ import { useEffect, useState } from "react";
 export default function ContractPage() {
   const params = useParams();
   const router = useRouter();
-  const accountId = params["accountId"] as string;
-  const assetCode = params["assetCode"] as string;
+  const urlAccountId = params["accountId"] as string;
+  const urlAssetCode = params["assetCode"] as string;
+
+  // Local state for account and asset (for combobox without redirects)
+  const [localAccountId, setLocalAccountId] = useState<string>(urlAccountId);
+  const [localAssetCode, setLocalAssetCode] = useState<string | null>(urlAssetCode);
 
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch contracts when account changes
+  // Sync local state with URL on mount and URL changes
   useEffect(() => {
-    if (!accountId || accountId.length !== 56 || !accountId.startsWith("G")) {
+    setLocalAccountId(urlAccountId);
+    setLocalAssetCode(urlAssetCode);
+  }, [urlAccountId, urlAssetCode]);
+
+  // Fetch contracts when local account changes
+  useEffect(() => {
+    if (!localAccountId || localAccountId.length !== 56 || !localAccountId.startsWith("G")) {
       setContracts([]);
-      setError("Invalid account ID");
+      if (localAccountId && localAccountId.length > 0) {
+        setError("Invalid account ID");
+      } else {
+        setError(null);
+      }
       return;
     }
 
@@ -33,7 +47,7 @@ export default function ContractPage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/contracts/${accountId}`);
+        const response = await fetch(`/api/contracts/${localAccountId}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -42,14 +56,18 @@ export default function ContractPage() {
 
         setContracts(data.contracts);
 
-        // Check if the asset code exists in the contracts
+        // Auto-select first asset if none selected or current doesn't exist
         const assetExists = data.contracts.some(
-          (c: Contract) => c.assetCode === assetCode,
+          (c: Contract) => c.assetCode === localAssetCode,
         );
 
         if (!assetExists && data.contracts.length > 0) {
-          // Redirect to the first available asset
-          router.replace(`/${accountId}/${data.contracts[0].assetCode}`);
+          setLocalAssetCode(data.contracts[0].assetCode);
+          // Update URL only after successful fetch
+          router.replace(`/${localAccountId}/${data.contracts[0].assetCode}`);
+        } else if (localAssetCode && localAccountId !== urlAccountId) {
+          // Account changed, update URL
+          router.replace(`/${localAccountId}/${localAssetCode}`);
         }
       } catch (err) {
         console.error("Failed to fetch contracts:", err);
@@ -65,20 +83,22 @@ export default function ContractPage() {
     };
 
     void fetchContracts();
-  }, [accountId, assetCode, router]);
+  }, [localAccountId, localAssetCode, router, urlAccountId]);
 
   const handleAccountChange = (newAccountId: string) => {
-    // Navigate to the new account (will auto-select first asset)
-    router.push(`/${newAccountId}`);
+    // Just update local state, useEffect will handle fetch and URL update
+    setLocalAccountId(newAccountId);
   };
 
   const handleAssetChange = (newAssetCode: string | null) => {
-    if (newAssetCode) {
-      router.push(`/${accountId}/${newAssetCode}`);
+    if (newAssetCode && newAssetCode !== localAssetCode) {
+      setLocalAssetCode(newAssetCode);
+      // Update URL immediately for asset changes
+      router.push(`/${localAccountId}/${newAssetCode}`);
     }
   };
 
-  const selectedContract = contracts.find((c) => c.assetCode === assetCode);
+  const selectedContract = contracts.find((c) => c.assetCode === localAssetCode);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -98,7 +118,7 @@ export default function ContractPage() {
             <h2 className="text-xl font-bold text-primary uppercase mb-4">
               Account Selection
             </h2>
-            <AccountSelector value={accountId} onChange={handleAccountChange} />
+            <AccountSelector value={localAccountId} onChange={handleAccountChange} />
           </div>
 
           {/* Loading State */}
@@ -128,7 +148,7 @@ export default function ContractPage() {
             <div className="border-2 border-border bg-card p-6">
               <AssetSelector
                 contracts={contracts}
-                selectedAssetCode={assetCode}
+                selectedAssetCode={localAssetCode}
                 onChange={handleAssetChange}
               />
             </div>
@@ -140,7 +160,7 @@ export default function ContractPage() {
           )}
 
           {/* No Contracts */}
-          {!loading && !error && contracts.length === 0 && accountId && (
+          {!loading && !error && contracts.length === 0 && localAccountId && (
             <div className="border-2 border-border bg-card p-12">
               <div className="text-center text-muted-foreground font-mono text-sm uppercase">
                 No contracts found for this account
