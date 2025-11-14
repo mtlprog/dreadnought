@@ -3,13 +3,19 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface HolderInfo {
+  accountId: string;
+  name: string | null;
+  about: string | null;
+}
+
 interface TokenHoldersTableProps {
   issuerAccountId: string;
   assetCode: string;
 }
 
 export function TokenHoldersTable({ issuerAccountId, assetCode }: TokenHoldersTableProps) {
-  const [holders, setHolders] = useState<string[]>([]);
+  const [holders, setHolders] = useState<HolderInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,20 +110,32 @@ export function TokenHoldersTable({ issuerAccountId, assetCode }: TokenHoldersTa
               <th className="px-4 py-2 text-left font-bold text-primary uppercase text-xs border-r border-border">
                 Account
               </th>
+              <th className="px-4 py-2 text-left font-bold text-primary uppercase text-xs border-r border-border">
+                Name
+              </th>
+              <th className="px-4 py-2 text-left font-bold text-primary uppercase text-xs">
+                About
+              </th>
             </tr>
           </thead>
           <tbody>
             {holders.map((holder) => (
-              <tr key={holder} className="border-b border-border last:border-b-0">
-                <td className="px-4 py-2 text-sm font-mono">
+              <tr key={holder.accountId} className="border-b border-border last:border-b-0">
+                <td className="px-4 py-2 text-sm font-mono border-r border-border">
                   <a
-                    href={`https://bsn.expert/accounts/${holder}`}
+                    href={`https://bsn.expert/accounts/${holder.accountId}`}
                     className="text-primary hover:text-accent underline"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    {formatAddress(holder)}
+                    {formatAddress(holder.accountId)}
                   </a>
+                </td>
+                <td className="px-4 py-2 text-sm font-mono border-r border-border">
+                  {holder.name || "—"}
+                </td>
+                <td className="px-4 py-2 text-sm font-mono">
+                  {holder.about || "—"}
                 </td>
               </tr>
             ))}

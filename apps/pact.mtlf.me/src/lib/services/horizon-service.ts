@@ -3,6 +3,13 @@ import { Asset } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
 import { HorizonError } from "../errors";
 
+// Holder info with manageData
+export interface HolderInfo {
+  accountId: string;
+  name: string | null;
+  about: string | null;
+}
+
 // Service interface
 export interface HorizonService {
   readonly getAccountDataEntries: (
@@ -11,7 +18,7 @@ export interface HorizonService {
   readonly getAssetHolders: (
     assetCode: string,
     issuerAccountId: string,
-  ) => Effect.Effect<string[], HorizonError | EnvironmentError>;
+  ) => Effect.Effect<HolderInfo[], HorizonError | EnvironmentError>;
 }
 
 export const HorizonServiceTag = Context.GenericTag<HorizonService>(
@@ -64,7 +71,7 @@ export const HorizonServiceLive = Layer.succeed(HorizonServiceTag, {
         Effect.tryPromise({
           try: async () => {
             const asset = new Asset(assetCode, issuerAccountId);
-            const holders: string[] = [];
+            const holderAccountIds: string[] = [];
             const accountsCall = config.server
               .accounts()
               .forAsset(asset)
@@ -72,10 +79,10 @@ export const HorizonServiceLive = Layer.succeed(HorizonServiceTag, {
 
             let page = await accountsCall.call();
 
-            // Collect all accounts from paginated results
+            // Collect all account IDs from paginated results
             while (page.records.length > 0) {
               for (const account of page.records) {
-                holders.push(account.account_id);
+                holderAccountIds.push(account.account_id);
               }
 
               // Check if there are more pages
@@ -84,6 +91,43 @@ export const HorizonServiceLive = Layer.succeed(HorizonServiceTag, {
               // Get next page
               page = await page.next();
             }
+
+            // Fetch detailed info for each holder
+            const holders: HolderInfo[] = await Promise.all(
+              holderAccountIds.map(async (accountId) => {
+                try {
+                  const account = await config.server.accounts().accountId(accountId).call();
+
+                  let name: string | null = null;
+                  let about: string | null = null;
+
+                  if (account.data_attr) {
+                    // Extract Name field
+                    if (account.data_attr["Name"]) {
+                      try {
+                        name = Buffer.from(account.data_attr["Name"], "base64").toString("utf-8");
+                      } catch {
+                        // Keep null if decoding fails
+                      }
+                    }
+
+                    // Extract About field
+                    if (account.data_attr["About"]) {
+                      try {
+                        about = Buffer.from(account.data_attr["About"], "base64").toString("utf-8");
+                      } catch {
+                        // Keep null if decoding fails
+                      }
+                    }
+                  }
+
+                  return { accountId, name, about };
+                } catch {
+                  // If account fetch fails, return with null values
+                  return { accountId, name: null, about: null };
+                }
+              })
+            );
 
             return holders;
           },
