@@ -138,7 +138,7 @@ export default function HomePage() {
             title: "Links",
             links: [
               {
-                href: "https://github.com/PanarchyNow/dreadnought",
+                href: "https://github.com/mtlprog/dreadnought",
                 label: "GitHub",
                 icon: Github,
                 external: true,
@@ -146,7 +146,7 @@ export default function HomePage() {
             ],
           },
         ]}
-        bottomText="Built by Гильдия программистов"
+        bottomText="Built by Montelibero Programmers Guild"
       />
     </div>
   );
