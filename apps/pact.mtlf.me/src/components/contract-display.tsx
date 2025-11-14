@@ -12,28 +12,8 @@ interface ContractDisplayProps {
   contract: Contract;
 }
 
-// Helper to detect and render Stellar account IDs
-function renderStellarAccount(text: string) {
-  const stellarAccountRegex = /^(G[A-Z0-9]{55})$/;
-  const match = text.match(stellarAccountRegex);
-
-  if (match?.[1]) {
-    const accountId = match[1];
-    const shortened = `${accountId.slice(0, 4)}...${accountId.slice(-4)}`;
-    return (
-      <a
-        href={`https://bsn.expert/accounts/${accountId}`}
-        className="text-primary hover:text-accent underline"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {shortened}
-      </a>
-    );
-  }
-
-  return text;
-}
+// Stellar account ID regex for validation
+const stellarAccountRegex = /^(G[A-Z0-9]{55})$/;
 
 export function ContractDisplay({ contract }: ContractDisplayProps) {
   const [copied, setCopied] = useState(false);
@@ -140,11 +120,28 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
                 ),
                 code: ({ children }) => {
                   const text = String(children);
-                  const content = renderStellarAccount(text);
+                  const match = text.match(stellarAccountRegex);
+
+                  if (match?.[1]) {
+                    const accountId = match[1];
+                    const shortened = `${accountId.slice(0, 4)}...${accountId.slice(-4)}`;
+                    return (
+                      <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">
+                        <a
+                          href={`https://bsn.expert/accounts/${accountId}`}
+                          className="text-primary hover:text-accent underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {shortened}
+                        </a>
+                      </code>
+                    );
+                  }
 
                   return (
                     <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">
-                      {content}
+                      {children}
                     </code>
                   );
                 },
