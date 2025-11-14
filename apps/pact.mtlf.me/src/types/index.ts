@@ -20,6 +20,6 @@ export interface Contract {
 export const PRESET_ACCOUNTS = [
   {
     id: "GAYYQCPTA52PUTTDDNFDX5FRPHQVTL5L7EJ7AZ7GBT5G36JTIAUMPDOC",
-    label: "Default Account",
+    label: "GAYYQCPTA52PUTTDDNFDX5FRPHQVTL5L7EJ7AZ7GBT5G36JTIAUMPDOC",
   },
 ] as const;

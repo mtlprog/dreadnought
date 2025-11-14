@@ -5,7 +5,8 @@ import { AssetSelector } from "@/components/asset-selector";
 import { ContractDisplay } from "@/components/contract-display";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { type Contract, PRESET_ACCOUNTS } from "@/types";
-import { Loader2 } from "lucide-react";
+import { Footer } from "@dreadnought/ui";
+import { Github, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function HomePage() {
@@ -62,7 +63,7 @@ export default function HomePage() {
       <header className="border-b-2 border-border bg-card">
         <div className="container mx-auto px-4 py-6 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-primary uppercase">
-            PACT - Contract Viewer
+            PACT
           </h1>
           <ThemeToggle />
         </div>
@@ -127,6 +128,26 @@ export default function HomePage() {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer
+        title="PACT"
+        description="Stellar Contract Viewer"
+        sections={[
+          {
+            title: "Links",
+            links: [
+              {
+                href: "https://github.com/PanarchyNow/dreadnought",
+                label: "GitHub",
+                icon: Github,
+                external: true,
+              },
+            ],
+          },
+        ]}
+        bottomText="Built by Гильдия программистов"
+      />
     </div>
   );
 }
