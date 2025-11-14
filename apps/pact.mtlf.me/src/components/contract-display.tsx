@@ -78,39 +78,45 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
               </Button>
             </div>
           </div>
-          <div className="prose prose-sm max-w-none prose-invert">
+          <div className="markdown-content">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw]}
               components={{
                 h1: ({ children }) => (
-                  <h1 className="text-lg font-bold text-primary uppercase mb-2">
+                  <h1 className="text-xl font-bold text-primary uppercase mt-8 mb-4 first:mt-0">
                     {children}
                   </h1>
                 ),
                 h2: ({ children }) => (
-                  <h2 className="text-base font-bold text-foreground uppercase mb-2">
+                  <h2 className="text-lg font-bold text-foreground uppercase mt-6 mb-3">
                     {children}
                   </h2>
                 ),
                 h3: ({ children }) => (
-                  <h3 className="text-sm font-bold text-foreground uppercase mb-1">
+                  <h3 className="text-base font-bold text-foreground uppercase mt-4 mb-2">
                     {children}
                   </h3>
                 ),
                 p: ({ children }) => (
-                  <p className="mb-2 text-foreground font-mono text-sm leading-relaxed">
+                  <p className="mb-4 text-foreground font-mono text-sm leading-[1.6]">
                     {children}
                   </p>
                 ),
                 ul: ({ children }) => (
-                  <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>
+                  <ul className="list-disc list-outside ml-6 mb-4 space-y-2">
+                    {children}
+                  </ul>
                 ),
                 ol: ({ children }) => (
-                  <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>
+                  <ol className="list-decimal list-outside ml-6 mb-4 space-y-2">
+                    {children}
+                  </ol>
                 ),
                 li: ({ children }) => (
-                  <li className="text-foreground font-mono text-sm">{children}</li>
+                  <li className="text-foreground font-mono text-sm leading-[1.6] pl-2">
+                    {children}
+                  </li>
                 ),
                 strong: ({ children }) => (
                   <strong className="font-bold text-primary">{children}</strong>
@@ -126,7 +132,7 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
                     const accountId = match[1];
                     const shortened = `${accountId.slice(0, 4)}...${accountId.slice(-4)}`;
                     return (
-                      <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">
+                      <code className="bg-muted px-1.5 py-0.5 text-xs font-mono text-primary">
                         <a
                           href={`https://bsn.expert/accounts/${accountId}`}
                           className="text-primary hover:text-accent underline"
@@ -140,13 +146,13 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
                   }
 
                   return (
-                    <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">
+                    <code className="bg-muted px-1.5 py-0.5 text-xs font-mono text-primary">
                       {children}
                     </code>
                   );
                 },
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground">
+                  <blockquote className="border-l-4 border-primary pl-4 my-4 italic text-muted-foreground">
                     {children}
                   </blockquote>
                 ),
@@ -160,6 +166,31 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
                     {children}
                   </a>
                 ),
+                table: ({ children }) => (
+                  <div className="overflow-x-auto my-4">
+                    <table className="min-w-full border-2 border-border">
+                      {children}
+                    </table>
+                  </div>
+                ),
+                thead: ({ children }) => (
+                  <thead className="bg-muted">{children}</thead>
+                ),
+                tbody: ({ children }) => <tbody>{children}</tbody>,
+                tr: ({ children }) => (
+                  <tr className="border-b border-border">{children}</tr>
+                ),
+                th: ({ children }) => (
+                  <th className="px-4 py-2 text-left font-bold text-primary uppercase text-xs border-r border-border last:border-r-0">
+                    {children}
+                  </th>
+                ),
+                td: ({ children }) => (
+                  <td className="px-4 py-2 text-sm font-mono border-r border-border last:border-r-0">
+                    {children}
+                  </td>
+                ),
+                hr: () => <hr className="my-6 border-t-2 border-border" />,
               }}
             >
               {contract.markdown}
