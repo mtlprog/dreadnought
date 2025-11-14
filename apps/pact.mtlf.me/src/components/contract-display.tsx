@@ -12,26 +12,39 @@ interface ContractDisplayProps {
   contract: Contract;
 }
 
-// Post-process markdown to shorten and link Stellar account IDs
-function processMarkdownForStellarAccounts(markdown: string): string {
-  // Match Stellar account IDs (G followed by 55 alphanumeric characters)
-  const stellarAccountRegex = /\b(G[A-Z0-9]{55})\b/g;
+// Helper to detect and render Stellar account IDs
+function renderStellarAccount(text: string) {
+  const stellarAccountRegex = /^(G[A-Z0-9]{55})$/;
+  const match = text.match(stellarAccountRegex);
 
-  return markdown.replace(stellarAccountRegex, (match) => {
-    const shortened = `${match.slice(0, 4)}...${match.slice(-4)}`;
-    return `[${shortened}](https://bsn.expert/accounts/${match})`;
-  });
+  if (match?.[1]) {
+    const accountId = match[1];
+    const shortened = `${accountId.slice(0, 4)}...${accountId.slice(-4)}`;
+    return (
+      <a
+        href={`https://bsn.expert/accounts/${accountId}`}
+        className="text-primary hover:text-accent underline"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {shortened}
+      </a>
+    );
+  }
+
+  return text;
 }
 
 export function ContractDisplay({ contract }: ContractDisplayProps) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
+  const handleCopy = () => {
     if (!contract.markdown) return;
 
-    await navigator.clipboard.writeText(contract.markdown);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    void navigator.clipboard.writeText(contract.markdown).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   const handleOpenRaw = () => {
@@ -44,11 +57,6 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
 
     window.open(rawUrl, "_blank");
   };
-
-  // Process markdown to shorten and link Stellar accounts
-  const processedMarkdown = contract.markdown
-    ? processMarkdownForStellarAccounts(contract.markdown)
-    : null;
 
   return (
     <div className="space-y-6">
@@ -130,11 +138,16 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
                 em: ({ children }) => (
                   <em className="italic text-accent">{children}</em>
                 ),
-                code: ({ children }) => (
-                  <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">
-                    {children}
-                  </code>
-                ),
+                code: ({ children }) => {
+                  const text = String(children);
+                  const content = renderStellarAccount(text);
+
+                  return (
+                    <code className="bg-muted px-1 py-0.5 text-xs font-mono text-primary">
+                      {content}
+                    </code>
+                  );
+                },
                 blockquote: ({ children }) => (
                   <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground">
                     {children}
@@ -152,7 +165,7 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
                 ),
               }}
             >
-              {processedMarkdown}
+              {contract.markdown}
             </ReactMarkdown>
           </div>
         </div>
