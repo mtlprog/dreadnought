@@ -13,6 +13,7 @@ export type ContractMetadata = S.Schema.Type<typeof ContractMetadata>;
 // Contract with loaded markdown content
 export interface Contract {
   assetCode: string;
+  issuerAccountId: string;
   metadata: ContractMetadata;
   markdown: string | null;
 }

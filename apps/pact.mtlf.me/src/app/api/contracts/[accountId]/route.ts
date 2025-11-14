@@ -53,11 +53,12 @@ export async function GET(
               if (metadata.fulldescription) {
                 try {
                   const markdown = Buffer.from(metadata.fulldescription, "base64").toString("utf-8");
-                  return Effect.succeed({ assetCode, metadata, markdown });
+                  return Effect.succeed({ assetCode, issuerAccountId: accountId, metadata, markdown });
                 } catch {
                   // If base64 decode fails, treat as plain text
                   return Effect.succeed({
                     assetCode,
+                    issuerAccountId: accountId,
                     metadata,
                     markdown: metadata.fulldescription
                   });
@@ -72,15 +73,15 @@ export async function GET(
                   Effect.flatMap((ipfsService) =>
                     ipfsService.fetchMarkdown(urlCid)
                   ),
-                  Effect.map((markdown) => ({ assetCode, metadata, markdown })),
+                  Effect.map((markdown) => ({ assetCode, issuerAccountId: accountId, metadata, markdown })),
                   Effect.catchAll(() =>
-                    Effect.succeed({ assetCode, metadata, markdown: null })
+                    Effect.succeed({ assetCode, issuerAccountId: accountId, metadata, markdown: null })
                   ),
                 );
               }
 
               // No markdown available
-              return Effect.succeed({ assetCode, metadata, markdown: null });
+              return Effect.succeed({ assetCode, issuerAccountId: accountId, metadata, markdown: null });
             }),
           )
         ),

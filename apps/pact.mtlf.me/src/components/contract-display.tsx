@@ -7,6 +7,7 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import { TokenHoldersTable } from "./token-holders-table";
 
 interface ContractDisplayProps {
   contract: Contract;
@@ -49,6 +50,12 @@ export function ContractDisplay({ contract }: ContractDisplayProps) {
           {contract.metadata.description}
         </p>
       </div>
+
+      {/* Token Holders Table */}
+      <TokenHoldersTable
+        issuerAccountId={contract.issuerAccountId}
+        assetCode={contract.assetCode}
+      />
 
       {/* Contract Document */}
       {contract.markdown && (
