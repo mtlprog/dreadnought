@@ -14,7 +14,7 @@
     "@dreadnought/stellar-core": "workspace:*",
     "@dreadnought/stellar-utils": "workspace:*",
     "@effect/platform": "catalog:default",
-    "@effect/platform-bun": "latest",
+    "@effect/platform-bun": "catalog:default",
     "@effect/schema": "catalog:default",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",

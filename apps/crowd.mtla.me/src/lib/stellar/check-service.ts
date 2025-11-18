@@ -291,7 +291,7 @@ const createRefundTransaction = (
           }));
         }
 
-        // Clawback C-tokens held by users
+        // Clawback C-tokens held by users (tokens will be burned automatically when returned to issuer)
         for (const holder of tokenHolders) {
           if (holder.accountId !== config.publicKey) { // Don't clawback from issuer
             transactionBuilder.addOperation(Operation.clawback({
@@ -300,6 +300,39 @@ const createRefundTransaction = (
               amount: holder.balance,
             }));
           }
+        }
+
+        // All C-tokens will be automatically burned when returned to issuer
+        // Total: claimableBalances + tokenHolders = all C-tokens in circulation
+
+        // Collect ALL accounts that have trustlines to C-token
+        // This includes: sponsors of claimable balances + token holders (even with 0 balance)
+        const accountsWithTrustlines = new Set<string>();
+
+        // Add sponsors from claimable balances (they created CB, so they have trustline)
+        for (const balance of claimableBalances) {
+          if (balance.sponsor !== undefined && balance.sponsor !== null && balance.sponsor !== config.publicKey) {
+            accountsWithTrustlines.add(balance.sponsor);
+          }
+        }
+
+        // Add token holders (those with balance > 0)
+        for (const holder of tokenHolders) {
+          if (holder.accountId !== config.publicKey) {
+            accountsWithTrustlines.add(holder.accountId);
+          }
+        }
+
+        // Revoke authorization for ALL accounts with trustlines to force trustline closure
+        // This is done AFTER clawback to ensure all tokens are burned first
+        for (const accountId of accountsWithTrustlines) {
+          transactionBuilder.addOperation(Operation.setTrustLineFlags({
+            trustor: accountId,
+            asset: crowdfundingAsset,
+            flags: {
+              authorized: false,
+            },
+          }));
         }
 
         // Calculate total refunds needed
@@ -389,7 +422,7 @@ const createFundingTransaction = (
           }));
         }
 
-        // Clawback all C-tokens held by users
+        // Clawback all C-tokens held by users (tokens will be burned automatically when returned to issuer)
         for (const holder of tokenHolders) {
           if (holder.accountId !== config.publicKey) {
             transactionBuilder.addOperation(Operation.clawback({
@@ -398,6 +431,39 @@ const createFundingTransaction = (
               amount: holder.balance,
             }));
           }
+        }
+
+        // All C-tokens will be automatically burned when returned to issuer
+        // Total: claimableBalances + tokenHolders = all C-tokens in circulation
+
+        // Collect ALL accounts that have trustlines to C-token
+        // This includes: sponsors of claimable balances + token holders (even with 0 balance)
+        const accountsWithTrustlines = new Set<string>();
+
+        // Add sponsors from claimable balances (they created CB, so they have trustline)
+        for (const balance of claimableBalances) {
+          if (balance.sponsor !== undefined && balance.sponsor !== null && balance.sponsor !== config.publicKey) {
+            accountsWithTrustlines.add(balance.sponsor);
+          }
+        }
+
+        // Add token holders (those with balance > 0)
+        for (const holder of tokenHolders) {
+          if (holder.accountId !== config.publicKey) {
+            accountsWithTrustlines.add(holder.accountId);
+          }
+        }
+
+        // Revoke authorization for ALL accounts with trustlines to force trustline closure
+        // This is done AFTER clawback to ensure all tokens are burned first
+        for (const accountId of accountsWithTrustlines) {
+          transactionBuilder.addOperation(Operation.setTrustLineFlags({
+            trustor: accountId,
+            asset: crowdfundingAsset,
+            flags: {
+              authorized: false,
+            },
+          }));
         }
 
         // Calculate total collected amount
@@ -726,6 +792,40 @@ export const StellarCheckServiceLive = Layer.succeed(
         getStellarConfig(),
         Effect.flatMap((config: StellarConfig) =>
           Effect.gen(function*() {
+            // Validate issuer account flags before processing
+            yield* Effect.logInfo("🔐 Validating issuer account flags...");
+            const issuerAccount = yield* Effect.tryPromise({
+              try: () => config.server.loadAccount(config.publicKey),
+              catch: (error) =>
+                new StellarError({
+                  cause: error,
+                  operation: "load_issuer_account",
+                }),
+            });
+
+            const flags = issuerAccount.flags;
+            if (!flags.auth_revocable) {
+              yield* Effect.logError("❌ CRITICAL: AUTH_REVOCABLE_FLAG not set on issuer account!");
+              yield* Effect.logError("   Clawback and authorization revocation will FAIL.");
+              yield* Effect.fail(
+                new StellarError({
+                  cause: new Error("AUTH_REVOCABLE_FLAG not set"),
+                  operation: "validate_account_flags",
+                }),
+              );
+            }
+            if (!flags.auth_clawback_enabled) {
+              yield* Effect.logError("❌ CRITICAL: AUTH_CLAWBACK_ENABLED_FLAG not set on issuer account!");
+              yield* Effect.logError("   Clawback operations will FAIL.");
+              yield* Effect.fail(
+                new StellarError({
+                  cause: new Error("AUTH_CLAWBACK_ENABLED_FLAG not set"),
+                  operation: "validate_account_flags",
+                }),
+              );
+            }
+            yield* Effect.logInfo("✅ Account flags validated: auth_revocable and auth_clawback_enabled are set");
+
             // First, get and display active offers
             yield* Effect.logInfo("📋 Checking active offers on account...");
             const activeOffers = yield* getActiveOffers(config.server, config.publicKey);

@@ -272,6 +272,19 @@ export const checkProjects = () =>
               } else {
                 yield* Effect.logWarning(`Invalid createClaimableBalance operation: missing required fields`);
               }
+            } else if (opType === "setTrustLineFlags") {
+              if (
+                "trustor" in op && "asset" in op && "flags" in op
+                && typeof op.trustor === "string"
+              ) {
+                txBuilder.addOperation(Operation.setTrustLineFlags({
+                  trustor: op.trustor,
+                  asset: op.asset,
+                  flags: op.flags,
+                }));
+              } else {
+                yield* Effect.logWarning(`Invalid setTrustLineFlags operation: missing required fields`);
+              }
             } else {
               yield* Effect.logWarning(`Unknown operation type: ${opType}`);
             }
