@@ -27,11 +27,14 @@ export interface ProjectCheckResult {
   readonly isExpired: boolean;
   readonly isGoalReached: boolean;
   readonly transactionXDR?: string;
-  readonly action: "refund" | "fund_project" | "no_action";
+  readonly action: "refund" | "fund_project" | "no_action" | "cleanup_trustlines";
   readonly claimableBalancesCount: number;
   readonly tokenHoldersCount: number;
   readonly claimableBalances: readonly Horizon.ServerApi.ClaimableBalanceRecord[];
   readonly tokenHolders: readonly TokenHolder[];
+  readonly orphanedTrustlinesCount?: number;
+  readonly orphanedTrustlineAccounts?: readonly string[];
+  readonly isClosed?: boolean;
   readonly error?: string;
 }
 
@@ -159,6 +162,73 @@ const getTokenHolders = (
     }),
   );
 
+const getAllAccountsWithTrustlines = (
+  config: StellarConfig,
+  assetCode: string,
+): Effect.Effect<readonly string[], StellarError> =>
+  pipe(
+    Effect.tryPromise({
+      try: async () => {
+        const crowdfundingTokenCode = `C${assetCode}`;
+        const accountsWithTrustlines: string[] = [];
+
+        try {
+          // Get all accounts with trustlines to this asset (including 0 balance)
+          const allAccounts: Horizon.ServerApi.AccountRecord[] = [];
+          let callBuilder = config.server.accounts()
+            .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
+            .limit(200); // Maximum allowed per request
+
+          // Fetch all pages using pagination
+          while (true) {
+            const response = await callBuilder.call();
+            allAccounts.push(...response.records);
+
+            // If we got fewer records than the limit, we've reached the end
+            if (response.records.length < 200) {
+              break;
+            }
+
+            // Prepare next page request
+            const lastRecord = response.records[response.records.length - 1];
+            if (lastRecord === undefined) break; // Safety check
+
+            callBuilder = config.server.accounts()
+              .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
+              .cursor(lastRecord.paging_token)
+              .limit(200);
+          }
+
+          for (const account of allAccounts) {
+            for (const balance of account.balances) {
+              if (
+                balance.asset_type !== "native"
+                && balance.asset_type !== "liquidity_pool_shares"
+                && "asset_code" in balance
+                && "asset_issuer" in balance
+                && balance.asset_code === crowdfundingTokenCode
+                && balance.asset_issuer === config.publicKey
+              ) {
+                // Add account regardless of balance (including 0)
+                accountsWithTrustlines.push(account.id);
+                break; // Only add once per account
+              }
+            }
+          }
+        } catch {
+          // If asset doesn't exist or no trustlines, return empty array
+        }
+
+        return accountsWithTrustlines;
+      },
+      catch: (error) =>
+        new StellarError({
+          cause: error,
+          operation: "get_all_accounts_with_trustlines",
+        }),
+    }),
+  );
+
 const calculateCurrentAmount = (
   claimableBalances: readonly Horizon.ServerApi.ClaimableBalanceRecord[],
   tokenHolders: readonly TokenHolder[],
@@ -271,6 +341,7 @@ const createRefundTransaction = (
   claimableBalances: readonly Horizon.ServerApi.ClaimableBalanceRecord[],
   tokenHolders: readonly TokenHolder[],
   activeOffers: readonly Horizon.ServerApi.OfferRecord[],
+  allTrustlineAccounts: readonly string[],
 ): Effect.Effect<string, StellarError> =>
   pipe(
     Effect.tryPromise({
@@ -305,34 +376,18 @@ const createRefundTransaction = (
         // All C-tokens will be automatically burned when returned to issuer
         // Total: claimableBalances + tokenHolders = all C-tokens in circulation
 
-        // Collect ALL accounts that have trustlines to C-token
-        // This includes: sponsors of claimable balances + token holders (even with 0 balance)
-        const accountsWithTrustlines = new Set<string>();
-
-        // Add sponsors from claimable balances (they created CB, so they have trustline)
-        for (const balance of claimableBalances) {
-          if (balance.sponsor !== undefined && balance.sponsor !== null && balance.sponsor !== config.publicKey) {
-            accountsWithTrustlines.add(balance.sponsor);
+        // Revoke authorization for ALL accounts with trustlines (including those with 0 balance)
+        // This prevents orphaned trustlines from remaining active after project closure
+        for (const accountId of allTrustlineAccounts) {
+          if (accountId !== config.publicKey) {
+            transactionBuilder.addOperation(Operation.setTrustLineFlags({
+              trustor: accountId,
+              asset: crowdfundingAsset,
+              flags: {
+                authorized: false,
+              },
+            }));
           }
-        }
-
-        // Add token holders (those with balance > 0)
-        for (const holder of tokenHolders) {
-          if (holder.accountId !== config.publicKey) {
-            accountsWithTrustlines.add(holder.accountId);
-          }
-        }
-
-        // Revoke authorization for ALL accounts with trustlines to force trustline closure
-        // This is done AFTER clawback to ensure all tokens are burned first
-        for (const accountId of accountsWithTrustlines) {
-          transactionBuilder.addOperation(Operation.setTrustLineFlags({
-            trustor: accountId,
-            asset: crowdfundingAsset,
-            flags: {
-              authorized: false,
-            },
-          }));
         }
 
         // Calculate total refunds needed
@@ -402,6 +457,7 @@ const createFundingTransaction = (
   claimableBalances: readonly Horizon.ServerApi.ClaimableBalanceRecord[],
   tokenHolders: readonly TokenHolder[],
   hasTrustline: boolean,
+  allTrustlineAccounts: readonly string[],
 ): Effect.Effect<string, StellarError> =>
   pipe(
     Effect.tryPromise({
@@ -436,34 +492,18 @@ const createFundingTransaction = (
         // All C-tokens will be automatically burned when returned to issuer
         // Total: claimableBalances + tokenHolders = all C-tokens in circulation
 
-        // Collect ALL accounts that have trustlines to C-token
-        // This includes: sponsors of claimable balances + token holders (even with 0 balance)
-        const accountsWithTrustlines = new Set<string>();
-
-        // Add sponsors from claimable balances (they created CB, so they have trustline)
-        for (const balance of claimableBalances) {
-          if (balance.sponsor !== undefined && balance.sponsor !== null && balance.sponsor !== config.publicKey) {
-            accountsWithTrustlines.add(balance.sponsor);
+        // Revoke authorization for ALL accounts with trustlines (including those with 0 balance)
+        // This prevents orphaned trustlines from remaining active after project closure
+        for (const accountId of allTrustlineAccounts) {
+          if (accountId !== config.publicKey) {
+            transactionBuilder.addOperation(Operation.setTrustLineFlags({
+              trustor: accountId,
+              asset: crowdfundingAsset,
+              flags: {
+                authorized: false,
+              },
+            }));
           }
-        }
-
-        // Add token holders (those with balance > 0)
-        for (const holder of tokenHolders) {
-          if (holder.accountId !== config.publicKey) {
-            accountsWithTrustlines.add(holder.accountId);
-          }
-        }
-
-        // Revoke authorization for ALL accounts with trustlines to force trustline closure
-        // This is done AFTER clawback to ensure all tokens are burned first
-        for (const accountId of accountsWithTrustlines) {
-          transactionBuilder.addOperation(Operation.setTrustLineFlags({
-            trustor: accountId,
-            asset: crowdfundingAsset,
-            flags: {
-              authorized: false,
-            },
-          }));
         }
 
         // Calculate total collected amount
@@ -511,7 +551,14 @@ const createFundingTransaction = (
 
 const checkSingleProject = (
   config: StellarConfig,
-  project: { code: string; name: string; deadline: string; target_amount: string; project_account_id: string },
+  project: {
+    code: string;
+    name: string;
+    deadline: string;
+    target_amount: string;
+    project_account_id: string;
+    funding_status?: "completed" | "canceled";
+  },
   activeOffers: readonly Horizon.ServerApi.OfferRecord[],
 ): Effect.Effect<ProjectCheckResult, never> =>
   pipe(
@@ -522,6 +569,9 @@ const checkSingleProject = (
       yield* Effect.logInfo(`🔍 Checking project ${project.code} (${project.name})`);
       yield* Effect.logInfo(`  Today: ${now}, Deadline: ${project.deadline}, Expired: ${isExpired}`);
       yield* Effect.logInfo(`  Target: ${project.target_amount} ${config.mtlCrowdAsset.code}`);
+      if (project.funding_status !== undefined) {
+        yield* Effect.logInfo(`  Funding status: ${project.funding_status}`);
+      }
 
       // Always check claimable balances and token holders first
       const claimableBalances = yield* pipe(
@@ -549,6 +599,17 @@ const checkSingleProject = (
       yield* Effect.logInfo(`  Current: ${currentAmount} ${config.mtlCrowdAsset.code}, Goal reached: ${isGoalReached}`);
       yield* Effect.logInfo(`  Claimable balances: ${claimableBalances.length}, Token holders: ${tokenHolders.length}`);
 
+      // Determine if project is closed
+      // Criteria: Has funding_status in IPFS AND (expired or goal reached) AND no balances/holders
+      const hasBalancesOrHolders = claimableBalances.length > 0 || tokenHolders.length > 0;
+      const isClosed = project.funding_status !== undefined && (isExpired || isGoalReached) && !hasBalancesOrHolders;
+
+      yield* Effect.logInfo(`  🔍 isClosed check:`);
+      yield* Effect.logInfo(`    - has funding_status: ${project.funding_status !== undefined}`);
+      yield* Effect.logInfo(`    - isExpired: ${isExpired}, isGoalReached: ${isGoalReached}`);
+      yield* Effect.logInfo(`    - hasBalancesOrHolders: ${hasBalancesOrHolders}`);
+      yield* Effect.logInfo(`    - isClosed: ${isClosed}`);
+
       // If goal is reached, process immediately regardless of deadline
       if (isGoalReached) {
         yield* Effect.logInfo(`  ✅ Goal reached! Processing funding transaction...`);
@@ -569,6 +630,7 @@ const checkSingleProject = (
           tokenHoldersCount: tokenHolders.length,
           claimableBalances,
           tokenHolders,
+          isClosed: false,
         };
       }
 
@@ -581,7 +643,73 @@ const checkSingleProject = (
       );
 
       // Check if there's anything to process
-      const hasBalancesOrHolders = claimableBalances.length > 0 || tokenHolders.length > 0;
+      // const hasBalancesOrHolders already defined above
+
+      // If project is closed, check for orphaned trustlines
+      if (isClosed) {
+        yield* Effect.logInfo(`  🔒 Project is closed. Checking for orphaned trustlines...`);
+
+        // Get all accounts with trustlines to this C-token
+        const allAccountsWithTrustlines = yield* pipe(
+          getAllAccountsWithTrustlines(config, project.code),
+          Effect.catchAll(() => Effect.succeed([] as readonly string[])),
+        );
+
+        yield* Effect.logInfo(`  📋 All accounts with C${project.code} trustlines: ${allAccountsWithTrustlines.length}`);
+        for (const accountId of allAccountsWithTrustlines) {
+          yield* Effect.logInfo(`    - ${accountId}`);
+        }
+
+        // Collect accounts that SHOULD have trustlines (sponsors + holders)
+        const expectedAccounts = new Set<string>();
+        for (const balance of claimableBalances) {
+          if (balance.sponsor !== undefined && balance.sponsor !== null) {
+            expectedAccounts.add(balance.sponsor);
+          }
+        }
+        for (const holder of tokenHolders) {
+          expectedAccounts.add(holder.accountId);
+        }
+
+        yield* Effect.logInfo(`  ✅ Expected accounts (should have trustlines): ${expectedAccounts.size}`);
+        for (const accountId of expectedAccounts) {
+          yield* Effect.logInfo(`    - ${accountId}`);
+        }
+
+        // Find orphaned trustlines (accounts with trustlines that shouldn't have them)
+        const orphanedAccounts = allAccountsWithTrustlines.filter(
+          accountId => !expectedAccounts.has(accountId) && accountId !== config.publicKey,
+        );
+
+        if (orphanedAccounts.length > 0) {
+          yield* Effect.logInfo(`  ⚠️ Found ${orphanedAccounts.length} orphaned trustline(s)!`);
+          for (const accountId of orphanedAccounts) {
+            yield* Effect.logInfo(`    - ${accountId}`);
+          }
+
+          // Don't create transaction here - it will be created in CLI with fresh account
+          yield* Effect.logInfo(`  ℹ️ Trustline cleanup needed.`);
+          return {
+            code: project.code,
+            name: project.name,
+            deadline: project.deadline,
+            targetAmount: project.target_amount,
+            currentAmount,
+            isExpired,
+            isGoalReached,
+            action: "cleanup_trustlines" as const,
+            claimableBalancesCount: claimableBalances.length,
+            tokenHoldersCount: tokenHolders.length,
+            claimableBalances,
+            tokenHolders,
+            orphanedTrustlinesCount: orphanedAccounts.length,
+            orphanedTrustlineAccounts: orphanedAccounts,
+            isClosed: true,
+          };
+        } else {
+          yield* Effect.logInfo(`  ✅ No orphaned trustlines found.`);
+        }
+      }
 
       if (!hasBalancesOrHolders && !hasActiveOffer) {
         yield* Effect.logInfo(`  ℹ️ No claimable balances, token holders, or active offers found.`);
@@ -598,6 +726,7 @@ const checkSingleProject = (
           tokenHoldersCount: 0,
           claimableBalances: [],
           tokenHolders: [],
+          isClosed,
         };
       }
 
@@ -635,6 +764,7 @@ const checkSingleProject = (
             tokenHoldersCount: 0,
             claimableBalances: [],
             tokenHolders: [],
+            isClosed,
           };
         } else {
           return {
@@ -650,6 +780,7 @@ const checkSingleProject = (
             tokenHoldersCount: 0,
             claimableBalances: [],
             tokenHolders: [],
+            isClosed,
             error: "Failed to create offer cancellation transaction",
           };
         }
@@ -659,6 +790,12 @@ const checkSingleProject = (
         Effect.gen(function*() {
           let transactionXDR: string;
           let action: "refund" | "fund_project";
+
+          // Get ALL accounts with trustlines to revoke authorization after clawback
+          const allTrustlineAccounts = yield* pipe(
+            getAllAccountsWithTrustlines(config, project.code),
+            Effect.catchAll(() => Effect.succeed([] as readonly string[])),
+          );
 
           if (isGoalReached) {
             // Goal reached - fund the project (regardless of deadline)
@@ -680,6 +817,7 @@ const checkSingleProject = (
               claimableBalances,
               tokenHolders,
               hasTrustline,
+              allTrustlineAccounts,
             );
             action = "fund_project";
             yield* Effect.logInfo(`  ✅ Funding transaction created.`);
@@ -691,6 +829,7 @@ const checkSingleProject = (
               claimableBalances,
               tokenHolders,
               activeOffers,
+              allTrustlineAccounts,
             );
             action = "refund";
             yield* Effect.logInfo(`  🔄 Refund transaction created.`);
@@ -721,6 +860,7 @@ const checkSingleProject = (
           tokenHoldersCount: tokenHolders.length,
           claimableBalances,
           tokenHolders,
+          isClosed,
         };
       } else {
         return {
@@ -736,6 +876,7 @@ const checkSingleProject = (
           tokenHoldersCount: tokenHolders.length,
           claimableBalances,
           tokenHolders,
+          isClosed,
           error: "Failed to create transaction",
         };
       }

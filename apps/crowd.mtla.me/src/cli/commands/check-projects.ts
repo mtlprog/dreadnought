@@ -67,12 +67,22 @@ export const checkProjects = () =>
       const goalReachedProjects = checkResults.filter(result => result.isGoalReached);
       const projectsNeedingAction = checkResults.filter(result => result.action !== "no_action");
       const projectsWithErrors = checkResults.filter(result => result.error !== undefined);
+      const closedProjects = checkResults.filter(result => result.isClosed === true);
+      const projectsWithOrphanedTrustlines = checkResults.filter(
+        result => result.orphanedTrustlinesCount !== undefined && result.orphanedTrustlinesCount > 0,
+      );
 
       yield* Effect.logInfo(chalk.cyan(`\n📊 Summary:`));
       yield* Effect.logInfo(chalk.white(`Total projects: ${checkResults.length}`));
       yield* Effect.logInfo(chalk.white(`Expired projects: ${expiredProjects.length}`));
       yield* Effect.logInfo(chalk.white(`Goal reached projects: ${goalReachedProjects.length}`));
+      yield* Effect.logInfo(chalk.white(`Closed projects: ${closedProjects.length}`));
       yield* Effect.logInfo(chalk.white(`Projects needing action: ${projectsNeedingAction.length}`));
+      if (projectsWithOrphanedTrustlines.length > 0) {
+        yield* Effect.logInfo(
+          chalk.yellow(`Projects with orphaned trustlines: ${projectsWithOrphanedTrustlines.length}`),
+        );
+      }
       if (projectsWithErrors.length > 0) {
         yield* Effect.logInfo(chalk.red(`Projects with errors: ${projectsWithErrors.length}`));
       }
@@ -96,8 +106,16 @@ export const checkProjects = () =>
       yield* Effect.logInfo(chalk.blue(`\n🔗 Processing projects requiring action:\n`));
 
       for (const result of projectsNeedingAction) {
-        const actionEmoji = result.action === "fund_project" ? "💰" : "🔄";
-        const actionText = result.action === "fund_project" ? "Fund Project" : "Refund Supporters";
+        const actionEmoji = result.action === "fund_project"
+          ? "💰"
+          : result.action === "cleanup_trustlines"
+          ? "🧹"
+          : "🔄";
+        const actionText = result.action === "fund_project"
+          ? "Fund Project"
+          : result.action === "cleanup_trustlines"
+          ? "Cleanup Trustlines"
+          : "Refund Supporters";
         const statusColor = result.isGoalReached === true ? chalk.green : chalk.red;
 
         yield* Effect.logInfo(chalk.cyan(`${actionEmoji} ${result.name} (${result.code})`));
@@ -105,10 +123,129 @@ export const checkProjects = () =>
         yield* Effect.logInfo(chalk.white(`  Target: ${result.targetAmount} MTLCrowd`));
         yield* Effect.logInfo(chalk.white(`  Current: ${result.currentAmount} MTLCrowd`));
         yield* Effect.logInfo(statusColor(`  Goal reached: ${result.isGoalReached === true ? "Yes" : "No"}`));
+        if (result.isClosed === true) {
+          yield* Effect.logInfo(chalk.gray(`  Status: Closed`));
+        }
         yield* Effect.logInfo(chalk.white(`  Claimable balances: ${result.claimableBalancesCount}`));
         yield* Effect.logInfo(chalk.white(`  Token holders: ${result.tokenHoldersCount}`));
+        if (result.orphanedTrustlinesCount !== undefined && result.orphanedTrustlinesCount > 0) {
+          yield* Effect.logInfo(chalk.yellow(`  Orphaned trustlines: ${result.orphanedTrustlinesCount}`));
+        }
         yield* Effect.logInfo(chalk.yellow(`  Action: ${actionText}`));
 
+        // For trustline cleanup, we don't need to update IPFS - just create and submit transaction
+        if (result.action === "cleanup_trustlines") {
+          if (
+            result.orphanedTrustlineAccounts === undefined
+            || result.orphanedTrustlineAccounts.length === 0
+          ) {
+            yield* Effect.logWarning(chalk.red(`\n⚠️ No orphaned trustline accounts found. Skipping.`));
+            continue;
+          }
+
+          // Show orphaned accounts
+          yield* Effect.logInfo(chalk.yellow(`\n🧹 Orphaned trustlines to be revoked:`));
+          for (const accountId of result.orphanedTrustlineAccounts) {
+            yield* Effect.logInfo(chalk.white(`  - ${accountId}`));
+          }
+
+          // Ask for confirmation
+          const confirmed = yield* Effect.tryPromise({
+            try: () =>
+              prompts({
+                type: "confirm",
+                name: "confirmed",
+                message: chalk.yellow(
+                  `\nRevoke authorization for ${
+                    result.orphanedTrustlinesCount ?? 0
+                  } orphaned trustline(s) for project ${result.name} (${result.code})?`,
+                ),
+                initial: true,
+              }),
+            catch: (error) =>
+              new ValidationError({
+                field: "user_confirmation",
+                message: `Failed to get confirmation: ${error}`,
+              }),
+          });
+
+          const confirmedValue = (confirmed as { confirmed?: boolean }).confirmed;
+          if (confirmedValue !== true) {
+            yield* Effect.logInfo(chalk.yellow(`\n⏭️  Skipped ${result.code}`));
+            continue;
+          }
+
+          // Create transaction with fresh account (for correct sequence number)
+          yield* Effect.logInfo(chalk.blue(`\n🔗 Creating trustline cleanup transaction...`));
+
+          const { getStellarConfig } = yield* Effect.promise(() => import("@/lib/stellar/config"));
+          const config = yield* getStellarConfig();
+
+          const { TransactionBuilder, Operation, Asset, BASE_FEE, TimeoutInfinite } = yield* Effect.promise(() =>
+            import("@stellar/stellar-sdk")
+          );
+
+          // Load fresh account for correct sequence number
+          const sourceAccount = yield* Effect.tryPromise({
+            try: () => config.server.loadAccount(config.publicKey),
+            catch: (error) =>
+              new ValidationError({
+                field: "stellar_account",
+                message: `Failed to load account: ${error}`,
+              }),
+          });
+
+          const crowdfundingAsset = new Asset(`C${result.code}`, config.publicKey);
+
+          const txBuilder = new TransactionBuilder(sourceAccount, {
+            fee: BASE_FEE,
+            networkPassphrase: config.networkPassphrase,
+          });
+
+          // Revoke authorization for all orphaned trustlines
+          for (const accountId of result.orphanedTrustlineAccounts) {
+            if (accountId !== config.publicKey) {
+              txBuilder.addOperation(Operation.setTrustLineFlags({
+                trustor: accountId,
+                asset: crowdfundingAsset,
+                flags: {
+                  authorized: false,
+                },
+              }));
+            }
+          }
+
+          const transactionXDR = txBuilder
+            .setTimeout(TimeoutInfinite)
+            .build()
+            .toXDR();
+
+          yield* Effect.logInfo(chalk.cyan(`\nTransaction XDR:`));
+          yield* Effect.logInfo(chalk.white(transactionXDR));
+          yield* Effect.logInfo(chalk.yellow(`\n⚠️  Please sign and submit this transaction.`));
+          yield* Effect.logInfo(chalk.yellow(`⚠️  After submission, press Enter to continue to next project...`));
+
+          // Wait for user to press Enter
+          yield* Effect.tryPromise({
+            try: () =>
+              prompts({
+                type: "confirm",
+                name: "continue",
+                message: "Transaction submitted? Continue to next project?",
+                initial: true,
+              }),
+            catch: (error) =>
+              new ValidationError({
+                field: "user_confirmation",
+                message: `Failed to get confirmation: ${error}`,
+              }),
+          });
+
+          yield* Effect.logInfo(""); // Empty line between projects
+          continue;
+        }
+
+        // For fund/refund actions, continue with normal flow
         // Fetch current project data from IPFS
         yield* Effect.logInfo(chalk.blue(`\n📥 Fetching current project data...`));
         const currentData = yield* fetchProjectFromIPFS(result.code);
