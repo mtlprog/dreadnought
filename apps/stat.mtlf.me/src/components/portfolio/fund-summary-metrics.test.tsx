@@ -9,8 +9,6 @@ describe("FundSummaryMetrics", () => {
         <FundSummaryMetrics
           totalEURMTL={0}
           totalXLM={0}
-          nominalEURMTL={0}
-          nominalXLM={0}
           accountCount={0}
           tokenCount={0}
           isLoading={true}
@@ -22,28 +20,26 @@ describe("FundSummaryMetrics", () => {
     });
   });
 
-  describe("Nominal totals section", () => {
-    test("should display nominal totals with correct values", () => {
+  describe("Total metrics section", () => {
+    test("should display total metrics with correct values", () => {
       render(
         <FundSummaryMetrics
-          totalEURMTL={100000.5}
-          totalXLM={500000.1234567}
-          nominalEURMTL={120000.75}
-          nominalXLM={600000.7654321}
+          totalEURMTL={120000.75}
+          totalXLM={600000.7654321}
           accountCount={8}
           tokenCount={150}
           isLoading={false}
         />
       );
 
-      expect(screen.getByText("НОМИНАЛЬНЫЙ ИТОГ")).toBeInTheDocument();
+      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
       expect(
-        screen.getByText("Цена за 1 токен × Баланс (без учета проскальзывания)")
+        screen.getByText("Цена за 1 токен × Баланс")
       ).toBeInTheDocument();
 
       // Check for section labels
-      expect(screen.getByText("НОМИНАЛ EURMTL")).toBeInTheDocument();
-      expect(screen.getByText("НОМИНАЛ XLM")).toBeInTheDocument();
+      expect(screen.getByText("ИТОГО EURMTL")).toBeInTheDocument();
+      expect(screen.getByText("ИТОГО XLM")).toBeInTheDocument();
       expect(screen.getByText("СЧЕТОВ")).toBeInTheDocument();
       expect(screen.getByText("ТОКЕНОВ")).toBeInTheDocument();
 
@@ -55,78 +51,72 @@ describe("FundSummaryMetrics", () => {
       expect(tokenCountElements.length).toBeGreaterThan(0);
     });
 
-    test("should handle zero nominal values", () => {
+    test("should handle zero values", () => {
       render(
         <FundSummaryMetrics
           totalEURMTL={0}
           totalXLM={0}
-          nominalEURMTL={0}
-          nominalXLM={0}
           accountCount={0}
           tokenCount={0}
           isLoading={false}
         />
       );
 
-      expect(screen.getByText("НОМИНАЛЬНЫЙ ИТОГ")).toBeInTheDocument();
+      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
     });
 
-    test("should use electric-cyan styling for nominal section", () => {
+    test("should use electric-cyan styling", () => {
       const { container } = render(
         <FundSummaryMetrics
-          totalEURMTL={100000}
-          totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
+          totalEURMTL={120000}
+          totalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
         />
       );
 
-      const nominalCard = container.querySelector(".bg-electric-cyan\\/10");
-      expect(nominalCard).toBeDefined();
+      const card = container.querySelector(".bg-electric-cyan\\/10");
+      expect(card).toBeDefined();
 
       const borderElement = container.querySelector(".border-electric-cyan");
       expect(borderElement).toBeDefined();
     });
   });
 
-  describe("Liquid totals section", () => {
-    test("should display liquid totals with correct heading", () => {
-      render(
-        <FundSummaryMetrics
-          totalEURMTL={100000.5}
-          totalXLM={500000.1234567}
-          nominalEURMTL={120000.75}
-          nominalXLM={600000.7654321}
-          accountCount={8}
-          tokenCount={150}
-          isLoading={false}
-        />
-      );
-
-      expect(screen.getByText("ЛИКВИДНЫЙ ИТОГ")).toBeInTheDocument();
-      expect(
-        screen.getByText("Реальная стоимость при продаже всего баланса")
-      ).toBeInTheDocument();
-    });
-
-    test("should display liquid values labels", () => {
+  describe("Removed sections", () => {
+    test("should NOT display nominal totals section", () => {
       render(
         <FundSummaryMetrics
           totalEURMTL={100000}
           totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
         />
       );
 
-      expect(screen.getByText("ЛИКВИД EURMTL")).toBeInTheDocument();
-      expect(screen.getByText("ЛИКВИД XLM")).toBeInTheDocument();
+      // Verify nominal section is removed
+      expect(screen.queryByText("НОМИНАЛЬНЫЙ ИТОГ")).not.toBeInTheDocument();
+      expect(screen.queryByText("НОМИНАЛ EURMTL")).not.toBeInTheDocument();
+      expect(screen.queryByText("НОМИНАЛ XLM")).not.toBeInTheDocument();
+    });
+
+    test("should NOT display liquid totals section", () => {
+      render(
+        <FundSummaryMetrics
+          totalEURMTL={100000}
+          totalXLM={500000}
+          accountCount={5}
+          tokenCount={100}
+          isLoading={false}
+        />
+      );
+
+      // Verify liquid section is removed
+      expect(screen.queryByText("ЛИКВИДНЫЙ ИТОГ")).not.toBeInTheDocument();
+      expect(screen.queryByText("ЛИКВИД EURMTL")).not.toBeInTheDocument();
+      expect(screen.queryByText("ЛИКВИД XLM")).not.toBeInTheDocument();
     });
 
     test("should NOT display slippage columns", () => {
@@ -134,8 +124,6 @@ describe("FundSummaryMetrics", () => {
         <FundSummaryMetrics
           totalEURMTL={100000}
           totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
@@ -147,33 +135,11 @@ describe("FundSummaryMetrics", () => {
       expect(screen.queryByText("ПРОСКАЛЬЗЫВАНИЕ XLM")).not.toBeInTheDocument();
     });
 
-    test("should use cyber-green styling for liquid section", () => {
-      const { container } = render(
-        <FundSummaryMetrics
-          totalEURMTL={100000}
-          totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
-          accountCount={5}
-          tokenCount={100}
-          isLoading={false}
-        />
-      );
-
-      const liquidCard = container.querySelector(".bg-cyber-green\\/10");
-      expect(liquidCard).toBeDefined();
-
-      const borderElement = container.querySelector(".border-cyber-green");
-      expect(borderElement).toBeDefined();
-    });
-
     test("should NOT mention slippage in description", () => {
       render(
         <FundSummaryMetrics
           totalEURMTL={100000}
           totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
@@ -184,57 +150,30 @@ describe("FundSummaryMetrics", () => {
       expect(
         screen.queryByText(/с учетом проскальзывания/i)
       ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/без учета проскальзывания/i)
+      ).not.toBeInTheDocument();
     });
   });
 
   describe("Layout and responsive design", () => {
-    test("should use 2-column grid for liquid totals", () => {
+    test("should use 4-column grid for totals", () => {
       const { container } = render(
         <FundSummaryMetrics
-          totalEURMTL={100000}
-          totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
+          totalEURMTL={120000}
+          totalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
         />
       );
 
-      // Find grids and identify the one that doesn't have xl:grid-cols-4 (liquid grid)
-      const grids = container.querySelectorAll(".grid");
-      const liquidGrid = Array.from(grids).find((grid) => {
-        const className = grid.getAttribute("class") ?? "";
-        return className.includes("md:grid-cols-2") && !className.includes("xl:grid-cols-4");
-      });
+      // Find the grid
+      const grid = container.querySelector(".grid");
+      expect(grid).toBeDefined();
 
-      expect(liquidGrid).toBeDefined();
-
-      // Verify it's 2 columns, not 4
-      const className = liquidGrid?.getAttribute("class") ?? "";
-      expect(className).toContain("md:grid-cols-2");
-      expect(className).not.toContain("xl:grid-cols-4");
-    });
-
-    test("should use 4-column grid for nominal totals", () => {
-      const { container } = render(
-        <FundSummaryMetrics
-          totalEURMTL={100000}
-          totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
-          accountCount={5}
-          tokenCount={100}
-          isLoading={false}
-        />
-      );
-
-      // Find the nominal totals grid
-      const nominalGrids = container.querySelectorAll(".grid");
-      const nominalGrid = Array.from(nominalGrids).find((grid) =>
-        grid.className.includes("xl:grid-cols-4")
-      );
-      expect(nominalGrid).toBeDefined();
+      const className = grid?.getAttribute("class") ?? "";
+      expect(className).toContain("xl:grid-cols-4");
     });
   });
 
@@ -244,8 +183,6 @@ describe("FundSummaryMetrics", () => {
         <FundSummaryMetrics
           totalEURMTL={100000}
           totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
@@ -253,12 +190,9 @@ describe("FundSummaryMetrics", () => {
       );
 
       const uppercaseElements = [
-        "НОМИНАЛЬНЫЙ ИТОГ",
-        "ЛИКВИДНЫЙ ИТОГ",
-        "НОМИНАЛ EURMTL",
-        "НОМИНАЛ XLM",
-        "ЛИКВИД EURMTL",
-        "ЛИКВИД XLM",
+        "ИТОГО ПО ФОНДУ",
+        "ИТОГО EURMTL",
+        "ИТОГО XLM",
         "СЧЕТОВ",
         "ТОКЕНОВ",
       ];
@@ -273,8 +207,6 @@ describe("FundSummaryMetrics", () => {
         <FundSummaryMetrics
           totalEURMTL={100000}
           totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
@@ -290,8 +222,6 @@ describe("FundSummaryMetrics", () => {
         <FundSummaryMetrics
           totalEURMTL={100000}
           totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
           accountCount={5}
           tokenCount={100}
           isLoading={false}
@@ -310,16 +240,13 @@ describe("FundSummaryMetrics", () => {
         <FundSummaryMetrics
           totalEURMTL={0}
           totalXLM={0}
-          nominalEURMTL={0}
-          nominalXLM={0}
           accountCount={0}
           tokenCount={0}
           isLoading={false}
         />
       );
 
-      expect(screen.getByText("НОМИНАЛЬНЫЙ ИТОГ")).toBeInTheDocument();
-      expect(screen.getByText("ЛИКВИДНЫЙ ИТОГ")).toBeInTheDocument();
+      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
     });
 
     test("should default isLoading to false when not provided", () => {
@@ -327,8 +254,6 @@ describe("FundSummaryMetrics", () => {
         <FundSummaryMetrics
           totalEURMTL={100000}
           totalXLM={500000}
-          nominalEURMTL={120000}
-          nominalXLM={600000}
           accountCount={5}
           tokenCount={100}
         />
@@ -336,7 +261,7 @@ describe("FundSummaryMetrics", () => {
 
       // Should show content, not loading state
       expect(screen.queryByText("⏳ ЗАГРУЗКА МЕТРИК...")).not.toBeInTheDocument();
-      expect(screen.getByText("НОМИНАЛЬНЫЙ ИТОГ")).toBeInTheDocument();
+      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
     });
   });
 });

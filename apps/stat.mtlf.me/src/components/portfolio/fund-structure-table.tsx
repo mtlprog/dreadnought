@@ -360,9 +360,11 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                       <span className={`cursor-help underline-offset-2 hover:underline ${
                         token.isNFT
                           ? "text-purple-400"
-                          : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInEURMTL != null
-                            ? "text-warning-amber"
-                            : ""
+                          : token.nftValuationAccount != null
+                            ? "text-electric-cyan"
+                            : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInEURMTL != null
+                              ? "text-warning-amber"
+                              : ""
                       }`}>
                         {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 4) : "—"}
                       </span>
@@ -388,6 +390,26 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                             <div className="text-foreground">0.0000001 (1 струп)</div>
                           </div>
                         </div>
+                      ) : token.nftValuationAccount != null ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                            ЦЕНА ИЗ DATA ENTRY
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Источник:</div>
+                            <div className="text-electric-cyan font-mono text-[9px] break-all">
+                              {token.nftValuationAccount}
+                            </div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Тип оценки:</div>
+                            <div className="text-foreground">{token.asset.code}_1COST</div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Цена за единицу:</div>
+                            <div className="text-cyber-green">{token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 7) : "—"} EURMTL</div>
+                          </div>
+                        </div>
                       ) : (
                         formatPriceTooltip(token.detailsEURMTL)
                       )}
@@ -400,9 +422,11 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                       <span className={`cursor-help underline-offset-2 hover:underline ${
                         token.isNFT
                           ? "text-purple-400"
-                          : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInXLM != null
-                            ? "text-warning-amber"
-                            : ""
+                          : token.nftValuationAccount != null
+                            ? "text-electric-cyan"
+                            : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInXLM != null
+                              ? "text-warning-amber"
+                              : ""
                       }`}>
                         {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"}
                       </span>
@@ -428,6 +452,30 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                             <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
                           </div>
                         </div>
+                      ) : token.nftValuationAccount != null ? (
+                        <div className="font-mono space-y-2">
+                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                            ЦЕНА ИЗ DATA ENTRY
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Источник:</div>
+                            <div className="text-electric-cyan font-mono text-[9px] break-all">
+                              {token.nftValuationAccount}
+                            </div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Тип оценки:</div>
+                            <div className="text-foreground">{token.asset.code}_1COST</div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Цена за единицу:</div>
+                            <div className="text-cyber-green">{token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"} XLM</div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Конверсия:</div>
+                            <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
+                          </div>
+                        </div>
                       ) : (
                         formatPriceTooltip(token.detailsXLM)
                       )}
@@ -446,9 +494,7 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                       }`}>
                         {token.valueInEURMTL != null
                           ? formatNumber(parseFloat(token.valueInEURMTL), 2)
-                          : token.nominalValueInEURMTL != null
-                            ? formatNumber(parseFloat(token.nominalValueInEURMTL), 2)
-                            : "—"
+                          : "—"
                         }
                       </span>
                     </TooltipTrigger>
@@ -467,22 +513,22 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                             </div>
                           </div>
                         </div>
-                      ) : token.valueInEURMTL === null && token.nominalValueInEURMTL != null ? (
+                      ) : token.nftValuationAccount != null ? (
                         <div className="font-mono space-y-2">
-                          <div className="text-warning-amber uppercase text-xs font-bold border-b border-warning-amber/30 pb-1">
-                            НОМИНАЛЬНАЯ СТОИМОСТЬ
+                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                            СТОИМОСТЬ ИЗ DATA ENTRY
                           </div>
                           <div className="text-[10px] space-y-0.5">
-                            <div className="text-warning-amber uppercase font-bold">
-                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
-                            </div>
-                            <div className="text-steel-gray mt-2">
-                              Цена × Количество. Токен не имеет ликвидности для полного объема.
-                            </div>
+                            <div className="text-steel-gray">Расчет:</div>
+                            <div className="text-foreground">Цена × Количество</div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Цена из:</div>
+                            <div className="text-electric-cyan">{token.asset.code}_1COST</div>
                           </div>
                         </div>
                       ) : (
-                        formatPriceTooltip(token.detailsEURMTLFullBalance, false)
+                        formatPriceTooltip(token.detailsEURMTL, false)
                       )}
                     </TooltipContent>
                   </Tooltip>
@@ -499,9 +545,7 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                       }`}>
                         {token.valueInXLM != null
                           ? formatNumber(parseFloat(token.valueInXLM), 7)
-                          : token.nominalValueInXLM != null
-                            ? formatNumber(parseFloat(token.nominalValueInXLM), 7)
-                            : "—"
+                          : "—"
                         }
                       </span>
                     </TooltipTrigger>
@@ -520,22 +564,22 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                             </div>
                           </div>
                         </div>
-                      ) : token.valueInXLM === null && token.nominalValueInXLM != null ? (
+                      ) : token.nftValuationAccount != null ? (
                         <div className="font-mono space-y-2">
-                          <div className="text-warning-amber uppercase text-xs font-bold border-b border-warning-amber/30 pb-1">
-                            НОМИНАЛЬНАЯ СТОИМОСТЬ
+                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                            СТОИМОСТЬ ИЗ DATA ENTRY
                           </div>
                           <div className="text-[10px] space-y-0.5">
-                            <div className="text-warning-amber uppercase font-bold">
-                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
-                            </div>
-                            <div className="text-steel-gray mt-2">
-                              Цена × Количество. Токен не имеет ликвидности для полного объема.
-                            </div>
+                            <div className="text-steel-gray">Расчет:</div>
+                            <div className="text-foreground">Цена × Количество</div>
+                          </div>
+                          <div className="text-[10px] space-y-0.5">
+                            <div className="text-steel-gray">Конверсия:</div>
+                            <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
                           </div>
                         </div>
                       ) : (
-                        formatPriceTooltip(token.detailsXLMFullBalance, false)
+                        formatPriceTooltip(token.detailsXLM, false)
                       )}
                     </TooltipContent>
                   </Tooltip>
@@ -570,8 +614,6 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
         <FundSummaryMetrics
           totalEURMTL={fundData.aggregatedTotals.totalEURMTL}
           totalXLM={fundData.aggregatedTotals.totalXLM}
-          nominalEURMTL={fundData.aggregatedTotals.nominalEURMTL}
-          nominalXLM={fundData.aggregatedTotals.nominalXLM}
           accountCount={fundData.aggregatedTotals.accountCount}
           tokenCount={fundData.aggregatedTotals.tokenCount}
           isLoading={isLoading}

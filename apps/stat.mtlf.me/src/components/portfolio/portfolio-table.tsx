@@ -152,24 +152,104 @@ export function PortfolioTable({
                     <TableCell className="text-right font-mono text-white">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="cursor-help underline-offset-2 hover:underline">
+                          <span className={`cursor-help underline-offset-2 hover:underline ${
+                            token.isNFT
+                              ? "text-purple-400"
+                              : token.nftValuationAccount != null
+                                ? "text-electric-cyan"
+                                : ""
+                          }`}>
                             {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 4) : "—"}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
-                          {formatPriceTooltip(token.detailsEURMTL)}
+                          {token.isNFT ? (
+                            <div className="font-mono space-y-2">
+                              <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                                ОЦЕНКА NFT
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Источник:</div>
+                                <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                  {token.nftValuationAccount}
+                                </div>
+                              </div>
+                            </div>
+                          ) : token.nftValuationAccount != null ? (
+                            <div className="font-mono space-y-2">
+                              <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                                ЦЕНА ИЗ DATA ENTRY
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Источник:</div>
+                                <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                  {token.nftValuationAccount}
+                                </div>
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Тип оценки:</div>
+                                <div className="text-foreground">{token.asset.code}_1COST</div>
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Цена за единицу:</div>
+                                <div className="text-cyber-green">{token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 7) : "—"} EURMTL</div>
+                              </div>
+                            </div>
+                          ) : (
+                            formatPriceTooltip(token.detailsEURMTL)
+                          )}
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
                     <TableCell className="text-right font-mono text-white">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="cursor-help underline-offset-2 hover:underline">
+                          <span className={`cursor-help underline-offset-2 hover:underline ${
+                            token.isNFT
+                              ? "text-purple-400"
+                              : token.nftValuationAccount != null
+                                ? "text-electric-cyan"
+                                : ""
+                          }`}>
                             {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
-                          {formatPriceTooltip(token.detailsXLM)}
+                          {token.isNFT ? (
+                            <div className="font-mono space-y-2">
+                              <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                                ОЦЕНКА NFT
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Источник:</div>
+                                <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                  {token.nftValuationAccount}
+                                </div>
+                              </div>
+                            </div>
+                          ) : token.nftValuationAccount != null ? (
+                            <div className="font-mono space-y-2">
+                              <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                                ЦЕНА ИЗ DATA ENTRY
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Источник:</div>
+                                <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                  {token.nftValuationAccount}
+                                </div>
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Тип оценки:</div>
+                                <div className="text-foreground">{token.asset.code}_1COST</div>
+                              </div>
+                              <div className="text-[10px] space-y-0.5">
+                                <div className="text-steel-gray">Цена за единицу:</div>
+                                <div className="text-cyber-green">{token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"} XLM</div>
+                              </div>
+                            </div>
+                          ) : (
+                            formatPriceTooltip(token.detailsXLM)
+                          )}
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>

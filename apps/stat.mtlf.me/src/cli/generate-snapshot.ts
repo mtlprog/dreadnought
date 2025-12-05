@@ -13,7 +13,8 @@ import {
 } from "@/lib/services/snapshot-generator-service";
 import {
   FundStructureServiceLive,
-  NFTValuationServiceLive,
+  AssetValuationServiceLive,
+  ExternalPriceServiceLive,
   PortfolioServiceLive,
   PriceServiceLive,
 } from "@/lib/stellar";
@@ -38,10 +39,8 @@ const program = pipe(
     yield* Effect.log("=== Snapshot Generated Successfully ===");
     yield* Effect.log(`Accounts: ${result.aggregatedTotals.accountCount}`);
     yield* Effect.log(`Tokens: ${result.aggregatedTotals.tokenCount}`);
-    yield* Effect.log(`Total EURMTL (liquid): ${result.aggregatedTotals.totalEURMTL.toFixed(2)}`);
-    yield* Effect.log(`Total XLM (liquid): ${result.aggregatedTotals.totalXLM.toFixed(7)}`);
-    yield* Effect.log(`Total EURMTL (nominal): ${result.aggregatedTotals.nominalEURMTL.toFixed(2)}`);
-    yield* Effect.log(`Total XLM (nominal): ${result.aggregatedTotals.nominalXLM.toFixed(7)}`);
+    yield* Effect.log(`Total EURMTL: ${result.aggregatedTotals.totalEURMTL.toFixed(2)}`);
+    yield* Effect.log(`Total XLM: ${result.aggregatedTotals.totalXLM.toFixed(7)}`);
 
     return result;
   }),
@@ -49,7 +48,12 @@ const program = pipe(
   Effect.provide(FundSnapshotRepositoryLive),
   Effect.provide(PgLive),
   Effect.provide(FundStructureServiceLive),
-  Effect.provide(Layer.mergeAll(PortfolioServiceLive, PriceServiceLive, NFTValuationServiceLive)),
+  Effect.provide(Layer.mergeAll(
+    PortfolioServiceLive,
+    PriceServiceLive,
+    AssetValuationServiceLive,
+    ExternalPriceServiceLive,
+  )),
   Effect.provide(NodeContext.layer),
   Effect.catchAll((error) =>
     pipe(

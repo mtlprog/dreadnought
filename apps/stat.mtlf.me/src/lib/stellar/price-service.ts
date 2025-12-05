@@ -52,14 +52,10 @@ export interface TokenPriceWithBalance {
   readonly balance: string;
   readonly priceInEURMTL: string | null;
   readonly priceInXLM: string | null;
-  readonly valueInEURMTL: string | null; // Liquid value (path finding with full balance)
-  readonly valueInXLM: string | null; // Liquid value (path finding with full balance)
-  readonly nominalValueInEURMTL: string | null; // Nominal value (price × balance) for display
-  readonly nominalValueInXLM: string | null; // Nominal value (price × balance) for display
+  readonly valueInEURMTL: string | null; // Total value (price × balance) for display
+  readonly valueInXLM: string | null; // Total value (price × balance) for display
   readonly detailsEURMTL?: PriceDetails;
   readonly detailsXLM?: PriceDetails;
-  readonly detailsEURMTLFullBalance?: PriceDetails; // Path details for selling entire balance
-  readonly detailsXLMFullBalance?: PriceDetails; // Path details for selling entire balance
   readonly isNFT?: boolean; // True if balance = 0.0000001 (1 stroop)
   readonly nftValuationAccount?: string; // Account ID where NFT valuation was found
 }
@@ -746,7 +742,7 @@ const getTokensWithPricesImpl = (
               Effect.flatMap(() =>
                 pipe(
               Effect.all({
-                // Spot price (amount = 1) for nominal calculations
+                // Spot price (amount = 1) for calculations
                 eurmtlSpotData: pipe(
                   getTokenPriceImpl(token.asset, baseTokens.eurmtl, "1"),
                   Effect.map((result) => ({ price: result.price, details: result.details })),
@@ -767,36 +763,9 @@ const getTokensWithPricesImpl = (
                     )
                   ),
                 ),
-                // Full balance price (amount = token.balance) for liquid calculations
-                eurmtlFullData: pipe(
-                  getTokenPriceImpl(token.asset, baseTokens.eurmtl, token.balance),
-                  Effect.map((result) => ({
-                    destinationAmount: result.destinationAmount,
-                    details: result.details
-                  })),
-                  Effect.catchAll((error) =>
-                    pipe(
-                      Effect.logError(`EURMTL full balance pricing failed for ${token.asset.code}: ${error}`),
-                      Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
-                    )
-                  ),
-                ),
-                xlmFullData: pipe(
-                  getTokenPriceImpl(token.asset, baseTokens.xlm, token.balance),
-                  Effect.map((result) => ({
-                    destinationAmount: result.destinationAmount,
-                    details: result.details
-                  })),
-                  Effect.catchAll((error) =>
-                    pipe(
-                      Effect.logError(`XLM full balance pricing failed for ${token.asset.code}: ${error}`),
-                      Effect.flatMap(() => Effect.succeed({ destinationAmount: null, details: undefined })),
-                    )
-                  ),
-                ),
               }),
-              Effect.map(({ eurmtlSpotData, xlmSpotData, eurmtlFullData, xlmFullData }) => {
-                // Use spot price for "ЦЕНА" columns (nominal calculation)
+              Effect.map(({ eurmtlSpotData, xlmSpotData }) => {
+                // Use spot price for calculations
                 let priceInEURMTL = eurmtlSpotData.price;
                 let priceInXLM = xlmSpotData.price;
 
@@ -809,20 +778,11 @@ const getTokensWithPricesImpl = (
                   priceInEURMTL = (parseFloat(priceInXLM) / eurmtlToXlmRate).toString();
                 }
 
-                // Use full balance destination amount for "СТОИМОСТЬ" columns (liquid calculation)
-                const valueInEURMTL = eurmtlFullData.destinationAmount != null && eurmtlFullData.destinationAmount !== ""
-                  ? parseFloat(eurmtlFullData.destinationAmount).toFixed(2)
-                  : null;
-                const valueInXLM = xlmFullData.destinationAmount != null && xlmFullData.destinationAmount !== ""
-                  ? parseFloat(xlmFullData.destinationAmount).toFixed(7)
-                  : null;
-
-                // Calculate nominal value (price × balance) for display in table
-                // This is used for illiquid tokens that have spot price but no full balance price
-                const nominalValueInEURMTL = priceInEURMTL !== null
+                // Calculate total value (price × balance) for display
+                const valueInEURMTL = priceInEURMTL !== null
                   ? (parseFloat(priceInEURMTL) * parseFloat(token.balance)).toFixed(2)
                   : null;
-                const nominalValueInXLM = priceInXLM !== null
+                const valueInXLM = priceInXLM !== null
                   ? (parseFloat(priceInXLM) * parseFloat(token.balance)).toFixed(7)
                   : null;
 
@@ -833,12 +793,8 @@ const getTokensWithPricesImpl = (
                   priceInXLM,
                   valueInEURMTL,
                   valueInXLM,
-                  nominalValueInEURMTL,
-                  nominalValueInXLM,
                   ...(eurmtlSpotData.details != null ? { detailsEURMTL: eurmtlSpotData.details } : {}),
                   ...(xlmSpotData.details != null ? { detailsXLM: xlmSpotData.details } : {}),
-                  ...(eurmtlFullData.details != null ? { detailsEURMTLFullBalance: eurmtlFullData.details } : {}),
-                  ...(xlmFullData.details != null ? { detailsXLMFullBalance: xlmFullData.details } : {}),
                 };
               }),
             )
