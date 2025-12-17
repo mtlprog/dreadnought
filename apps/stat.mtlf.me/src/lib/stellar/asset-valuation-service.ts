@@ -1,12 +1,8 @@
 import { loadAccount } from "@dreadnought/stellar-core";
 import { Context, Effect, Layer, pipe } from "effect";
-import type { EnvironmentError, StellarError } from "./errors";
 import { getStellarConfig } from "./config";
-import {
-  ExternalPriceServiceTag,
-  type ExternalPriceService,
-  type ExternalPriceSymbol,
-} from "./external-price-service";
+import type { EnvironmentError, StellarError } from "./errors";
+import { type ExternalPriceService, ExternalPriceServiceTag, type ExternalPriceSymbol } from "./external-price-service";
 
 /**
  * Valuation type enum
@@ -260,7 +256,7 @@ const getAccountValuationsImpl = (
     Effect.tap((valuations) =>
       Effect.log(
         `Parsed ${valuations.length} asset valuations from account ${accountId}`,
-      ),
+      )
     ),
   );
 
@@ -301,7 +297,7 @@ const getValuationsFromAccountsImpl = (
     Effect.tap((valuations) =>
       Effect.log(
         `Merged ${valuations.length} valuations from ${accountIds.length} accounts`,
-      ),
+      )
     ),
   );
 
@@ -320,9 +316,7 @@ const resolveValuationImpl = (
   const externalValue = valuation.rawValue;
   return pipe(
     ExternalPriceServiceTag,
-    Effect.flatMap((externalPriceService) =>
-      externalPriceService.getPriceInEUR(externalValue.symbol),
-    ),
+    Effect.flatMap((externalPriceService) => externalPriceService.getPriceInEUR(externalValue.symbol)),
     Effect.map((priceInEUR): ResolvedAssetValuation => ({
       ...valuation,
       valueInEURMTL: priceInEUR.toString(),
@@ -330,7 +324,7 @@ const resolveValuationImpl = (
     Effect.tap((resolved) =>
       Effect.log(
         `Resolved ${valuation.tokenCode} ${externalValue.symbol} -> ${resolved.valueInEURMTL} EUR`,
-      ),
+      )
     ),
   );
 };
@@ -377,15 +371,27 @@ export const STELLAR_PRECISION = 7;
 /**
  * Safely multiply two decimal strings with Stellar-compatible precision
  * Avoids floating-point precision errors in financial calculations
+ * Returns "0" for any invalid input (NaN, Infinity, null, undefined)
  *
  * @param a - First decimal string
  * @param b - Second decimal string
- * @returns Result as string with Stellar precision
+ * @returns Result as string with Stellar precision, or "0" for invalid input
  */
 export const multiplyWithPrecision = (a: string, b: string): string => {
   const numA = parseFloat(a);
   const numB = parseFloat(b);
+
+  // Guard against invalid inputs from external services
+  if (!Number.isFinite(numA) || !Number.isFinite(numB)) {
+    return "0";
+  }
+
   const result = numA * numB;
+
+  // Guard against overflow/underflow
+  if (!Number.isFinite(result)) {
+    return "0";
+  }
 
   // Use toFixed to control precision, then remove trailing zeros
   return parseFloat(result.toFixed(STELLAR_PRECISION)).toString();
@@ -394,20 +400,33 @@ export const multiplyWithPrecision = (a: string, b: string): string => {
 /**
  * Safely divide two decimal strings with Stellar-compatible precision
  * Avoids floating-point precision errors in financial calculations
+ * Returns "0" for any invalid input (NaN, Infinity, zero divisor)
  *
  * @param a - Dividend as decimal string
  * @param b - Divisor as decimal string
- * @returns Result as string with Stellar precision, or "0" if divisor is zero
+ * @returns Result as string with Stellar precision, or "0" for invalid input
  */
 export const divideWithPrecision = (a: string, b: string): string => {
   const numA = parseFloat(a);
   const numB = parseFloat(b);
 
+  // Guard against invalid inputs from external services
+  if (!Number.isFinite(numA) || !Number.isFinite(numB)) {
+    return "0";
+  }
+
+  // Guard against division by zero
   if (numB === 0) {
     return "0";
   }
 
   const result = numA / numB;
+
+  // Guard against overflow/underflow
+  if (!Number.isFinite(result)) {
+    return "0";
+  }
+
   return parseFloat(result.toFixed(STELLAR_PRECISION)).toString();
 };
 
@@ -418,6 +437,11 @@ const calculateValueInEURMTLImpl = (
 ): string => {
   const eurmtlValue = parseFloat(valuation.valueInEURMTL);
 
+  // Guard against invalid valuation from external services
+  if (!Number.isFinite(eurmtlValue)) {
+    return "0";
+  }
+
   if (isNFT || valuation.valuationType === "nft") {
     // For NFTs, the valuation is the total price
     // Use toFixed to ensure consistent precision
@@ -425,6 +449,7 @@ const calculateValueInEURMTLImpl = (
   }
 
   // For regular assets, multiply by balance with proper precision
+  // multiplyWithPrecision already handles invalid inputs
   return multiplyWithPrecision(balance, valuation.valueInEURMTL);
 };
 
@@ -437,4 +462,3 @@ export const AssetValuationServiceLive = Layer.succeed(AssetValuationServiceTag,
   findValuation: findValuationImpl,
   calculateValueInEURMTL: calculateValueInEURMTLImpl,
 });
-

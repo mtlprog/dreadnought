@@ -1,15 +1,15 @@
 import * as S from "@effect/schema/Schema";
 import { Context, Effect, Layer, pipe } from "effect";
-import type { EnvironmentError, StellarError, TokenPriceError } from "./errors";
-import { type PortfolioService, PortfolioServiceTag } from "./portfolio-service";
-import { type PriceService, PriceServiceTag, type TokenPriceWithBalance } from "./price-service";
 import {
   type AssetValuationService,
   AssetValuationServiceTag,
-  type ResolvedAssetValuation,
   divideWithPrecision,
+  type ResolvedAssetValuation,
 } from "./asset-valuation-service";
+import type { EnvironmentError, StellarError, TokenPriceError } from "./errors";
 import type { ExternalPriceService } from "./external-price-service";
+import { type PortfolioService, PortfolioServiceTag } from "./portfolio-service";
+import { type PriceService, PriceServiceTag, type TokenPriceWithBalance } from "./price-service";
 import type { AssetInfo } from "./types";
 
 export interface FundAccount {
@@ -155,6 +155,26 @@ const XLM_ASSET: AssetInfo = S.decodeUnknownSync(AssetInfoSchema)(XLM_ASSET_RAW)
 // Extract all fund account IDs for valuation lookup
 const ALL_FUND_ACCOUNT_IDS = FUND_ACCOUNTS.map((account) => account.id);
 
+/**
+ * Safely parse a string to number, returns 0 for invalid values
+ * Guards against NaN, Infinity, and invalid strings from external services
+ */
+const safeParse = (value: string | null | undefined): number => {
+  if (value === null || value === undefined) return 0;
+  const num = parseFloat(value);
+  return Number.isFinite(num) ? num : 0;
+};
+
+/**
+ * Safely multiply two values, returns 0 for invalid inputs
+ */
+const safeMultiply = (a: string | null | undefined, b: string | null | undefined): number => {
+  const numA = safeParse(a);
+  const numB = safeParse(b);
+  const result = numA * numB;
+  return Number.isFinite(result) ? result : 0;
+};
+
 const calculateAccountTotals = (
   tokens: readonly TokenPriceWithBalance[],
   xlmBalance: string,
@@ -165,29 +185,28 @@ const calculateAccountTotals = (
 } => {
   // Totals (spot price * balance)
   // IMPORTANT: NFTs are included in totals
+  // All parsing is guarded against invalid external data (NaN, Infinity)
   const totalEURMTL = tokens.reduce((sum, token) => {
     if (token.priceInEURMTL !== null && token.priceInEURMTL !== undefined) {
       // For NFTs, use the valuation directly (balance is 0.0000001)
       if (token.isNFT) {
-        return sum + parseFloat(token.priceInEURMTL);
+        return sum + safeParse(token.priceInEURMTL);
       }
-      return sum + parseFloat(token.balance) * parseFloat(token.priceInEURMTL);
+      return sum + safeMultiply(token.balance, token.priceInEURMTL);
     }
     return sum;
-  }, 0) + (xlmPriceInEURMTL !== null && xlmPriceInEURMTL !== undefined
-    ? parseFloat(xlmBalance) * parseFloat(xlmPriceInEURMTL)
-    : 0);
+  }, 0) + safeMultiply(xlmBalance, xlmPriceInEURMTL);
 
   const totalXLM = tokens.reduce((sum, token) => {
     if (token.priceInXLM !== null && token.priceInXLM !== undefined) {
       // For NFTs, use the valuation directly (balance is 0.0000001)
       if (token.isNFT) {
-        return sum + parseFloat(token.priceInXLM);
+        return sum + safeParse(token.priceInXLM);
       }
-      return sum + parseFloat(token.balance) * parseFloat(token.priceInXLM);
+      return sum + safeMultiply(token.balance, token.priceInXLM);
     }
     return sum;
-  }, 0) + parseFloat(xlmBalance);
+  }, 0) + safeParse(xlmBalance);
 
   return { totalEURMTL, totalXLM };
 };
@@ -294,9 +313,9 @@ const getAccountPortfolio = (
                     ...otherValuations.filter((v) =>
                       !ownerValuations.some(
                         (ov) =>
-                          ov.tokenCode === v.tokenCode &&
-                          ov.valuationType === v.valuationType,
-                      ),
+                          ov.tokenCode === v.tokenCode
+                          && ov.valuationType === v.valuationType,
+                      )
                     ),
                   ];
 
@@ -306,15 +325,14 @@ const getAccountPortfolio = (
                       mergedValuations,
                       xlmPriceInEURMTL,
                       assetValuationService,
-                    ),
+                    )
                   );
 
-                  const { totalEURMTL, totalXLM } =
-                    calculateAccountTotals(
-                      enrichedTokens,
-                      portfolio.xlmBalance,
-                      xlmPriceInEURMTL,
-                    );
+                  const { totalEURMTL, totalXLM } = calculateAccountTotals(
+                    enrichedTokens,
+                    portfolio.xlmBalance,
+                    xlmPriceInEURMTL,
+                  );
 
                   return {
                     ...account,
@@ -333,9 +351,9 @@ const getAccountPortfolio = (
                     xlmPriceInEURMTL: null,
                     totalEURMTL: 0,
                     totalXLM: parseFloat(portfolio.xlmBalance),
-                  }),
+                  })
                 ),
-              ),
+              )
             ),
             // If token pricing fails, still return basic data
             Effect.catchAll(() =>
@@ -353,11 +371,11 @@ const getAccountPortfolio = (
                 xlmPriceInEURMTL: null,
                 totalEURMTL: 0,
                 totalXLM: parseFloat(portfolio.xlmBalance),
-              }),
+              })
             ),
-          ),
+          )
         ),
-      ),
+      )
     ),
   );
 
@@ -374,12 +392,10 @@ const getFundStructureImpl = (): Effect.Effect<
         assetValuationService.getValuationsFromAccounts(ALL_FUND_ACCOUNT_IDS),
         Effect.flatMap((rawValuations) =>
           // Resolve external price symbols (BTC, ETH, etc.) to EURMTL
-          assetValuationService.resolveAllValuations(rawValuations),
+          assetValuationService.resolveAllValuations(rawValuations)
         ),
-        Effect.tap((valuations) =>
-          Effect.log(`Resolved ${valuations.length} asset valuations from all accounts`),
-        ),
-      ),
+        Effect.tap((valuations) => Effect.log(`Resolved ${valuations.length} asset valuations from all accounts`)),
+      )
     ),
     Effect.flatMap((allValuations) =>
       pipe(
@@ -389,7 +405,7 @@ const getFundStructureImpl = (): Effect.Effect<
               // Add delay before each account (except first) to avoid rate limiting
               index > 0 ? Effect.sleep("200 millis") : Effect.void,
               Effect.flatMap(() => getAccountPortfolio(account, allValuations)),
-            ),
+            )
           ),
           { concurrency: 1 }, // Sequential to minimize rate limiting
         ),
@@ -399,10 +415,17 @@ const getFundStructureImpl = (): Effect.Effect<
           const otherAccounts = allAccounts.filter((account) => account.type === "other");
 
           // Calculate aggregated totals (excluding "other" accounts)
+          // Final guard: treat NaN as 0 to prevent one broken account from breaking the entire report
+          const safeSum = (a: number, b: number): number => {
+            const safeA = Number.isFinite(a) ? a : 0;
+            const safeB = Number.isFinite(b) ? b : 0;
+            return safeA + safeB;
+          };
+
           const aggregatedTotals = accounts.reduce(
             (totals, account) => ({
-              totalEURMTL: totals.totalEURMTL + account.totalEURMTL,
-              totalXLM: totals.totalXLM + account.totalXLM,
+              totalEURMTL: safeSum(totals.totalEURMTL, account.totalEURMTL),
+              totalXLM: safeSum(totals.totalXLM, account.totalXLM),
               accountCount: totals.accountCount + 1,
               tokenCount: totals.tokenCount + account.tokens.length,
             }),
@@ -420,7 +443,7 @@ const getFundStructureImpl = (): Effect.Effect<
             aggregatedTotals,
           };
         }),
-      ),
+      )
     ),
   );
 

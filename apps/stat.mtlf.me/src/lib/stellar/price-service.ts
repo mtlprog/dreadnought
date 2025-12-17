@@ -1,6 +1,6 @@
+import { fetchOrderbook } from "@dreadnought/stellar-core";
 import { Asset, type Horizon } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe, Schedule } from "effect";
-import { fetchOrderbook } from "@dreadnought/stellar-core";
 import { getStellarConfig } from "./config";
 import { type EnvironmentError, StellarError, TokenPriceError } from "./errors";
 import type { AssetInfo, OrderbookData, PriceDetails, PriceSource, TokenPairPrice } from "./types";
@@ -149,9 +149,7 @@ const fetchLiquidityPoolPrice = (
     Effect.catchAll((error) =>
       pipe(
         Effect.log(
-          `Failed to fetch liquidity pool: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
+          `Failed to fetch liquidity pool: ${error instanceof Error ? error.message : String(error)}`,
         ),
         Effect.flatMap(() => Effect.succeed({ ask: null, bid: null })),
       )
@@ -336,7 +334,30 @@ const tryPathFinding = (
 
       const sourceAmount = parseFloat(bestPath.source_amount);
       const destinationAmount = parseFloat(bestPath.destination_amount);
-      const price = (destinationAmount / sourceAmount).toString();
+
+      // Guard against invalid data from Horizon API
+      if (!Number.isFinite(sourceAmount) || !Number.isFinite(destinationAmount) || sourceAmount === 0) {
+        return Effect.fail(
+          new TokenPriceError({
+            message: `Invalid path amounts: source=${bestPath.source_amount}, dest=${bestPath.destination_amount}`,
+            tokenA: tokenA.code,
+            tokenB: tokenB.code,
+          }),
+        );
+      }
+
+      const priceValue = destinationAmount / sourceAmount;
+      if (!Number.isFinite(priceValue)) {
+        return Effect.fail(
+          new TokenPriceError({
+            message: `Invalid price calculation resulted in ${priceValue}`,
+            tokenA: tokenA.code,
+            tokenB: tokenB.code,
+          }),
+        );
+      }
+
+      const price = priceValue.toString();
 
       // Build path with hop information for orderbook fetching
       interface HopInfo {
@@ -553,10 +574,10 @@ const getTokenPriceImpl = (
               // 3. Only path finding can accurately price large volumes
               actualAmount === "1"
                 ? pipe(
-                    tryDirectOrderbook(tokenA, tokenB, config),
-                    Effect.map((result): Result => ({ success: true, data: result })),
-                    Effect.catchAll((): Effect.Effect<Result, never> => Effect.succeed({ success: false, data: null })),
-                  )
+                  tryDirectOrderbook(tokenA, tokenB, config),
+                  Effect.map((result): Result => ({ success: true, data: result })),
+                  Effect.catchAll((): Effect.Effect<Result, never> => Effect.succeed({ success: false, data: null })),
+                )
                 : Effect.succeed({ success: false, data: null } as Result),
             ),
           },
@@ -604,13 +625,13 @@ const getTokenPriceImpl = (
               ? orderbookResult.data.details.priceType
               : "bid"; // Default to bid if not available
 
-            const pathDetails = pathResult.data?.details !== undefined &&
-              pathResult.data.details.source === "path"
+            const pathDetails = pathResult.data?.details !== undefined
+                && pathResult.data.details.source === "path"
               ? pathResult.data.details
               : undefined;
 
-            const orderbookDetails = orderbookResult.data?.details !== undefined &&
-              orderbookResult.data.details.source === "orderbook"
+            const orderbookDetails = orderbookResult.data?.details !== undefined
+                && orderbookResult.data.details.source === "orderbook"
               ? orderbookResult.data.details
               : undefined;
 
@@ -689,8 +710,8 @@ const getTokenPriceImpl = (
                 if (isRateLimit) {
                   Effect.runSync(
                     Effect.logWarning(
-                      `⚠ RATE LIMIT detected in combined pricing, retrying with backoff...`
-                    )
+                      `⚠ RATE LIMIT detected in combined pricing, retrying with backoff...`,
+                    ),
                   );
                 }
                 return isRateLimit;
@@ -741,65 +762,94 @@ const getTokensWithPricesImpl = (
               index > 0 ? Effect.sleep("100 millis") : Effect.void,
               Effect.flatMap(() =>
                 pipe(
-              Effect.all({
-                // Spot price (amount = 1) for calculations
-                eurmtlSpotData: pipe(
-                  getTokenPriceImpl(token.asset, baseTokens.eurmtl, "1"),
-                  Effect.map((result) => ({ price: result.price, details: result.details })),
-                  Effect.catchAll((error) =>
-                    pipe(
-                      Effect.logError(`EURMTL spot pricing failed for ${token.asset.code}: ${error}`),
-                      Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
-                    )
-                  ),
-                ),
-                xlmSpotData: pipe(
-                  getTokenPriceImpl(token.asset, baseTokens.xlm, "1"),
-                  Effect.map((result) => ({ price: result.price, details: result.details })),
-                  Effect.catchAll((error) =>
-                    pipe(
-                      Effect.logError(`XLM spot pricing failed for ${token.asset.code}: ${error}`),
-                      Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
-                    )
-                  ),
-                ),
-              }),
-              Effect.map(({ eurmtlSpotData, xlmSpotData }) => {
-                // Use spot price for calculations
-                let priceInEURMTL = eurmtlSpotData.price;
-                let priceInXLM = xlmSpotData.price;
+                  Effect.all({
+                    // Spot price (amount = 1) for calculations
+                    eurmtlSpotData: pipe(
+                      getTokenPriceImpl(token.asset, baseTokens.eurmtl, "1"),
+                      Effect.map((result) => ({ price: result.price, details: result.details })),
+                      Effect.catchAll((error) =>
+                        pipe(
+                          Effect.logError(`EURMTL spot pricing failed for ${token.asset.code}: ${error}`),
+                          Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
+                        )
+                      ),
+                    ),
+                    xlmSpotData: pipe(
+                      getTokenPriceImpl(token.asset, baseTokens.xlm, "1"),
+                      Effect.map((result) => ({ price: result.price, details: result.details })),
+                      Effect.catchAll((error) =>
+                        pipe(
+                          Effect.logError(`XLM spot pricing failed for ${token.asset.code}: ${error}`),
+                          Effect.flatMap(() => Effect.succeed({ price: null, details: undefined })),
+                        )
+                      ),
+                    ),
+                  }),
+                  Effect.map(({ eurmtlSpotData, xlmSpotData }) => {
+                    // Use spot price for calculations
+                    let priceInEURMTL = eurmtlSpotData.price;
+                    let priceInXLM = xlmSpotData.price;
 
-                // Synthetic prices through cross-rate if one price is missing
-                if (priceInEURMTL !== null && priceInXLM === null && eurmtlToXlmRate !== null) {
-                  // Calculate XLM price from EURMTL price: priceInXLM = priceInEURMTL * rate(EURMTL→XLM)
-                  priceInXLM = (parseFloat(priceInEURMTL) * eurmtlToXlmRate).toString();
-                } else if (priceInXLM !== null && priceInEURMTL === null && eurmtlToXlmRate !== null && eurmtlToXlmRate !== 0) {
-                  // Calculate EURMTL price from XLM price: priceInEURMTL = priceInXLM / rate(EURMTL→XLM)
-                  priceInEURMTL = (parseFloat(priceInXLM) / eurmtlToXlmRate).toString();
-                }
+                    // Synthetic prices through cross-rate if one price is missing
+                    // Guard against invalid cross-rate calculations
+                    if (priceInEURMTL !== null && priceInXLM === null && eurmtlToXlmRate !== null) {
+                      // Calculate XLM price from EURMTL price: priceInXLM = priceInEURMTL * rate(EURMTL→XLM)
+                      const parsed = parseFloat(priceInEURMTL);
+                      if (Number.isFinite(parsed)) {
+                        const result = parsed * eurmtlToXlmRate;
+                        if (Number.isFinite(result)) {
+                          priceInXLM = result.toString();
+                        }
+                      }
+                    } else if (
+                      priceInXLM !== null && priceInEURMTL === null && eurmtlToXlmRate !== null && eurmtlToXlmRate !== 0
+                    ) {
+                      // Calculate EURMTL price from XLM price: priceInEURMTL = priceInXLM / rate(EURMTL→XLM)
+                      const parsed = parseFloat(priceInXLM);
+                      if (Number.isFinite(parsed)) {
+                        const result = parsed / eurmtlToXlmRate;
+                        if (Number.isFinite(result)) {
+                          priceInEURMTL = result.toString();
+                        }
+                      }
+                    }
 
-                // Calculate total value (price × balance) for display
-                const valueInEURMTL = priceInEURMTL !== null
-                  ? (parseFloat(priceInEURMTL) * parseFloat(token.balance)).toFixed(2)
-                  : null;
-                const valueInXLM = priceInXLM !== null
-                  ? (parseFloat(priceInXLM) * parseFloat(token.balance)).toFixed(7)
-                  : null;
+                    // Calculate total value (price × balance) for display
+                    // Guard against invalid data from external services
+                    const safeMultiply = (price: string, balance: string, decimals: number): string | null => {
+                      const numPrice = parseFloat(price);
+                      const numBalance = parseFloat(balance);
+                      if (!Number.isFinite(numPrice) || !Number.isFinite(numBalance)) {
+                        return null;
+                      }
+                      const result = numPrice * numBalance;
+                      if (!Number.isFinite(result)) {
+                        return null;
+                      }
+                      return result.toFixed(decimals);
+                    };
 
-                return {
-                  asset: token.asset,
-                  balance: token.balance,
-                  priceInEURMTL,
-                  priceInXLM,
-                  valueInEURMTL,
-                  valueInXLM,
-                  ...(eurmtlSpotData.details != null ? { detailsEURMTL: eurmtlSpotData.details } : {}),
-                  ...(xlmSpotData.details != null ? { detailsXLM: xlmSpotData.details } : {}),
-                };
-              }),
+                    const valueInEURMTL = priceInEURMTL !== null
+                      ? safeMultiply(priceInEURMTL, token.balance, 2)
+                      : null;
+                    const valueInXLM = priceInXLM !== null
+                      ? safeMultiply(priceInXLM, token.balance, 7)
+                      : null;
+
+                    return {
+                      asset: token.asset,
+                      balance: token.balance,
+                      priceInEURMTL,
+                      priceInXLM,
+                      valueInEURMTL,
+                      valueInXLM,
+                      ...(eurmtlSpotData.details != null ? { detailsEURMTL: eurmtlSpotData.details } : {}),
+                      ...(xlmSpotData.details != null ? { detailsXLM: xlmSpotData.details } : {}),
+                    };
+                  }),
+                )
+              ),
             )
-          )
-        )
           ),
           { concurrency: 1 }, // Reduced to 1 to minimize rate limiting
         ),
