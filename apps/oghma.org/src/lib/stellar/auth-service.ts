@@ -2,14 +2,13 @@ import { Context, Effect, Layer, pipe } from "effect";
 import * as S from "@effect/schema/Schema";
 import {
   Keypair,
-  Networks,
   Operation,
   Transaction,
   TransactionBuilder,
   BASE_FEE,
+  type Horizon,
 } from "@stellar/stellar-sdk";
 import { getStellarConfig } from "@dreadnought/stellar-core";
-import type { Horizon } from "@stellar/stellar-sdk";
 
 // Errors
 export class AuthError extends S.TaggedError<AuthError>()(
@@ -73,7 +72,7 @@ export const AuthServiceLive = Layer.effect(
     const config = yield* getStellarConfig();
 
     // Get server keypair from environment
-    const serverSecret = process.env.STELLAR_SERVER_SECRET;
+    const serverSecret = process.env["STELLAR_SERVER_SECRET"];
     if (!serverSecret) {
       yield* Effect.fail(
         new AuthError({
@@ -92,15 +91,21 @@ export const AuthServiceLive = Layer.effect(
             try: () => {
               // Validate client public key
               Keypair.fromPublicKey(clientPublicKey);
-
-              // Load server account to get sequence number
-              return config.server.loadAccount(serverKeypair.publicKey());
             },
             catch: (error) =>
               new ChallengeGenerationError({
-                message: `Failed to load server account: ${error}`,
+                message: `Failed to validate client public key: ${error}`,
               }),
           }),
+          Effect.flatMap(() =>
+            Effect.tryPromise({
+              try: () => config.server.loadAccount(serverKeypair.publicKey()),
+              catch: (error) =>
+                new ChallengeGenerationError({
+                  message: `Failed to load server account: ${error}`,
+                }),
+            })
+          ),
           Effect.flatMap((serverAccount: Horizon.AccountResponse) =>
             Effect.try({
               try: () => {
@@ -112,7 +117,6 @@ export const AuthServiceLive = Layer.effect(
                 ).toString("base64");
 
                 // Create challenge transaction
-                const now = Math.floor(Date.now() / 1000);
                 const transaction = new TransactionBuilder(serverAccount, {
                   fee: BASE_FEE,
                   networkPassphrase: config.networkPassphrase,
@@ -164,7 +168,7 @@ export const AuthServiceLive = Layer.effect(
               }
 
               const operation = transaction.operations[0];
-              if (operation.type !== "manageData") {
+              if (!operation || operation.type !== "manageData") {
                 throw new Error("Invalid transaction: operation must be manageData");
               }
 
@@ -218,7 +222,7 @@ export const AuthServiceLive = Layer.effect(
           Effect.tap(({ publicKey }) =>
             Effect.log(`Verified challenge for client: ${publicKey.substring(0, 8)}...`)
           ),
-          Effect.catchTag("ChallengeVerificationError", (error) =>
+          Effect.catchTag("ChallengeVerificationError", () =>
             Effect.succeed({
               publicKey: clientPublicKey,
               isValid: false,

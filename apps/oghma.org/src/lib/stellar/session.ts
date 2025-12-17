@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { Effect } from "effect";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "dev-secret-key"
+  process.env["JWT_SECRET"] || "dev-secret-key"
 );
 const SESSION_COOKIE_NAME = "oghma_session";
 const SESSION_DURATION = 30 * 24 * 60 * 60; // 30 days in seconds
@@ -18,11 +18,11 @@ export interface SessionData {
 export async function createSession(publicKey: string, userId?: number): Promise<string> {
   const session: SessionData = {
     publicKey,
-    userId,
+    ...(userId !== undefined ? { userId } : {}),
     createdAt: Date.now(),
   };
 
-  const token = await new SignJWT(session as Record<string, unknown>)
+  const token = await new SignJWT(session as unknown as Record<string, unknown>)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_DURATION}s`)
@@ -35,7 +35,7 @@ export async function createSession(publicKey: string, userId?: number): Promise
 export async function verifySession(token: string): Promise<SessionData | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as SessionData;
+    return payload as unknown as SessionData;
   } catch {
     return null;
   }

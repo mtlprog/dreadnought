@@ -128,7 +128,7 @@ export default async function LessonPage({
   // Check authentication and progress
   const session = await getSession();
   const isAuthenticated = !!session;
-  const isCompleted = isAuthenticated
+  const isCompleted = isAuthenticated && session.userId !== undefined
     ? await checkLessonProgress(session.userId, lesson.id)
     : false;
 

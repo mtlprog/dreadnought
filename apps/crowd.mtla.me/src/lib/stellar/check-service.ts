@@ -655,7 +655,9 @@ const checkSingleProject = (
           Effect.catchAll(() => Effect.succeed([] as readonly string[])),
         );
 
-        yield* Effect.logInfo(`  📋 All accounts with C${project.code} trustlines: ${allAccountsWithTrustlines.length}`);
+        yield* Effect.logInfo(
+          `  📋 All accounts with C${project.code} trustlines: ${allAccountsWithTrustlines.length}`,
+        );
         for (const accountId of allAccountsWithTrustlines) {
           yield* Effect.logInfo(`    - ${accountId}`);
         }

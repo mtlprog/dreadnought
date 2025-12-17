@@ -8,7 +8,7 @@ export async function completeLesson(lessonId: number) {
   try {
     const session = await getSession();
 
-    if (!session || !session.userId) {
+    if (!session?.userId) {
       return {
         success: false,
         error: "You must be authenticated to track progress",
