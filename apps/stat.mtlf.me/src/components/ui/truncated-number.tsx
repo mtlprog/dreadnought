@@ -5,7 +5,7 @@ import React from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 
 interface TruncatedNumberProps {
-  value: number;
+  value: number | null | undefined;
   /** Number of decimal places to show in truncated view (default: 1) */
   truncatedDecimals?: number;
   /** Full number of decimal places for copy and tooltip (default: same as original formatting) */
@@ -43,7 +43,8 @@ export function TruncatedNumber({
   const handleClick = async () => {
     try {
       // Copy the raw number without formatting (no thin spaces)
-      await navigator.clipboard.writeText(value.toFixed(fullDecimals));
+      const safeValue = value ?? 0;
+      await navigator.clipboard.writeText(safeValue.toFixed(fullDecimals));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {

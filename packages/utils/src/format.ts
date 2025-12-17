@@ -10,8 +10,9 @@
  * formatNumber(1234567.89, 2) // "1 234 567.89"
  * formatNumber(1234.5678, 7)  // "1 234.5678000"
  */
-export function formatNumber(value: number, decimals: number = 2): string {
-  const fixed = value.toFixed(decimals);
+export function formatNumber(value: number | null | undefined, decimals: number = 2): string {
+  const safeValue = value ?? 0;
+  const fixed = safeValue.toFixed(decimals);
   const parts = fixed.split(".");
   const integerPart = parts[0];
   const decimalPart = parts[1];
