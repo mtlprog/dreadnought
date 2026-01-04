@@ -19,18 +19,29 @@ export function ProjectCard({
   const { t, locale } = useLocale();
 
   const isCompleted = project.status === "completed";
+  const isCanceled = project.status === "canceled";
+  const isEnded = isCompleted || isCanceled;
 
-  // If project is completed and current_amount is 0, it means it was fully funded
+  // If project is completed (successful) and current_amount is 0, it means it was fully funded
   // (funds were distributed and tokens were clawed back)
+  // For canceled projects, show the actual progress (they didn't reach the goal)
   const currentAmount = parseFloat(project.current_amount);
   const targetAmount = parseFloat(project.target_amount);
   const progressPercentage = isCompleted && currentAmount === 0 && targetAmount > 0
     ? 100
     : Math.min((currentAmount / targetAmount) * 100, 100);
 
-  const statusColor = isCompleted ? "text-secondary" : "text-primary";
+  const statusColor = isCanceled
+    ? "text-destructive"
+    : isCompleted
+    ? "text-secondary"
+    : "text-primary";
 
-  const statusText = isCompleted ? t("projects.fundingEnded") : t("projects.active");
+  const statusText = isCanceled
+    ? t("projects.fundingFailed")
+    : isCompleted
+    ? t("projects.fundingEnded")
+    : t("projects.active");
 
   return (
     <Card className="h-full flex flex-col">
@@ -75,7 +86,9 @@ export function ProjectCard({
             </div>
             <Progress
               value={progressPercentage}
-              className={`h-3 md:h-4 ${isCompleted ? "[&>div]:bg-foreground" : ""}`}
+              className={`h-3 md:h-4 ${
+                isCanceled ? "[&>div]:bg-destructive" : isCompleted ? "[&>div]:bg-foreground" : ""
+              }`}
             />
           </div>
 
@@ -112,10 +125,12 @@ export function ProjectCard({
       <CardFooter className="p-4 md:p-6">
         <Link href={`/${project.code.toLowerCase()}`} className="w-full">
           <Button
-            className="w-full text-sm md:text-base"
-            variant={isCompleted ? "outline" : "default"}
+            className={`w-full text-sm md:text-base ${
+              isCanceled ? "border-destructive text-destructive hover:bg-destructive/10" : ""
+            }`}
+            variant={isEnded ? "outline" : "default"}
           >
-            {isCompleted ? t("projects.viewProject") : t("projects.fundProject")}
+            {isEnded ? t("projects.viewProject") : t("projects.fundProject")}
           </Button>
         </Link>
       </CardFooter>

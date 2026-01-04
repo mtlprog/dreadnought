@@ -43,6 +43,7 @@
     "raised": "Raised",
     "deadline": "Deadline",
     "fundingEnded": "FUNDRAISING ENDED",
+    "fundingFailed": "NOT FUNDED",
     "fundProject": "SUPPORT",
     "active": "ACTIVE",
     "fundingProgress": "RAISED",
@@ -113,11 +114,13 @@
     "status": {
       "title": "PROJECT STATUS",
       "completed": "FUNDRAISING ENDED",
+      "canceled": "NOT FUNDED",
       "finalAmount": "FINAL AMOUNT:",
       "target": "TARGET:",
       "successRate": "SUCCESS RATE:",
       "totalSupporters": "TOTAL HELPED:",
-      "completedMessage": "This project has reached its goal or deadline. No further contributions are accepted."
+      "completedMessage": "This project has reached its goal or deadline. No further contributions are accepted.",
+      "canceledMessage": "This project did not reach its funding goal. All funds have been returned to donors."
     },
     "support": {
       "title": "SUPPORT PROJECT",

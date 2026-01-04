@@ -60,9 +60,11 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
   const { t, locale } = useLocale();
 
   const isCompleted = project.status === "completed";
+  const isCanceled = project.status === "canceled";
 
-  // If project is completed and current_amount is 0, it means it was fully funded
+  // If project is completed (successful) and current_amount is 0, it means it was fully funded
   // (funds were distributed and tokens were clawed back)
+  // For canceled projects, show the actual progress (they didn't reach the goal)
   const currentAmount = parseFloat(project.current_amount);
   const targetAmount = parseFloat(project.target_amount);
   const progressPercentage = isCompleted && currentAmount === 0 && targetAmount > 0
@@ -169,7 +171,7 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
                 {Math.round(progressPercentage)}%
               </span>
             </div>
-            <Progress value={progressPercentage} className="h-8" />
+            <Progress value={progressPercentage} className={`h-8 ${isCanceled ? "[&>div]:bg-destructive" : ""}`} />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

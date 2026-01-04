@@ -168,23 +168,36 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
   const eurMtlBalanceValue = balance !== null ? Math.floor(parseFloat(balance.eurMtl)) : 0;
   const totalAvailable = mtlCrowdBalanceValue + eurMtlBalanceValue;
   const isProjectCompleted = project.status === "completed";
+  const isProjectCanceled = project.status === "canceled";
+  const isProjectEnded = isProjectCompleted || isProjectCanceled;
 
   // Calculate spending for current amount
   const currentSpending = balance !== null
     ? calculateSpending(formData.amount, balance.mtlCrowd, balance.eurMtl)
     : { mtlCrowdAmount: "0", eurMtlAmount: "0" };
 
-  if (isProjectCompleted) {
+  if (isProjectEnded) {
+    const statusText = isProjectCanceled
+      ? t("project.status.canceled")
+      : t("project.status.completed");
+    const statusMessage = isProjectCanceled
+      ? t("project.status.canceledMessage")
+      : t("project.status.completedMessage");
+
     return (
-      <div className="border-2 border-secondary bg-background p-6">
-        <h2 className="text-2xl font-bold text-secondary uppercase mb-6">
+      <div className={`border-2 bg-background p-6 ${isProjectCanceled ? "border-destructive" : "border-secondary"}`}>
+        <h2
+          className={`text-2xl font-bold uppercase mb-6 ${isProjectCanceled ? "text-destructive" : "text-secondary"}`}
+        >
           {t("project.status.title")}
         </h2>
         <div className="space-y-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-6 h-6 bg-secondary" />
-            <span className="text-xl font-bold text-secondary uppercase">
-              {t("project.status.completed")}
+            <div className={`w-6 h-6 ${isProjectCanceled ? "bg-destructive" : "bg-secondary"}`} />
+            <span
+              className={`text-xl font-bold uppercase ${isProjectCanceled ? "text-destructive" : "text-secondary"}`}
+            >
+              {statusText}
             </span>
           </div>
           <div className="space-y-3 text-base font-mono">
@@ -202,7 +215,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("project.status.successRate")}</span>
-              <span className="text-secondary">
+              <span className={isProjectCanceled ? "text-destructive" : "text-secondary"}>
                 {Math.round((currentProjectAmount / targetAmount) * 100)}%
               </span>
             </div>
@@ -213,7 +226,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
           </div>
           <div className="border-t-2 border-border pt-4 mt-4">
             <p className="text-sm font-mono text-muted-foreground">
-              {t("project.status.completedMessage")}
+              {statusMessage}
             </p>
           </div>
         </div>

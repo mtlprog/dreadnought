@@ -41,6 +41,7 @@ export function ProjectsSection() {
 
   const activeProjects = projects.filter(p => p.status === "active");
   const completedProjects = projects.filter(p => p.status === "completed");
+  const canceledProjects = projects.filter(p => p.status === "canceled");
 
   return (
     <section id="projects-section" className="min-h-screen py-12 md:py-24 bg-background">
@@ -99,6 +100,27 @@ export function ProjectsSection() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                       {completedProjects.map((project) => (
+                        <ProjectCard
+                          key={project.code}
+                          project={project}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Canceled/Failed Projects */}
+                {canceledProjects.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
+                      <div className="w-4 h-4 md:w-6 md:h-6 bg-destructive flex-shrink-0" />
+                      <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-destructive uppercase">
+                        {t("projects.fundingFailed")} ({canceledProjects.length})
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                      {canceledProjects.map((project) => (
                         <ProjectCard
                           key={project.code}
                           project={project}
