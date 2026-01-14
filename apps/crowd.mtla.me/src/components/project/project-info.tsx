@@ -97,7 +97,9 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
                   ),
                   ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
                   ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                  li: ({ children }) => <li className="text-foreground font-mono text-sm">{children}</li>,
+                  li: ({ children }) => (
+                    <li className="text-foreground font-mono text-sm [&>p]:mb-0 [&>p]:inline">{children}</li>
+                  ),
                   strong: ({ children }) => <strong className="font-bold text-primary">{children}</strong>,
                   em: ({ children }) => <em className="italic text-accent">{children}</em>,
                   code: ({ children }) => (
