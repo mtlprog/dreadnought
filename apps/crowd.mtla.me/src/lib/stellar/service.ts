@@ -7,7 +7,6 @@ import {
   fetchProjectDataFromIPFS,
   getAccountName,
   getCurrentFundingMetrics,
-  getTokenHolders,
   getTopSupporters,
   isProjectExpired,
   sortProjectsByPriority,
@@ -220,20 +219,15 @@ export const StellarServiceLive = Layer.succeed(
                   checkActiveSellOffer(config.server, config.publicKey, `C${projectEntry.code}`)
                 ),
               ),
-              pipe(
-                getStellarConfig(),
-                Effect.flatMap((config: Readonly<StellarConfig>) => getTokenHolders(config, projectEntry.code)),
-              ),
               getStellarConfig(),
             ]),
             Effect.flatMap(
               (
-                [projectData, tokenExists, claimableBalances, hasActiveSellOffer, tokenHolders, config]: readonly [
+                [projectData, tokenExists, claimableBalances, hasActiveSellOffer, config]: readonly [
                   ProjectData,
                   boolean,
                   readonly Horizon.ServerApi.ClaimableBalanceRecord[],
                   boolean,
-                  readonly { readonly accountId: string; readonly balance: string }[],
                   StellarConfig,
                 ],
               ) => {
@@ -271,7 +265,6 @@ export const StellarServiceLive = Layer.succeed(
                       config,
                       projectData,
                       claimableBalances,
-                      tokenHolders,
                       projectEntry.code,
                       config.publicKey,
                       10,

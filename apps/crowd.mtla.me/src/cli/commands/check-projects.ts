@@ -254,10 +254,9 @@ export const checkProjects = () =>
         const { getStellarConfig } = yield* Effect.promise(() => import("@/lib/stellar/config"));
         const config = yield* getStellarConfig();
 
-        // Collect supporters data from claimable balances and token holders
+        // Collect supporters data from claimable balances only (real supporters)
         const supportersData = collectSupportersData(
           result.claimableBalances,
-          result.tokenHolders,
           result.code,
           config.publicKey,
         );

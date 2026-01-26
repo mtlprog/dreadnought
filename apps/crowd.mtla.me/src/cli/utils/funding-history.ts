@@ -132,11 +132,6 @@ export const getHistoricalFundingData = (
     }),
   );
 
-interface TokenHolder {
-  readonly accountId: string;
-  readonly balance: string;
-}
-
 /**
  * Get current funding data from active project state
  * Uses claimable balances, token holders, and active sell offers
@@ -189,68 +184,9 @@ export const getCurrentFundingData = (
           }),
       });
 
-      // Get token holders
-      const { Asset } = yield* Effect.promise(() => import("@stellar/stellar-sdk"));
-      const tokenHolders = yield* Effect.tryPromise({
-        try: async () => {
-          const holders: TokenHolder[] = [];
-
-          try {
-            const allAccounts: Horizon.ServerApi.AccountRecord[] = [];
-            let callBuilder = config.server.accounts()
-              .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
-              .limit(200);
-
-            while (true) {
-              const response = await callBuilder.call();
-              allAccounts.push(...response.records);
-
-              if (response.records.length < 200) break;
-
-              const lastRecord = response.records[response.records.length - 1];
-              if (lastRecord === undefined) break;
-
-              callBuilder = config.server.accounts()
-                .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
-                .cursor(lastRecord.paging_token)
-                .limit(200);
-            }
-
-            for (const account of allAccounts) {
-              for (const balance of account.balances) {
-                if (
-                  balance.asset_type !== "native"
-                  && balance.asset_type !== "liquidity_pool_shares"
-                  && "asset_code" in balance
-                  && "asset_issuer" in balance
-                  && balance.asset_code === crowdfundingTokenCode
-                  && balance.asset_issuer === config.publicKey
-                  && parseFloat(balance.balance) > 0
-                ) {
-                  holders.push({
-                    accountId: account.id,
-                    balance: balance.balance,
-                  });
-                }
-              }
-            }
-          } catch {
-            // If asset doesn't exist or no holders, return empty array
-          }
-
-          return holders;
-        },
-        catch: (error) =>
-          new StellarError({
-            cause: error,
-            operation: "get_token_holders",
-          }),
-      });
-
-      // Collect supporters data
+      // Collect supporters data from claimable balances only (real supporters)
       const supportersData = collectSupportersData(
         claimableBalances,
-        tokenHolders,
         assetCode,
         config.publicKey,
       );

@@ -1,4 +1,4 @@
-import { Asset, type Horizon } from "@stellar/stellar-sdk";
+import type { Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
 import type { StellarConfig } from "./config";
 import { StellarError } from "./errors";
@@ -144,56 +144,21 @@ export const countUniqueSupporters = (
 };
 
 /**
- * Count total unique supporters from both claimable balances and token holders
- * Combines supporters from claimable balances (sponsors) and token holders (account IDs)
- */
-export const countTotalSupporters = (
-  claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
-  tokenHolders: Readonly<readonly { readonly accountId: string; readonly balance: string }[]>,
-  assetCode: Readonly<string>,
-  stellarAccountId: Readonly<string>,
-): number => {
-  const uniqueSupporters = new Set<string>();
-  const crowdfundingTokenCode = `C${assetCode}`;
-
-  // Add supporters from claimable balances
-  for (const balance of claimableBalances) {
-    const asset = balance.asset;
-    const assetCodeFromBalance = asset !== "native" ? asset.split(":")[0] : "native";
-
-    if (asset !== "native" && assetCodeFromBalance === crowdfundingTokenCode) {
-      const isClaimableByAccount = balance.claimants?.some(claimant => claimant.destination === stellarAccountId);
-
-      if (isClaimableByAccount && balance.sponsor !== undefined) {
-        uniqueSupporters.add(balance.sponsor);
-      }
-    }
-  }
-
-  // Add token holders (excluding issuer)
-  for (const holder of tokenHolders) {
-    if (holder.accountId !== stellarAccountId && parseFloat(holder.balance) > 0) {
-      uniqueSupporters.add(holder.accountId);
-    }
-  }
-
-  return uniqueSupporters.size;
-};
-
-/**
- * Collect all supporters with their contributions
+ * Collect all supporters with their contributions from claimable balances only
  * Returns array of {account_id, amount} for all unique supporters
+ *
+ * Note: Only includes sponsors who created claimable balances (real supporters),
+ * not token holders who may have bought tokens on DEX.
  */
 export const collectSupportersData = (
   claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
-  tokenHolders: Readonly<readonly { readonly accountId: string; readonly balance: string }[]>,
   assetCode: Readonly<string>,
   stellarAccountId: Readonly<string>,
 ): readonly { readonly account_id: string; readonly amount: string }[] => {
   const supportersMap = new Map<string, number>();
   const crowdfundingTokenCode = `C${assetCode}`;
 
-  // Collect from claimable balances
+  // Collect from claimable balances only (real supporters)
   for (const balance of claimableBalances) {
     const asset = balance.asset;
     const assetCodeFromBalance = asset !== "native" ? asset.split(":")[0] : "native";
@@ -205,14 +170,6 @@ export const collectSupportersData = (
         const currentAmount = supportersMap.get(balance.sponsor) ?? 0;
         supportersMap.set(balance.sponsor, currentAmount + parseFloat(balance.amount));
       }
-    }
-  }
-
-  // Collect from token holders (excluding issuer)
-  for (const holder of tokenHolders) {
-    if (holder.accountId !== stellarAccountId && parseFloat(holder.balance) > 0) {
-      const currentAmount = supportersMap.get(holder.accountId) ?? 0;
-      supportersMap.set(holder.accountId, currentAmount + parseFloat(holder.balance));
     }
   }
 
@@ -295,87 +252,12 @@ export const getCurrentFundingMetrics = (
     };
   }
 
-  // Active project - calculate from blockchain
+  // Active project - calculate from blockchain (only claimable balances = real supporters)
   return {
     amount: calculateRaisedAmount(claimableBalances, assetCode, stellarAccountId),
     supporters: countUniqueSupporters(claimableBalances, assetCode, stellarAccountId),
   };
 };
-
-/**
- * Get token holders for a specific asset
- * @param config - Stellar configuration
- * @param assetCode - Project asset code (without P/C prefix)
- * @returns Array of token holders with their balances
- */
-export const getTokenHolders = (
-  config: Readonly<StellarConfig>,
-  assetCode: Readonly<string>,
-): Effect.Effect<readonly { readonly accountId: string; readonly balance: string }[], StellarError> =>
-  pipe(
-    Effect.tryPromise({
-      try: async () => {
-        const crowdfundingTokenCode = `C${assetCode}`;
-        const holders: { accountId: string; balance: string }[] = [];
-
-        try {
-          // Get all accounts holding this asset using pagination
-          const allAccounts: Horizon.ServerApi.AccountRecord[] = [];
-          let callBuilder = config.server.accounts()
-            .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
-            .limit(200); // Maximum allowed per request
-
-          // Fetch all pages using pagination
-          while (true) {
-            const response = await callBuilder.call();
-            allAccounts.push(...response.records);
-
-            // If we got fewer records than the limit, we've reached the end
-            if (response.records.length < 200) {
-              break;
-            }
-
-            // Prepare next page request
-            const lastRecord = response.records[response.records.length - 1];
-            if (lastRecord === undefined) break; // Safety check
-
-            callBuilder = config.server.accounts()
-              .forAsset(new Asset(crowdfundingTokenCode, config.publicKey))
-              .cursor(lastRecord.paging_token)
-              .limit(200);
-          }
-
-          for (const account of allAccounts) {
-            for (const balance of account.balances) {
-              if (
-                balance.asset_type !== "native"
-                && balance.asset_type !== "liquidity_pool_shares"
-                && "asset_code" in balance
-                && "asset_issuer" in balance
-                && balance.asset_code === crowdfundingTokenCode
-                && balance.asset_issuer === config.publicKey
-              ) {
-                holders.push({
-                  accountId: account.account_id,
-                  balance: balance.balance,
-                });
-              }
-            }
-          }
-        } catch {
-          // If asset doesn't exist or no holders found, return empty array
-          return [];
-        }
-
-        return holders;
-      },
-      catch: (error) =>
-        new StellarError({
-          cause: error,
-          operation: "get_token_holders",
-        }),
-    }),
-  );
 
 /**
  * Get top supporters for a project with account names
@@ -389,7 +271,6 @@ export const getTokenHolders = (
  * @param config - Stellar configuration
  * @param projectData - Project data from IPFS
  * @param claimableBalances - Claimable balances from blockchain
- * @param tokenHolders - Token holders from blockchain
  * @param assetCode - Project asset code (without P/C prefix)
  * @param stellarAccountId - Issuer account ID
  * @param limit - Maximum number of supporters to return (default: 10)
@@ -399,7 +280,6 @@ export const getTopSupporters = (
   config: Readonly<StellarConfig>,
   projectData: Readonly<ProjectData | ProjectDataWithResults>,
   claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
-  tokenHolders: Readonly<readonly { readonly accountId: string; readonly balance: string }[]>,
   assetCode: Readonly<string>,
   stellarAccountId: Readonly<string>,
   limit = 10,
@@ -415,10 +295,9 @@ export const getTopSupporters = (
     return Effect.succeed(projectData.supporters.slice(0, limit));
   }
 
-  // Active project - calculate from blockchain and fetch names
+  // Active project - calculate from blockchain and fetch names (claimable balances only)
   const allSupporters = collectSupportersData(
     claimableBalances,
-    tokenHolders,
     assetCode,
     stellarAccountId,
   );
