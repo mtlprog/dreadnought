@@ -93,7 +93,14 @@ const checkTokenExists = (
         ? Effect.succeed(true)
         : pipe(
           checkAccountBalancesForToken(server, publicKey, assetCode),
-          Effect.catchAll(() => Effect.succeed(false)),
+          Effect.catchAll((error) =>
+            pipe(
+              Effect.logDebug(
+                `Account ${publicKey.slice(0, 8)}... not found or no token ${assetCode}: ${String(error)}`,
+              ),
+              Effect.map(() => false),
+            )
+          ),
         )
     ),
   );
