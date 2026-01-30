@@ -77,6 +77,50 @@ export const getAccountName = (
 };
 
 /**
+ * Enrich supporters array with account names from Stellar manageData
+ * Fetches names in parallel with caching (24h TTL in getAccountName)
+ * Skips supporters that already have names for efficiency
+ *
+ * @param config - Stellar configuration
+ * @param supporters - Supporters array (may or may not have names)
+ * @returns Effect with enriched supporters
+ */
+export const enrichSupportersWithNames = <
+  T extends { readonly account_id: string; readonly amount: string; readonly name?: string | undefined },
+>(
+  config: Readonly<StellarConfig>,
+  supporters: readonly T[],
+): Effect.Effect<readonly T[], StellarError> =>
+  pipe(
+    Effect.all(
+      supporters.map((supporter) => {
+        // Skip if already has name
+        if (supporter.name !== undefined) {
+          return Effect.succeed(supporter);
+        }
+        // Fetch name from Horizon
+        return pipe(
+          getAccountName(config, supporter.account_id),
+          Effect.map((name): T =>
+            ({
+              ...supporter,
+              ...(name !== undefined ? { name } : {}),
+            }) as T
+          ),
+          Effect.catchAll(() => Effect.succeed(supporter)),
+        );
+      }),
+      { concurrency: "unbounded" },
+    ),
+    Effect.tap((enriched) => {
+      const withNames = enriched.filter((s) => s.name !== undefined).length;
+      return Effect.logInfo(
+        `Enriched ${withNames}/${supporters.length} supporters with names`,
+      );
+    }),
+  );
+
+/**
  * Fetch project data from IPFS using CID
  * Returns ProjectDataWithResults which includes optional funding results
  */
@@ -290,36 +334,13 @@ export const getTopSupporters = (
     && Array.isArray(projectData.supporters)
     && projectData.supporters.length > 0;
 
-  if (hasIPFSSupportersData) {
-    // Closed project - use IPFS as source of truth (already has names if available)
-    return Effect.succeed(projectData.supporters.slice(0, limit));
-  }
+  // Get top supporters from IPFS (closed projects) or blockchain (active projects)
+  const topSupporters = hasIPFSSupportersData
+    ? projectData.supporters.slice(0, limit)
+    : collectSupportersData(claimableBalances, assetCode, stellarAccountId).slice(0, limit);
 
-  // Active project - calculate from blockchain and fetch names (claimable balances only)
-  const allSupporters = collectSupportersData(
-    claimableBalances,
-    assetCode,
-    stellarAccountId,
-  );
-
-  const topSupporters = allSupporters.slice(0, limit);
-
-  // Fetch names for all top supporters in parallel
-  return pipe(
-    Effect.all(
-      topSupporters.map((supporter) =>
-        pipe(
-          getAccountName(config, supporter.account_id),
-          Effect.map((name) => ({
-            ...supporter,
-            ...(name !== undefined ? { name } : {}),
-          })),
-          Effect.catchAll(() => Effect.succeed(supporter)),
-        )
-      ),
-      { concurrency: "unbounded" },
-    ),
-  );
+  // Enrich with names (skips supporters that already have names)
+  return enrichSupportersWithNames(config, topSupporters);
 };
 
 /**
