@@ -44,21 +44,14 @@ export const getAccountName = (
   return pipe(
     Effect.tryPromise({
       try: async () => {
-        try {
-          const account = await config.server.loadAccount(accountId);
-          const nameEntry = account.data_attr["Name"];
+        const account = await config.server.loadAccount(accountId);
+        const nameEntry = account.data_attr["Name"];
 
-          if (nameEntry === undefined) {
-            return undefined;
-          }
-
-          // Decode base64 name
-          const decoded = Buffer.from(nameEntry, "base64").toString("utf-8");
-          return decoded;
-        } catch {
-          // Account not found or no Name entry
+        if (nameEntry === undefined) {
           return undefined;
         }
+
+        return Buffer.from(nameEntry, "base64").toString("utf-8");
       },
       catch: (error) =>
         new StellarError({
@@ -67,12 +60,16 @@ export const getAccountName = (
         }),
     }),
     Effect.tap((name) => {
-      // Store in cache
       accountNamesCache.set(accountId, { name, timestamp: now });
-      return Effect.log(
-        `[Cache MISS] Fetched account name for ${accountId.slice(0, 8)}...: ${name ?? "undefined"}`,
-      );
+      return Effect.log(`[Cache MISS] Account name for ${accountId.slice(0, 8)}...: ${name ?? "undefined"}`);
     }),
+    Effect.catchAll(() =>
+      pipe(
+        Effect.sync(() => accountNamesCache.set(accountId, { name: undefined, timestamp: now })),
+        Effect.tap(() => Effect.log(`[Cache MISS] Account ${accountId.slice(0, 8)}... not found or has no name`)),
+        Effect.map(() => undefined),
+      )
+    ),
   );
 };
 
@@ -107,7 +104,12 @@ export const enrichSupportersWithNames = <
               ...(name !== undefined ? { name } : {}),
             }) as T
           ),
-          Effect.catchAll(() => Effect.succeed(supporter)),
+          Effect.catchAll((error) =>
+            pipe(
+              Effect.logWarning(`Failed to fetch name for ${supporter.account_id.slice(0, 8)}...: ${String(error)}`),
+              Effect.map(() => supporter),
+            )
+          ),
         );
       }),
       { concurrency: "unbounded" },
