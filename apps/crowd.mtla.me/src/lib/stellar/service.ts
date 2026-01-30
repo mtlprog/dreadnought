@@ -4,6 +4,7 @@ import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 import type { ProjectData, ProjectInfo, SupporterContributionExact } from "./types";
 import {
+  enrichSupportersWithNames,
   fetchProjectDataFromIPFS,
   getAccountName,
   getCurrentFundingMetrics,
@@ -366,7 +367,7 @@ export const StellarServiceLive = Layer.succeed(
                   ),
                   getStellarConfig(),
                 ]),
-                Effect.map(
+                Effect.flatMap(
                   (
                     [projectData, tokenExists, claimableBalances, hasActiveSellOffer, config]: readonly [
                       ProjectData,
@@ -377,7 +378,7 @@ export const StellarServiceLive = Layer.succeed(
                     ],
                   ) => {
                     if (!tokenExists) {
-                      return null; // Skip projects without P-tokens (project doesn't exist)
+                      return Effect.succeed(null); // Skip projects without P-tokens (project doesn't exist)
                     }
 
                     // Get funding metrics (IPFS priority for closed projects)
@@ -425,15 +426,22 @@ export const StellarServiceLive = Layer.succeed(
                         : undefined,
                     };
 
-                    const projectInfo: ProjectInfo =
-                      ("supporters" in projectData && projectData.supporters !== undefined)
-                        ? {
+                    // Enrich supporters with names if needed (fallback for old projects)
+                    if ("supporters" in projectData && projectData.supporters !== undefined) {
+                      return pipe(
+                        enrichSupportersWithNames(
+                          config,
+                          projectData.supporters as readonly SupporterContributionExact[],
+                        ),
+                        Effect.map((enrichedSupporters) => ({
                           ...baseProjectInfo,
-                          supporters: projectData.supporters as readonly SupporterContributionExact[],
-                        }
-                        : baseProjectInfo;
+                          supporters: enrichedSupporters,
+                        })),
+                        Effect.catchAll(() => Effect.succeed(baseProjectInfo)),
+                      );
+                    }
 
-                    return projectInfo;
+                    return Effect.succeed(baseProjectInfo);
                   },
                 ),
                 Effect.catchAll(() => Effect.succeed(null)), // Skip failed projects

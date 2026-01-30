@@ -276,7 +276,11 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
                 variant="default"
                 size="lg"
                 className="w-full text-xl py-4"
-                onClick={() => window.open("https://stellarterm.com/exchange/MTLCrowd-GDRXBG5GVIUJWTAJDQE536JC5MDT5AH3MMCZIJCEGVAT2GEM2TMCROWD/EURMTL-GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V", "_blank")}
+                onClick={() =>
+                  window.open(
+                    "https://stellarterm.com/exchange/MTLCrowd-GDRXBG5GVIUJWTAJDQE536JC5MDT5AH3MMCZIJCEGVAT2GEM2TMCROWD/EURMTL-GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
+                    "_blank",
+                  )}
               >
                 {t("project.support.buyTokens")}
               </Button>

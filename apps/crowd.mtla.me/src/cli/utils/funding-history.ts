@@ -1,6 +1,6 @@
 import { EnvironmentError, StellarError } from "@/lib/stellar/errors";
 import type { SupporterContribution } from "@/lib/stellar/types";
-import { collectSupportersData } from "@/lib/stellar/utils";
+import { collectSupportersData, enrichSupportersWithNames } from "@/lib/stellar/utils";
 import type { Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
 import { ValidationError } from "../types";
@@ -98,7 +98,7 @@ export const getHistoricalFundingData = (
         ? "completed"
         : "canceled";
 
-      const supporters: SupporterContribution[] = Array.from(supportersMap.entries())
+      const supportersBase: SupporterContribution[] = Array.from(supportersMap.entries())
         .map(([account_id, amount]) => ({
           account_id,
           amount: amount.toString(),
@@ -106,8 +106,12 @@ export const getHistoricalFundingData = (
         .sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
 
       yield* Effect.logInfo(
-        `Calculated: funded=${fundedAmount}, supporters=${supporters.length}, status=${fundingStatus}`,
+        `Calculated: funded=${fundedAmount}, supporters=${supportersBase.length}, status=${fundingStatus}`,
       );
+
+      // Enrich supporters with account names
+      yield* Effect.logInfo("Enriching supporters with account names...");
+      const supporters = yield* enrichSupportersWithNames(config, supportersBase);
 
       return {
         funded_amount: fundedAmount,
@@ -209,10 +213,14 @@ export const getCurrentFundingData = (
         `Current state: funded=${fundedAmount}, supporters=${supportersData.length}, remaining=${remainingAmount}`,
       );
 
+      // Enrich supporters with account names
+      yield* Effect.logInfo("Enriching supporters with account names...");
+      const supporters = yield* enrichSupportersWithNames(config, supportersData);
+
       return {
         funded_amount: fundedAmount,
-        supporters_count: supportersData.length,
-        supporters: supportersData,
+        supporters_count: supporters.length,
+        supporters,
         remaining_amount: remainingAmount,
         funding_status: fundingStatus,
       };
