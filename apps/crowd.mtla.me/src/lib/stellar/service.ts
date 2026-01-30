@@ -22,7 +22,7 @@ export const StellarServiceTag = Context.GenericTag<StellarService>(
   "@crowd.mtla.me/StellarService",
 );
 
-const checkTokenExists = (
+const checkClaimableBalancesForToken = (
   server: Readonly<Horizon.Server>,
   publicKey: Readonly<string>,
   assetCode: Readonly<string>,
@@ -30,7 +30,6 @@ const checkTokenExists = (
   pipe(
     Effect.tryPromise({
       try: async () => {
-        // Check claimable balances for the token
         const claimableBalances = await server.claimableBalances()
           .sponsor(publicKey)
           .call();
@@ -41,34 +40,62 @@ const checkTokenExists = (
             return true;
           }
         }
-
-        // Check account balances for the token
-        try {
-          const account = await server.loadAccount(publicKey);
-          for (const balance of account.balances) {
-            if (
-              balance.asset_type !== "native"
-              && balance.asset_type !== "liquidity_pool_shares"
-              && "asset_code" in balance
-              && "asset_issuer" in balance
-              && balance.asset_code === assetCode
-              && balance.asset_issuer === publicKey
-            ) {
-              return true;
-            }
-          }
-        } catch {
-          // Account might not exist or have the token, that's ok
-        }
-
         return false;
       },
       catch: (error) =>
         new StellarError({
           cause: error,
-          operation: "check_token_exists",
+          operation: "check_claimable_balances_for_token",
         }),
     }),
+  );
+
+const checkAccountBalancesForToken = (
+  server: Readonly<Horizon.Server>,
+  publicKey: Readonly<string>,
+  assetCode: Readonly<string>,
+): Effect.Effect<boolean, StellarError> =>
+  pipe(
+    Effect.tryPromise({
+      try: async () => {
+        const account = await server.loadAccount(publicKey);
+        for (const balance of account.balances) {
+          if (
+            balance.asset_type !== "native"
+            && balance.asset_type !== "liquidity_pool_shares"
+            && "asset_code" in balance
+            && "asset_issuer" in balance
+            && balance.asset_code === assetCode
+            && balance.asset_issuer === publicKey
+          ) {
+            return true;
+          }
+        }
+        return false;
+      },
+      catch: (error) =>
+        new StellarError({
+          cause: error,
+          operation: "check_account_balances_for_token",
+        }),
+    }),
+  );
+
+const checkTokenExists = (
+  server: Readonly<Horizon.Server>,
+  publicKey: Readonly<string>,
+  assetCode: Readonly<string>,
+): Effect.Effect<boolean, StellarError> =>
+  pipe(
+    checkClaimableBalancesForToken(server, publicKey, assetCode),
+    Effect.flatMap((foundInClaimable) =>
+      foundInClaimable
+        ? Effect.succeed(true)
+        : pipe(
+          checkAccountBalancesForToken(server, publicKey, assetCode),
+          Effect.catchAll(() => Effect.succeed(false)),
+        )
+    ),
   );
 
 const checkActiveSellOffer = (
@@ -307,7 +334,12 @@ export const StellarServiceLive = Layer.succeed(
                 );
               },
             ),
-            Effect.catchAll(() => Effect.succeed(null)),
+            Effect.catchAll((error) =>
+              pipe(
+                Effect.logWarning(`Failed to load project ${code}: ${String(error)}`),
+                Effect.map(() => null),
+              )
+            ),
           );
         }),
       ),
@@ -437,14 +469,26 @@ export const StellarServiceLive = Layer.succeed(
                           ...baseProjectInfo,
                           supporters: enrichedSupporters,
                         })),
-                        Effect.catchAll(() => Effect.succeed(baseProjectInfo)),
+                        Effect.catchAll((error) =>
+                          pipe(
+                            Effect.logWarning(
+                              `Failed to enrich supporters for project ${entry.code}: ${String(error)}`,
+                            ),
+                            Effect.map(() => baseProjectInfo),
+                          )
+                        ),
                       );
                     }
 
                     return Effect.succeed(baseProjectInfo);
                   },
                 ),
-                Effect.catchAll(() => Effect.succeed(null)), // Skip failed projects
+                Effect.catchAll((error) =>
+                  pipe(
+                    Effect.logWarning(`Failed to load project ${entry.code}: ${String(error)}`),
+                    Effect.map(() => null),
+                  )
+                ),
               )
             ),
             { concurrency: "unbounded" },

@@ -15,8 +15,8 @@ export interface FundingData {
 }
 
 /**
- * Get historical funding data from Horizon API payment operations
- * Used when project is closed and claimable balances/token holders are no longer available
+ * Get historical funding data from Horizon API trade operations
+ * Used when project is closed and claimable balances are no longer available
  */
 export const getHistoricalFundingData = (
   assetCode: string,
@@ -138,7 +138,7 @@ export const getHistoricalFundingData = (
 
 /**
  * Get current funding data from active project state
- * Uses claimable balances, token holders, and active sell offers
+ * Uses claimable balances and active sell offers
  */
 export const getCurrentFundingData = (
   assetCode: string,
