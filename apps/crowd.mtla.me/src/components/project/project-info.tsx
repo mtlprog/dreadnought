@@ -131,7 +131,7 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
             <div>
               <span className="text-muted-foreground">{t("project.details.contactAccount")}</span>
               <a
-                href={`https://bsn.expert/accounts/${project.contact_account_id}`}
+                href={`https://lore.mtlprog.xyz/accounts/${project.contact_account_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:text-accent mt-1 block text-sm font-mono underline cursor-pointer transition-colors"
@@ -145,7 +145,7 @@ export function ProjectInfo({ project }: ProjectInfoProps) {
             <div>
               <span className="text-muted-foreground">{t("project.details.projectAccount")}</span>
               <a
-                href={`https://bsn.expert/accounts/${project.project_account_id}`}
+                href={`https://lore.mtlprog.xyz/accounts/${project.project_account_id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:text-accent mt-1 block text-sm font-mono underline cursor-pointer transition-colors"

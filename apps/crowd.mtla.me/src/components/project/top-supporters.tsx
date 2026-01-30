@@ -72,7 +72,7 @@ export function TopSupporters({ supporters }: TopSupportersProps) {
                 {/* Account ID or Name */}
                 <div className="col-span-7">
                   <a
-                    href={`https://bsn.expert/accounts/${supporter.account_id}`}
+                    href={`https://lore.mtlprog.xyz/accounts/${supporter.account_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm font-mono text-foreground hover:text-primary transition-colors underline"
