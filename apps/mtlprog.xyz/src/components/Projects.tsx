@@ -2,6 +2,39 @@
 
 import { use } from "react";
 
+// Status color helper - synced with Programs component
+const getStatusStyles = (status: string) => {
+  const normalizedStatus = status.toUpperCase();
+
+  // ACTIVE / АКТИВЕН
+  if (normalizedStatus === "ACTIVE" || normalizedStatus === "АКТИВЕН") {
+    return {
+      border: "border-warning-amber/30",
+      bg: "bg-warning-amber/10",
+      text: "text-warning-amber",
+      dot: "bg-warning-amber",
+    };
+  }
+
+  // PAUSED / ПРИОСТАНОВЛЕН - синий
+  if (normalizedStatus === "PAUSED" || normalizedStatus === "ПРИОСТАНОВЛЕН") {
+    return {
+      border: "border-primary/30",
+      bg: "bg-primary/10",
+      text: "text-primary",
+      dot: "bg-primary",
+    };
+  }
+
+  // COMING SOON / СКОРО - зелёный
+  return {
+    border: "border-secondary/30",
+    bg: "bg-secondary/10",
+    text: "text-secondary",
+    dot: "bg-secondary",
+  };
+};
+
 interface ProjectsProps {
   contentPromise: Promise<{
     projects: {
@@ -96,12 +129,21 @@ export function Projects({ contentPromise, linksPromise }: ProjectsProps) {
 
                 <div className="relative z-10">
                   {/* Status Badge */}
-                  <div className="inline-flex items-center gap-2 mb-4 md:mb-6 px-4 md:px-6 py-2 border border-primary/30 bg-primary/10 backdrop-blur-sm">
-                    <div className="w-2 h-2 bg-primary animate-pulse" />
-                    <span className="text-xs md:text-sm text-primary font-mono uppercase tracking-wider">
-                      {project.status}
-                    </span>
-                  </div>
+                  {(() => {
+                    const styles = getStatusStyles(project.status);
+                    return (
+                      <div
+                        className={`inline-flex items-center gap-2 mb-4 md:mb-6 px-4 md:px-6 py-2 border backdrop-blur-sm ${styles.border} ${styles.bg}`}
+                      >
+                        <div className={`w-2 h-2 animate-pulse ${styles.dot}`} />
+                        <span
+                          className={`text-xs md:text-sm font-mono uppercase tracking-wider ${styles.text}`}
+                        >
+                          {project.status}
+                        </span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Title */}
                   <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-4 md:mb-6 uppercase tracking-tight text-foreground">
@@ -128,12 +170,12 @@ export function Projects({ contentPromise, linksPromise }: ProjectsProps) {
                   )}
 
                   {/* Links */}
-                  <div className="flex flex-wrap items-center gap-4 md:gap-6">
+                  <div className="flex flex-wrap items-center gap-3 md:gap-4">
                     <a
                       href={links.projects[PROJECT_SOURCE_LINKS[project.id] ?? "mtlCrowdSource"]}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors font-mono uppercase tracking-wider"
+                      className="inline-flex items-center justify-center gap-2 h-12 md:h-14 px-5 md:px-6 py-3 md:py-4 bg-transparent text-sm md:text-base font-bold uppercase tracking-wide border-2 border-border text-muted-foreground transition-all duration-300 hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       <svg
                         className="w-5 h-5"
