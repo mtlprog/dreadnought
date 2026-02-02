@@ -121,6 +121,15 @@ export const ContentServiceLive = Layer.effect(
               comingSoon: yield* localeService.t("projects.comingSoon"),
               items: [
                 {
+                  id: "lore",
+                  title: yield* localeService.t("projects.items.lore.title"),
+                  description: yield* localeService.t(
+                    "projects.items.lore.description",
+                  ),
+                  status: yield* localeService.t("projects.items.lore.status"),
+                  tech: ["STELLAR", "GOLANG"],
+                },
+                {
                   id: "mtl-crowd",
                   title: yield* localeService.t("projects.items.mtl-crowd.title"),
                   description: yield* localeService.t(

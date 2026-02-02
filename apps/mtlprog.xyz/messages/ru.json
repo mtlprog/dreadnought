@@ -28,6 +28,15 @@
     "cta": "ПЕРЕЙТИ К ПРОЕКТУ",
     "comingSoon": "СКОРО НОВЫЕ ПРОЕКТЫ...",
     "items": {
+      "lore": {
+        "title": "LORE MTL",
+        "description": "Блокчейн-обозреватель для MTL Association на Stellar. Отслеживание членских токенов MTLAP/MTLAC, статусов голосования, репутации и социальных связей.",
+        "status": "АКТИВЕН",
+        "tech": [
+          "STELLAR",
+          "GOLANG"
+        ]
+      },
       "mtl-crowd": {
         "title": "MTL CROWD",
         "description": "Краудфандинговая платформа на блокчейне Stellar. Прозрачность, безопасность и децентрализация.",

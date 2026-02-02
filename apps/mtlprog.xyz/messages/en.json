@@ -28,6 +28,15 @@
     "cta": "VISIT PROJECT",
     "comingSoon": "MORE PROJECTS COMING SOON...",
     "items": {
+      "lore": {
+        "title": "LORE MTL",
+        "description": "Blockchain explorer for MTL Association on Stellar. Track MTLAP/MTLAC membership tokens, voting status, reputation scores, and social network connections.",
+        "status": "ACTIVE",
+        "tech": [
+          "STELLAR",
+          "GOLANG"
+        ]
+      },
       "mtl-crowd": {
         "title": "MTL CROWD",
         "description": "Blockchain-based crowdfunding platform on Stellar. Transparency, security, and decentralization.",

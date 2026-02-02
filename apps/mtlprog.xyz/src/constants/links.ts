@@ -13,6 +13,7 @@ export const LinksSchema = S.Struct({
     }),
   }),
   projects: S.Struct({
+    lore: S.String,
     mtlCrowd: S.String,
   }),
   docs: S.Struct({
@@ -49,6 +50,7 @@ const LINKS_DATA: Links = {
     },
   },
   projects: {
+    lore: "https://lore.mtlprog.xyz",
     mtlCrowd: "https://crowd.mtla.me",
   },
   docs: {
