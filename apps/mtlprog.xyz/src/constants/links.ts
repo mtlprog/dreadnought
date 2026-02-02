@@ -14,9 +14,13 @@ export const LinksSchema = S.Struct({
   }),
   projects: S.Struct({
     lore: S.String,
+    loreSource: S.String,
     mtlCrowd: S.String,
+    mtlCrowdSource: S.String,
     stat: S.String,
+    statSource: S.String,
     pact: S.String,
+    pactSource: S.String,
   }),
   docs: S.Struct({
     main: S.String,
@@ -53,9 +57,13 @@ const LINKS_DATA: Links = {
   },
   projects: {
     lore: "https://lore.mtlprog.xyz",
+    loreSource: "https://github.com/mtlprog/lore",
     mtlCrowd: "https://crowd.mtla.me",
+    mtlCrowdSource: "https://github.com/mtlprog/dreadnought/tree/master/apps/crowd.mtla.me",
     stat: "https://stat.mtlf.me",
+    statSource: "https://github.com/mtlprog/dreadnought/tree/master/apps/stat.mtlf.me",
     pact: "https://pact.mtlf.me",
+    pactSource: "https://github.com/mtlprog/dreadnought/tree/master/apps/pact.mtlf.me",
   },
   docs: {
     main: "https://github.com/mtlprog/dreadnought/tree/master/docs",

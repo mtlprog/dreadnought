@@ -29,7 +29,7 @@
     "comingSoon": "MORE PROJECTS COMING SOON...",
     "items": {
       "lore": {
-        "title": "LORE MTL",
+        "title": "LORE",
         "description": "Blockchain explorer for MTL Association on Stellar. Track MTLAP/MTLAC membership tokens, voting status, reputation scores, and social network connections.",
         "status": "ACTIVE",
         "tech": [
@@ -48,7 +48,7 @@
         ]
       },
       "stat": {
-        "title": "MTLF STAT",
+        "title": "STAT",
         "description": "Montelibero Fund accounting system. Calculates everything on blockchain, including custom formulas specifically designed for the Fund.",
         "status": "ACTIVE",
         "tech": [
@@ -58,7 +58,7 @@
         ]
       },
       "pact": {
-        "title": "MTLF PACT",
+        "title": "PACT",
         "description": "Blockchain notary service for Montelibero Fund. Execute contracts on Stellar blockchain as NFTs.",
         "status": "PAUSED",
         "tech": [
