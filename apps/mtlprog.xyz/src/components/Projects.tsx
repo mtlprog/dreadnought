@@ -175,7 +175,7 @@ export function Projects({ contentPromise, linksPromise }: ProjectsProps) {
                       href={links.projects[PROJECT_SOURCE_LINKS[project.id] ?? "mtlCrowdSource"]}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 h-12 md:h-14 px-5 md:px-6 py-3 md:py-4 bg-transparent text-sm md:text-base font-bold uppercase tracking-wide border-2 border-border text-muted-foreground transition-all duration-300 hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      className="inline-flex items-center justify-center gap-2 h-12 md:h-14 px-5 md:px-6 py-3 md:py-4 bg-transparent text-sm md:text-base font-bold uppercase tracking-wide border-2 border-border text-muted-foreground transition-all duration-300 hover:border-primary hover:text-primary hover:bg-primary/10 hover:shadow-[0_0_15px_rgba(0,217,255,0.2)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       <svg
                         className="w-5 h-5"
