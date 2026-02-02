@@ -15,6 +15,8 @@ export const LinksSchema = S.Struct({
   projects: S.Struct({
     lore: S.String,
     mtlCrowd: S.String,
+    stat: S.String,
+    pact: S.String,
   }),
   docs: S.Struct({
     main: S.String,
@@ -52,6 +54,8 @@ const LINKS_DATA: Links = {
   projects: {
     lore: "https://lore.mtlprog.xyz",
     mtlCrowd: "https://crowd.mtla.me",
+    stat: "https://stat.mtlf.me",
+    pact: "https://pact.mtlf.me",
   },
   docs: {
     main: "https://github.com/mtlprog/dreadnought/tree/master/docs",

@@ -46,6 +46,26 @@
           "NEXT.JS",
           "EFFECT-TS"
         ]
+      },
+      "stat": {
+        "title": "MTLF STAT",
+        "description": "Montelibero Fund accounting system. Calculates everything on blockchain, including custom formulas specifically designed for the Fund.",
+        "status": "ACTIVE",
+        "tech": [
+          "STELLAR",
+          "NEXT.JS",
+          "EFFECT-TS"
+        ]
+      },
+      "pact": {
+        "title": "MTLF PACT",
+        "description": "Blockchain notary service for Montelibero Fund. Execute contracts on Stellar blockchain as NFTs.",
+        "status": "PAUSED",
+        "tech": [
+          "STELLAR",
+          "NEXT.JS",
+          "EFFECT-TS"
+        ]
       }
     }
   },

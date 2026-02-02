@@ -46,6 +46,26 @@
           "NEXT.JS",
           "EFFECT-TS"
         ]
+      },
+      "stat": {
+        "title": "MTLF STAT",
+        "description": "Учётная система Фонда Монтелиберо. Рассчитывает всё на блокчейне, включая специальные формулы для Фонда.",
+        "status": "АКТИВЕН",
+        "tech": [
+          "STELLAR",
+          "NEXT.JS",
+          "EFFECT-TS"
+        ]
+      },
+      "pact": {
+        "title": "MTLF PACT",
+        "description": "Блокчейн-нотариат Фонда Монтелиберо. Заключение договоров на блокчейне Stellar в виде NFT.",
+        "status": "ПРИОСТАНОВЛЕН",
+        "tech": [
+          "STELLAR",
+          "NEXT.JS",
+          "EFFECT-TS"
+        ]
       }
     }
   },

@@ -21,13 +21,15 @@ interface ProjectsProps {
     };
   }>;
   linksPromise: Promise<{
-    projects: { lore: string; mtlCrowd: string };
+    projects: { lore: string; mtlCrowd: string; stat: string; pact: string };
   }>;
 }
 
-const PROJECT_LINKS: Record<string, keyof { lore: string; mtlCrowd: string }> = {
+const PROJECT_LINKS: Record<string, keyof { lore: string; mtlCrowd: string; stat: string; pact: string }> = {
   lore: "lore",
   "mtl-crowd": "mtlCrowd",
+  stat: "stat",
+  pact: "pact",
 };
 
 export function Projects({ contentPromise, linksPromise }: ProjectsProps) {
