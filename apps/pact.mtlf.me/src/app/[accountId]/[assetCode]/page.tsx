@@ -6,7 +6,7 @@ import { ContractDisplay } from "@/components/contract-display";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { type Contract } from "@/types";
 import { Footer } from "@dreadnought/ui";
-import { Github, Loader2 } from "lucide-react";
+import { FileText, Github, Loader2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -183,6 +183,12 @@ export default function ContractPage() {
                 label: "GitHub",
                 icon: Github,
                 external: true,
+              },
+              {
+                href: "/skill.md",
+                label: "Notarize Skill",
+                icon: FileText,
+                external: false,
               },
             ],
           },
