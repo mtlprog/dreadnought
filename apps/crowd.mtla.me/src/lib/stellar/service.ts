@@ -30,16 +30,33 @@ const checkClaimableBalancesForToken = (
   pipe(
     Effect.tryPromise({
       try: async () => {
-        const claimableBalances = await server.claimableBalances()
+        let callBuilder = server.claimableBalances()
           .sponsor(publicKey)
-          .call();
+          .limit(200);
 
-        for (const balance of claimableBalances.records) {
-          const asset = balance.asset;
-          if (asset !== "native" && asset.split(":")[0] === assetCode) {
-            return true;
+        while (true) {
+          const response = await callBuilder.call();
+
+          for (const balance of response.records) {
+            const asset = balance.asset;
+            if (asset !== "native" && asset.split(":")[0] === assetCode) {
+              return true;
+            }
           }
+
+          if (response.records.length < 200) {
+            break;
+          }
+
+          const lastRecord = response.records[response.records.length - 1];
+          if (lastRecord === undefined) break;
+
+          callBuilder = server.claimableBalances()
+            .sponsor(publicKey)
+            .cursor(lastRecord.paging_token)
+            .limit(200);
         }
+
         return false;
       },
       catch: (error) =>
@@ -319,7 +336,7 @@ export const StellarServiceLive = Layer.succeed(
                       deadline: projectData.deadline,
                       current_amount: metrics.amount,
                       supporters_count: metrics.supporters,
-                      ipfsUrl: `https://ipfs.io/ipfs/${projectEntry.cid}`,
+                      ipfsUrl: `https://gateway.pinata.cloud/ipfs/${projectEntry.cid}`,
                       status,
                       funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
                       remaining_amount: "remaining_amount" in projectData
@@ -454,7 +471,7 @@ export const StellarServiceLive = Layer.succeed(
                       deadline: projectData.deadline,
                       current_amount: metrics.amount,
                       supporters_count: metrics.supporters,
-                      ipfsUrl: `https://ipfs.io/ipfs/${entry.cid}`,
+                      ipfsUrl: `https://gateway.pinata.cloud/ipfs/${entry.cid}`,
                       status,
                       funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
                       remaining_amount: "remaining_amount" in projectData

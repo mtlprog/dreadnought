@@ -130,7 +130,7 @@ export const fetchProjectDataFromIPFS = (cid: string): Effect.Effect<ProjectData
   pipe(
     Effect.tryPromise({
       try: async () => {
-        const ipfsUrl = `https://ipfs.io/ipfs/${cid}`;
+        const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
         const response = await fetch(ipfsUrl);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
