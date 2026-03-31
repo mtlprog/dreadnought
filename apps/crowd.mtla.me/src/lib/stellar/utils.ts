@@ -346,12 +346,19 @@ export const getTopSupporters = (
 };
 
 /**
- * Get P-token creation date from claimable balances
- * The P-token claimable balance is created when the project is published,
- * so its last_modified_time represents the publication date.
+ * Get P-token publication date from claimable balances
+ *
+ * The P-token (P<CODE>) claimable balance is created when the project is published.
+ * Since this balance is never modified before being claimed, its last_modified_time
+ * effectively represents the publication date.
  *
  * Note: The Horizon API returns last_modified_time but the SDK type
  * definition does not include it, hence the type assertion.
+ *
+ * @param claimableBalances - Claimable balances from blockchain
+ * @param assetCode - Project asset code (without P/C prefix)
+ * @param stellarAccountId - Issuer account ID
+ * @returns ISO date string of the P-token creation, or undefined if not found or invalid
  */
 export const getProjectCreatedAt = (
   claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
@@ -366,7 +373,12 @@ export const getProjectCreatedAt = (
 
     const [balanceAssetCode, balanceIssuer] = asset.split(":");
     if (balanceAssetCode === pTokenCode && balanceIssuer === stellarAccountId) {
-      return (balance as unknown as { last_modified_time?: string }).last_modified_time;
+      // SDK type lacks last_modified_time, but Horizon API returns it
+      const raw = (balance as unknown as { last_modified_time?: string | null }).last_modified_time;
+      if (raw == null || Number.isNaN(new Date(raw).getTime())) {
+        return undefined;
+      }
+      return raw;
     }
   }
 

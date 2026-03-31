@@ -15,7 +15,7 @@ interface ProjectPageProps {
 }
 
 export function ProjectPage({ project }: ProjectPageProps) {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [transactionXDR, setTransactionXDR] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [isTelegramUrlLoading, setIsTelegramUrlLoading] = useState(false);
@@ -131,7 +131,7 @@ export function ProjectPage({ project }: ProjectPageProps) {
                 <>
                   <span className="hidden sm:block">|</span>
                   <span>
-                    {t("project.publishedAt")}: {new Date(project.created_at).toLocaleDateString("ru-RU", {
+                    {t("project.publishedAt")}: {new Date(project.created_at).toLocaleDateString(locale, {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",
@@ -141,7 +141,7 @@ export function ProjectPage({ project }: ProjectPageProps) {
               )}
               <span className="hidden sm:block">|</span>
               <span>
-                {t("project.deadline")}: {new Date(project.deadline).toLocaleDateString("ru-RU", {
+                {t("project.deadline")}: {new Date(project.deadline).toLocaleDateString(locale, {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",
