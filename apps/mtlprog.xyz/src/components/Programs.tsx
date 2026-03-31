@@ -2,13 +2,40 @@
 
 import { use } from "react";
 
-// Helper function to check if program status is active
-const isActiveStatus = (status: string): boolean => status === "ACTIVE" || status === "АКТИВНА";
+// Status color helper - synced with Projects component
+const getStatusStyles = (status: string) => {
+  const normalizedStatus = status.toUpperCase();
 
-// Helper function to check if program status is stopped
-const isStoppedStatus = (status: string): boolean => {
-  const s = status.toUpperCase();
-  return s === "STOPPED" || s === "ОСТАНОВЛЕН";
+  // ACTIVE / АКТИВНА
+  if (normalizedStatus === "ACTIVE" || normalizedStatus === "АКТИВНА") {
+    return {
+      border: "border-warning-amber/30",
+      bg: "bg-warning-amber/10",
+      text: "text-warning-amber",
+      dot: "bg-warning-amber",
+      isActive: true,
+    };
+  }
+
+  // STOPPED / ОСТАНОВЛЕН - красный
+  if (normalizedStatus === "STOPPED" || normalizedStatus === "ОСТАНОВЛЕН") {
+    return {
+      border: "border-destructive/30",
+      bg: "bg-destructive/10",
+      text: "text-destructive",
+      dot: "bg-destructive",
+      isActive: false,
+    };
+  }
+
+  // COMING SOON / СКОРО - зелёный (default)
+  return {
+    border: "border-secondary/30",
+    bg: "bg-secondary/10",
+    text: "text-secondary",
+    dot: "bg-secondary",
+    isActive: false,
+  };
 };
 
 interface ProgramsProps {
@@ -84,26 +111,17 @@ export function Programs({ contentPromise, linksPromise }: ProgramsProps) {
                 <div className="relative z-10 flex flex-col flex-1">
                   <div className="flex-1 flex flex-col">
                     {/* Status Badge */}
-                    <div
-                      className={`inline-flex self-start items-center gap-2 mb-4 md:mb-6 px-4 md:px-6 py-2 border text-xs md:text-sm font-mono uppercase tracking-wider ${
-                        isStoppedStatus(program.status)
-                          ? "border-destructive/30 bg-destructive/10 text-destructive"
-                          : isActiveStatus(program.status)
-                            ? "border-warning-amber/30 bg-warning-amber/10 text-warning-amber"
-                            : "border-secondary/30 bg-secondary/10 text-secondary"
-                      }`}
-                    >
-                      <div
-                        className={`w-2 h-2 animate-pulse ${
-                          isStoppedStatus(program.status)
-                            ? "bg-destructive"
-                            : isActiveStatus(program.status)
-                              ? "bg-warning-amber"
-                              : "bg-secondary"
-                        }`}
-                      />
-                      {program.status}
-                    </div>
+                    {(() => {
+                      const styles = getStatusStyles(program.status);
+                      return (
+                        <div
+                          className={`inline-flex self-start items-center gap-2 mb-4 md:mb-6 px-4 md:px-6 py-2 border text-xs md:text-sm font-mono uppercase tracking-wider ${styles.border} ${styles.bg}`}
+                        >
+                          <div className={`w-2 h-2 animate-pulse ${styles.dot}`} />
+                          <span className={styles.text}>{program.status}</span>
+                        </div>
+                      );
+                    })()}
 
                     {/* Title */}
                     <h3 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black mb-2 md:mb-3 uppercase tracking-tight text-foreground">
@@ -143,7 +161,7 @@ export function Programs({ contentPromise, linksPromise }: ProgramsProps) {
                   </div>
 
                   {/* Action */}
-                  {isActiveStatus(program.status)
+                  {getStatusStyles(program.status).isActive
                     ? (
                       <a
                         href={programLinks[program.id] || "#"}
