@@ -47,24 +47,15 @@ export function Hero({ contentPromise, linksPromise }: HeroProps) {
             {content.hero.subtitle}
           </p>
 
-          {/* CTA Buttons - Stack on mobile, row on desktop */}
-          <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center animate-slide-up">
+          {/* CTA Button */}
+          <div className="flex justify-center animate-slide-up">
             <a
-              href={links.social.discord}
-              target="_blank"
-              rel="noopener noreferrer"
+              href={links.social.email}
               className="group relative inline-flex items-center justify-center h-12 sm:h-14 md:h-16 px-8 md:px-12 py-3 md:py-4 bg-primary text-base md:text-lg font-bold uppercase tracking-wide border-2 border-primary transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,217,255,0.3)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 overflow-hidden"
               style={{ color: "hsl(var(--primary-foreground))" }}
             >
-              <span className="relative z-10">{content.hero.cta.primary}</span>
+              <span className="relative z-10">{content.hero.cta.secondary}</span>
               <div className="absolute inset-0 bg-gradient-to-r from-primary to-electric-cyan opacity-0 group-hover:opacity-100 transition-opacity" />
-            </a>
-
-            <a
-              href={links.social.email}
-              className="group inline-flex items-center justify-center h-12 sm:h-14 md:h-16 px-8 md:px-12 py-3 md:py-4 border-2 border-border bg-card/50 backdrop-blur-sm text-foreground text-base md:text-lg font-bold uppercase tracking-wide transition-all duration-300 hover:border-primary hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            >
-              {content.hero.cta.secondary}
             </a>
           </div>
 

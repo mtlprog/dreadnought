@@ -139,10 +139,6 @@
       "community": {
         "title": "COMMUNITY",
         "links": {
-          "discord": {
-            "label": "DISCORD",
-            "icon": "MessageCircle"
-          },
           "email": {
             "label": "EMAIL",
             "icon": "Mail"
