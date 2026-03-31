@@ -42,6 +42,7 @@
     "noProjects": "No projects available",
     "fundingGoal": "Funding Goal",
     "raised": "Raised",
+    "publishedAt": "Published",
     "deadline": "Deadline",
     "fundingEnded": "FUNDRAISING ENDED",
     "fundingFailed": "NOT FUNDED",
@@ -156,6 +157,7 @@
       "minimumSupport": "FROM 1 MTLCROWD TOKEN"
     },
     "projectCode": "PROJECT CODE",
+    "publishedAt": "PUBLISHED",
     "deadline": "DEADLINE",
     "signTransaction": "Please sign this support transaction",
     "transactionGenerated": "Support Transaction Generated",

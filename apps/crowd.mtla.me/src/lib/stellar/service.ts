@@ -8,6 +8,7 @@ import {
   fetchProjectDataFromIPFS,
   getAccountName,
   getCurrentFundingMetrics,
+  getProjectCreatedAt,
   getTopSupporters,
   isProjectExpired,
   sortProjectsByPriority,
@@ -325,6 +326,8 @@ export const StellarServiceLive = Layer.succeed(
                     getAccountName(config, projectData.project_account_id),
                   ]),
                   Effect.map(([topSupporters, contactName, projectName]) => {
+                    const createdAt = getProjectCreatedAt(claimableBalances, projectEntry.code, config.publicKey);
+
                     const baseProjectInfo = {
                       name: projectData.name,
                       code: projectData.code,
@@ -347,6 +350,7 @@ export const StellarServiceLive = Layer.succeed(
                         : undefined,
                       ...(contactName !== undefined ? { contact_name: contactName } : {}),
                       ...(projectName !== undefined ? { project_name: projectName } : {}),
+                      ...(createdAt !== undefined ? { created_at: createdAt } : {}),
                     };
 
                     const projectInfo: ProjectInfo = topSupporters.length > 0
@@ -460,6 +464,8 @@ export const StellarServiceLive = Layer.succeed(
                       status = "active";
                     }
 
+                    const createdAt = getProjectCreatedAt(claimableBalances, entry.code, config.publicKey);
+
                     const baseProjectInfo = {
                       name: projectData.name,
                       code: projectData.code,
@@ -480,6 +486,7 @@ export const StellarServiceLive = Layer.succeed(
                       funding_status: "funding_status" in projectData
                         ? (projectData.funding_status as "completed" | "canceled")
                         : undefined,
+                      ...(createdAt !== undefined ? { created_at: createdAt } : {}),
                     };
 
                     // Enrich supporters with names if needed (fallback for old projects)

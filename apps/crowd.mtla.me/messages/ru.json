@@ -42,6 +42,7 @@
     "noProjects": "Нет доступных проектов",
     "fundingGoal": "Цель финансирования",
     "raised": "Собрано",
+    "publishedAt": "Опубликован",
     "deadline": "Дедлайн",
     "fundingEnded": "СБОР ЗАВЕРШЕН",
     "fundingFailed": "НЕ СОБРАНО",
@@ -156,6 +157,7 @@
       "minimumSupport": "ОТ 1 ТОКЕНА MTLCROWD"
     },
     "projectCode": "КОД ПРОЕКТА",
+    "publishedAt": "ОПУБЛИКОВАН",
     "deadline": "ДЕДЛАЙН",
     "signTransaction": "Пожалуйста, подпишите эту транзакцию поддержки",
     "transactionGenerated": "Транзакция поддержки сгенерирована",

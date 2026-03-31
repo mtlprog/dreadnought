@@ -346,6 +346,34 @@ export const getTopSupporters = (
 };
 
 /**
+ * Get P-token creation date from claimable balances
+ * The P-token claimable balance is created when the project is published,
+ * so its last_modified_time represents the publication date.
+ *
+ * Note: The Horizon API returns last_modified_time but the SDK type
+ * definition does not include it, hence the type assertion.
+ */
+export const getProjectCreatedAt = (
+  claimableBalances: Readonly<readonly Horizon.ServerApi.ClaimableBalanceRecord[]>,
+  assetCode: Readonly<string>,
+  stellarAccountId: Readonly<string>,
+): string | undefined => {
+  const pTokenCode = `P${assetCode}`;
+
+  for (const balance of claimableBalances) {
+    const asset = balance.asset;
+    if (asset === "native") continue;
+
+    const [balanceAssetCode, balanceIssuer] = asset.split(":");
+    if (balanceAssetCode === pTokenCode && balanceIssuer === stellarAccountId) {
+      return (balance as unknown as { last_modified_time?: string }).last_modified_time;
+    }
+  }
+
+  return undefined;
+};
+
+/**
  * Sort projects by deadline (ascending) and raised amount (descending)
  * Projects with sooner deadlines and higher raised amounts appear first
  */
