@@ -29,7 +29,7 @@ const getStatusStyles = (status: string) => {
   }
 
   // STOPPED / ОСТАНОВЛЕН - красный
-  if (normalizedStatus === "STOPPED" || normalizedStatus === "ОСТАНОВЛЕН") {
+  if (normalizedStatus === "STOPPED" || normalizedStatus === "ОСТАНОВЛЕН" || normalizedStatus === "ОСТАНОВЛЕНА") {
     return {
       border: "border-destructive/30",
       bg: "bg-destructive/10",

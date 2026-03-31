@@ -95,7 +95,7 @@
         "title": "IT ACCELERATION",
         "tagline": "UNITING IT PROFESSIONALS",
         "description": "Acceleration program for IT professionals and their developments. Creating unified vision of tools, quality standards and order system. Issuing NUYEN token for Guild members.",
-        "status": "ACTIVE",
+        "status": "STOPPED",
         "features": {
           "0": "MENTORING FROM EXPERIENCED DEVELOPERS",
           "1": "REAL PRODUCTION PROJECTS",
@@ -107,7 +107,7 @@
         "title": "SDF INTEGRATION",
         "tagline": "BUILD ON STELLAR BLOCKCHAIN",
         "description": "Integration with Stellar Development Foundation. Learning Stellar blockchain development, ecosystem participation, grant support for projects.",
-        "status": "COMING SOON",
+        "status": "STOPPED",
         "features": {
           "0": "STELLAR SDK TRAINING",
           "1": "GRANT PROGRAM",

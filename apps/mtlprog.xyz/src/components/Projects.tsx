@@ -27,7 +27,7 @@ const getStatusStyles = (status: string) => {
   }
 
   // STOPPED / ОСТАНОВЛЕН - красный
-  if (normalizedStatus === "STOPPED" || normalizedStatus === "ОСТАНОВЛЕН") {
+  if (normalizedStatus === "STOPPED" || normalizedStatus === "ОСТАНОВЛЕН" || normalizedStatus === "ОСТАНОВЛЕНА") {
     return {
       border: "border-destructive/30",
       bg: "bg-destructive/10",
@@ -223,12 +223,6 @@ export function Projects({ contentPromise, linksPromise }: ProjectsProps) {
             ))}
           </div>
 
-          {/* More projects coming soon */}
-          <div className="mt-12 md:mt-16 p-6 md:p-8 border border-dashed border-border/50 bg-card/30 backdrop-blur-sm text-center">
-            <p className="text-muted-foreground text-sm md:text-base uppercase tracking-widest font-mono">
-              {content.projects.comingSoon}
-            </p>
-          </div>
         </div>
       </div>
     </section>
