@@ -127,6 +127,18 @@ export function ProjectPage({ project }: ProjectPageProps) {
             </h1>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-lg font-mono text-muted-foreground">
               <span>{t("project.projectCode")}: {project.code}</span>
+              {project.created_at !== undefined && (
+                <>
+                  <span className="hidden sm:block">|</span>
+                  <span>
+                    {t("project.publishedAt")}: {new Date(project.created_at).toLocaleDateString("ru-RU", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })}
+                  </span>
+                </>
+              )}
               <span className="hidden sm:block">|</span>
               <span>
                 {t("project.deadline")}: {new Date(project.deadline).toLocaleDateString("ru-RU", {

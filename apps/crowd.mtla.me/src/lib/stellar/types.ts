@@ -70,6 +70,7 @@ export interface ProjectInfo extends Omit<ProjectDataWithResults, "supporters"> 
   readonly supporters?: readonly SupporterContributionExact[];
   readonly contact_name?: string;
   readonly project_name?: string;
+  readonly created_at?: string;
 }
 
 // CLI-specific project info (wraps base + CLI-specific fields)

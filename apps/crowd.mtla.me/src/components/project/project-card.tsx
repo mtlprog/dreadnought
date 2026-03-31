@@ -115,9 +115,16 @@ export function ProjectCard({
             <span className="text-muted-foreground">
               {t("projects.supporters")}: {project.supporters_count}
             </span>
-            <span className="text-muted-foreground">
-              {t("projects.deadline")}: {new Date(project.deadline).toLocaleDateString()}
-            </span>
+            <div className="flex gap-3 text-muted-foreground">
+              {project.created_at !== undefined && (
+                <span>
+                  {t("projects.publishedAt")}: {new Date(project.created_at).toLocaleDateString()}
+                </span>
+              )}
+              <span>
+                {t("projects.deadline")}: {new Date(project.deadline).toLocaleDateString()}
+              </span>
+            </div>
           </div>
         </div>
       </CardContent>
