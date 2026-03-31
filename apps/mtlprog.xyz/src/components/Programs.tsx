@@ -17,6 +17,17 @@ const getStatusStyles = (status: string) => {
     };
   }
 
+  // PAUSED / ПРИОСТАНОВЛЕН - синий
+  if (normalizedStatus === "PAUSED" || normalizedStatus === "ПРИОСТАНОВЛЕН") {
+    return {
+      border: "border-primary/30",
+      bg: "bg-primary/10",
+      text: "text-primary",
+      dot: "bg-primary",
+      isActive: false,
+    };
+  }
+
   // STOPPED / ОСТАНОВЛЕН - красный
   if (normalizedStatus === "STOPPED" || normalizedStatus === "ОСТАНОВЛЕН") {
     return {
