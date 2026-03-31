@@ -57,6 +57,15 @@
           "EFFECT-TS"
         ]
       },
+      "predict": {
+        "title": "PREDICT",
+        "description": "Рынок предсказаний на блокчейне Stellar. Торговля на исходах реальных событий с помощью смарт-контрактов Soroban.",
+        "status": "ПРИОСТАНОВЛЕН",
+        "tech": [
+          "STELLAR",
+          "SOROBAN"
+        ]
+      },
       "pact": {
         "title": "PACT",
         "description": "Блокчейн-нотариат Фонда Монтелиберо. Заключение договоров на блокчейне Stellar в виде NFT.",

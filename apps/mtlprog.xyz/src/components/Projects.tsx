@@ -26,6 +26,16 @@ const getStatusStyles = (status: string) => {
     };
   }
 
+  // STOPPED / ОСТАНОВЛЕН - красный
+  if (normalizedStatus === "STOPPED" || normalizedStatus === "ОСТАНОВЛЕН") {
+    return {
+      border: "border-destructive/30",
+      bg: "bg-destructive/10",
+      text: "text-destructive",
+      dot: "bg-destructive",
+    };
+  }
+
   // COMING SOON / СКОРО - зелёный
   return {
     border: "border-secondary/30",
@@ -61,6 +71,8 @@ interface ProjectsProps {
       mtlCrowdSource: string;
       stat: string;
       statSource: string;
+      predict: string;
+      predictSource: string;
       pact: string;
       pactSource: string;
     };
@@ -74,6 +86,8 @@ type ProjectLinks = {
   mtlCrowdSource: string;
   stat: string;
   statSource: string;
+  predict: string;
+  predictSource: string;
   pact: string;
   pactSource: string;
 };
@@ -82,6 +96,7 @@ const PROJECT_LINKS: Record<string, keyof ProjectLinks> = {
   lore: "lore",
   "mtl-crowd": "mtlCrowd",
   stat: "stat",
+  predict: "predict",
   pact: "pact",
 };
 
@@ -89,6 +104,7 @@ const PROJECT_SOURCE_LINKS: Record<string, keyof ProjectLinks> = {
   lore: "loreSource",
   "mtl-crowd": "mtlCrowdSource",
   stat: "statSource",
+  predict: "predictSource",
   pact: "pactSource",
 };
 

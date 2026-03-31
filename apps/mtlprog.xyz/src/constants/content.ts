@@ -148,6 +148,15 @@ export const ContentServiceLive = Layer.effect(
                   tech: ["STELLAR", "NEXT.JS", "EFFECT-TS"],
                 },
                 {
+                  id: "predict",
+                  title: yield* localeService.t("projects.items.predict.title"),
+                  description: yield* localeService.t(
+                    "projects.items.predict.description",
+                  ),
+                  status: yield* localeService.t("projects.items.predict.status"),
+                  tech: ["STELLAR", "SOROBAN"],
+                },
+                {
                   id: "pact",
                   title: yield* localeService.t("projects.items.pact.title"),
                   description: yield* localeService.t(

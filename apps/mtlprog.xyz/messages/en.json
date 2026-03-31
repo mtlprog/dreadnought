@@ -57,6 +57,15 @@
           "EFFECT-TS"
         ]
       },
+      "predict": {
+        "title": "PREDICT",
+        "description": "Prediction market for Stellar blockchain. Trade on outcomes of real-world events using Soroban smart contracts.",
+        "status": "PAUSED",
+        "tech": [
+          "STELLAR",
+          "SOROBAN"
+        ]
+      },
       "pact": {
         "title": "PACT",
         "description": "Blockchain notary service for Montelibero Fund. Execute contracts on Stellar blockchain as NFTs.",
