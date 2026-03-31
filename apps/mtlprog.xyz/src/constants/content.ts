@@ -272,12 +272,6 @@ export const ContentServiceLive = Layer.effect(
                   links: [
                     {
                       label: yield* localeService.t(
-                        "footer.columns.community.links.discord.label",
-                      ),
-                      icon: "MessageCircle",
-                    },
-                    {
-                      label: yield* localeService.t(
                         "footer.columns.community.links.email.label",
                       ),
                       icon: "Mail",
