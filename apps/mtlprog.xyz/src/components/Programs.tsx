@@ -5,6 +5,12 @@ import { use } from "react";
 // Helper function to check if program status is active
 const isActiveStatus = (status: string): boolean => status === "ACTIVE" || status === "АКТИВНА";
 
+// Helper function to check if program status is stopped
+const isStoppedStatus = (status: string): boolean => {
+  const s = status.toUpperCase();
+  return s === "STOPPED" || s === "ОСТАНОВЛЕН";
+};
+
 interface ProgramsProps {
   contentPromise: Promise<{
     programs: {
@@ -80,16 +86,20 @@ export function Programs({ contentPromise, linksPromise }: ProgramsProps) {
                     {/* Status Badge */}
                     <div
                       className={`inline-flex self-start items-center gap-2 mb-4 md:mb-6 px-4 md:px-6 py-2 border text-xs md:text-sm font-mono uppercase tracking-wider ${
-                        isActiveStatus(program.status)
-                          ? "border-warning-amber/30 bg-warning-amber/10 text-warning-amber"
-                          : "border-secondary/30 bg-secondary/10 text-secondary"
+                        isStoppedStatus(program.status)
+                          ? "border-destructive/30 bg-destructive/10 text-destructive"
+                          : isActiveStatus(program.status)
+                            ? "border-warning-amber/30 bg-warning-amber/10 text-warning-amber"
+                            : "border-secondary/30 bg-secondary/10 text-secondary"
                       }`}
                     >
                       <div
                         className={`w-2 h-2 animate-pulse ${
-                          isActiveStatus(program.status)
-                            ? "bg-warning-amber"
-                            : "bg-secondary"
+                          isStoppedStatus(program.status)
+                            ? "bg-destructive"
+                            : isActiveStatus(program.status)
+                              ? "bg-warning-amber"
+                              : "bg-secondary"
                         }`}
                       />
                       {program.status}
