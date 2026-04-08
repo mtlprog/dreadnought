@@ -6,11 +6,44 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Progress } from "@/components/ui/progress";
 import { formatNumber } from "@/lib/format";
 import type { Project } from "@/types/project";
-import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import Link, { useLinkStatus } from "next/link";
 
 interface ProjectCardProps {
   project: Project;
   onSupport?: (project: Project) => void; // Made optional for backward compatibility
+}
+
+/**
+ * Navigation button rendered inside a `<Link>`. Uses Next.js `useLinkStatus`
+ * to show a spinner and disable itself while the target route is loading.
+ *
+ * The project page is a dynamic server component that hits Stellar Horizon
+ * and IPFS on each request (see `projects.ts` and `service.ts`) — navigation
+ * can take several seconds, so without this feedback the click feels
+ * broken. Must be a descendant of `<Link>` for the hook to fire.
+ */
+function ProjectCardNavButton({
+  label,
+  className,
+  variant,
+}: Readonly<{
+  label: string;
+  className: string;
+  variant: "default" | "outline";
+}>) {
+  const { pending } = useLinkStatus();
+  return (
+    <Button
+      className={className}
+      variant={variant}
+      disabled={pending}
+      aria-busy={pending}
+    >
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />}
+      {label}
+    </Button>
+  );
 }
 
 export function ProjectCard({
@@ -123,15 +156,14 @@ export function ProjectCard({
       </CardContent>
 
       <CardFooter className="p-4 md:p-6">
-        <Link href={`/${project.code.toLowerCase()}`} className="w-full">
-          <Button
+        <Link href={`/${project.code.toLowerCase()}`} className="w-full" prefetch={false}>
+          <ProjectCardNavButton
+            label={isEnded ? t("projects.viewProject") : t("projects.fundProject")}
             className={`w-full text-sm md:text-base ${
               isCanceled ? "border-destructive text-destructive hover:bg-destructive/10" : ""
             }`}
             variant={isEnded ? "outline" : "default"}
-          >
-            {isEnded ? t("projects.viewProject") : t("projects.fundProject")}
-          </Button>
+          />
         </Link>
       </CardFooter>
     </Card>
