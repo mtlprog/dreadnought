@@ -19,7 +19,7 @@ export const getProjects = async (): Promise<ProjectInfo[]> => {
       return yield* stellarService.getProjects();
     }),
     Effect.provide(StellarServiceLive),
-    (effect) => withStaleFallback("projects", effect, PROJECT_FRESH_MS),
+    withStaleFallback("projects", PROJECT_FRESH_MS),
   );
 
   return Effect.runPromise(program);
@@ -35,14 +35,13 @@ export const getProjects = async (): Promise<ProjectInfo[]> => {
  * rendered as a 500 page.
  */
 export const getProject = async (code: string): Promise<ProjectInfo | null> => {
-  const key = `project-${code.toUpperCase()}`;
   const program = pipe(
     Effect.gen(function*() {
       const stellarService = yield* StellarServiceTag;
       return yield* stellarService.getProject(code);
     }),
     Effect.provide(StellarServiceLive),
-    (effect) => withStaleFallback(key, effect, PROJECT_FRESH_MS),
+    withStaleFallback(`project-${code.toUpperCase()}`, PROJECT_FRESH_MS),
   );
 
   return Effect.runPromise(program);

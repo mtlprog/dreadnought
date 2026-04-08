@@ -17,72 +17,65 @@ const ACCOUNT_NAME_FRESH_MS = 24 * 60 * 60 * 1000; // 24 hours
  * returned.
  *
  * Name resolution is best-effort — a failure here must never prevent a
- * project from rendering. If both the fresh lookup and the stale cache
- * fail to produce a value, we log and return `undefined`.
- *
- * Returns the decoded name or `undefined` if the account has no Name entry.
+ * project from rendering. The error channel is therefore `never`: on any
+ * failure we log and fall back to `undefined`. This collapses three cases
+ * ("no Name entry", "transient lookup failure", "account does not exist")
+ * into a single `undefined` result; callers that need to distinguish them
+ * must not use this function.
  */
 export const getAccountName = (
   config: Readonly<StellarConfig>,
   accountId: Readonly<string>,
 ): Effect.Effect<string | undefined, never> =>
   pipe(
-    withStaleFallback(
-      `account-name-${accountId}`,
-      retryTransient(
-        Effect.tryPromise({
-          try: async () => {
-            const account = await config.server.loadAccount(accountId);
-            const nameEntry = account.data_attr["Name"];
+    Effect.tryPromise({
+      try: async () => {
+        const account = await config.server.loadAccount(accountId);
+        const nameEntry = account.data_attr["Name"];
 
-            if (nameEntry === undefined) {
-              return undefined;
-            }
+        if (nameEntry === undefined) {
+          return undefined;
+        }
 
-            return Buffer.from(nameEntry, "base64").toString("utf-8");
-          },
-          catch: (error) =>
-            new StellarError({
-              cause: error,
-              operation: "get_account_name",
-            }),
+        return Buffer.from(nameEntry, "base64").toString("utf-8");
+      },
+      catch: (error) =>
+        new StellarError({
+          cause: error,
+          operation: "get_account_name",
         }),
-      ),
-      ACCOUNT_NAME_FRESH_MS,
-    ),
-    Effect.catchAll((error) =>
-      pipe(
-        Effect.log(
-          `[getAccountName] ${accountId.slice(0, 8)}... lookup failed, returning undefined: ${String(error)}`,
-        ),
-        Effect.map(() => undefined),
+    }),
+    retryTransient,
+    withStaleFallback(`account-name-${accountId}`, ACCOUNT_NAME_FRESH_MS),
+    Effect.tapError((error) =>
+      Effect.log(
+        `[getAccountName] ${accountId.slice(0, 8)}... lookup failed, returning undefined: ${String(error)}`,
       )
     ),
+    Effect.orElseSucceed(() => undefined),
   );
 
 /**
- * Enrich supporters array with account names from Stellar manageData
- * Fetches names in parallel with caching (24h TTL in getAccountName)
- * Skips supporters that already have names for efficiency
+ * Enrich a supporters array with account names from Stellar manageData.
+ * Fetches names in parallel; skips supporters that already have one.
  *
- * @param config - Stellar configuration
- * @param supporters - Supporters array (may or may not have names)
- * @returns Effect with enriched supporters
+ * `getAccountName` is best-effort (`Effect<_, never>`) with its own
+ * `withStaleFallback` cache (24h fresh window), so this pipeline cannot
+ * fail on a single missing name — the original supporter is used as-is
+ * when no name is resolved.
  */
 export const enrichSupportersWithNames = <
   T extends { readonly account_id: string; readonly amount: string; readonly name?: string | undefined },
 >(
   config: Readonly<StellarConfig>,
   supporters: readonly T[],
-): Effect.Effect<readonly T[], StellarError> =>
+): Effect.Effect<readonly T[], never> =>
   pipe(
     Effect.all(
       supporters.map((supporter) => {
-        // Skip if already has name
         if (supporter.name !== undefined) {
           return Effect.succeed(supporter);
         }
-        // Fetch name from Horizon
         return pipe(
           getAccountName(config, supporter.account_id),
           Effect.map((name): T =>
@@ -91,21 +84,13 @@ export const enrichSupportersWithNames = <
               ...(name !== undefined ? { name } : {}),
             }) as T
           ),
-          Effect.catchAll((error) =>
-            pipe(
-              Effect.log(
-                `[enrichSupporters] failed to fetch name for ${supporter.account_id.slice(0, 8)}...: ${String(error)}`,
-              ),
-              Effect.map(() => supporter),
-            )
-          ),
         );
       }),
       { concurrency: "unbounded" },
     ),
     Effect.tap((enriched) => {
       const withNames = enriched.filter((s) => s.name !== undefined).length;
-      return Effect.logInfo(
+      return Effect.log(
         `Enriched ${withNames}/${supporters.length} supporters with names`,
       );
     }),
@@ -322,7 +307,7 @@ export const getTopSupporters = (
   assetCode: Readonly<string>,
   stellarAccountId: Readonly<string>,
   limit = 10,
-): Effect.Effect<readonly SupporterContributionExact[], StellarError> => {
+): Effect.Effect<readonly SupporterContributionExact[], never> => {
   // Check if project has finalized supporters data in IPFS
   const hasIPFSSupportersData = "supporters" in projectData
     && projectData.supporters !== undefined

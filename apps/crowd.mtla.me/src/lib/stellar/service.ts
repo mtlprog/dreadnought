@@ -3,7 +3,7 @@ import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
 import { retryTransient } from "./retry";
-import type { ProjectData, ProjectInfo, SupporterContributionExact } from "./types";
+import type { ProjectInfo, SupporterContributionExact } from "./types";
 import {
   enrichSupportersWithNames,
   fetchProjectDataFromIPFS,
@@ -110,17 +110,13 @@ const checkTokenExists = (
     Effect.flatMap((foundInClaimable) =>
       foundInClaimable
         ? Effect.succeed(true)
-        : pipe(
-          checkAccountBalancesForToken(server, publicKey, assetCode),
-          Effect.catchAll((error) =>
-            pipe(
-              Effect.logDebug(
-                `Account ${publicKey.slice(0, 8)}... not found or no token ${assetCode}: ${String(error)}`,
-              ),
-              Effect.map(() => false),
-            )
-          ),
-        )
+        // Fallback path: errors must propagate. Converting them to `false`
+        // here would silently turn a transient Horizon failure into a
+        // misleading "project not found" → 404, the exact bug class fixed
+        // in #6. The issuer account always exists (we just loaded its
+        // data_attr to find this token), so a real "no such account" 404
+        // here would be a configuration bug, not a normal absence.
+        : checkAccountBalancesForToken(server, publicKey, assetCode)
     ),
   );
 
@@ -218,316 +214,268 @@ export const StellarServiceLive = Layer.succeed(
       pipe(
         getStellarConfig(),
         Effect.flatMap((config: Readonly<StellarConfig>) =>
-          retryTransient(
-            Effect.tryPromise({
-              try: async () => {
-                const account = await config.server.loadAccount(config.publicKey);
-                return account.data_attr;
-              },
-              catch: (error) =>
-                new StellarError({
-                  cause: error,
-                  operation: "load_account",
+          pipe(
+            retryTransient(
+              Effect.tryPromise({
+                try: async () => {
+                  const account = await config.server.loadAccount(config.publicKey);
+                  return account.data_attr;
+                },
+                catch: (error) =>
+                  new StellarError({
+                    cause: error,
+                    operation: "load_account",
+                  }),
+              }),
+            ),
+            Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
+              // Find project entry by code (case insensitive)
+              const normalizedCode = code.toUpperCase();
+              const projectEntry = Object.entries(dataEntries)
+                .filter(([key]: readonly [string, string]) => key.startsWith("ipfshash-"))
+                .map(([key, value]: readonly [string, string]) => {
+                  const fullCode = key.replace("ipfshash-", "");
+                  const baseCode = fullCode.startsWith("P") ? fullCode.slice(1) : fullCode;
+                  return {
+                    code: baseCode,
+                    fullCode,
+                    cid: Buffer.from(value, "base64").toString(),
+                  };
+                })
+                .find((entry: Readonly<{ code: string; fullCode: string; cid: string }>) =>
+                  entry.code.toUpperCase() === normalizedCode
+                );
+
+              if (projectEntry === undefined) {
+                return Effect.succeed(null);
+              }
+
+              return pipe(
+                Effect.all([
+                  fetchProjectDataFromIPFS(projectEntry.cid),
+                  checkTokenExists(config.server, config.publicKey, projectEntry.fullCode),
+                  getClaimableBalances(config.server, config.publicKey),
+                  checkActiveSellOffer(config.server, config.publicKey, `C${projectEntry.code}`),
+                ]),
+                Effect.flatMap(([projectData, tokenExists, claimableBalances, hasActiveSellOffer]) => {
+                  if (!tokenExists) {
+                    return Effect.succeed(null);
+                  }
+
+                  // Get funding metrics (IPFS priority for closed projects)
+                  const metrics = getCurrentFundingMetrics(
+                    projectData,
+                    claimableBalances,
+                    projectEntry.code,
+                    config.publicKey,
+                  );
+
+                  const isExpired = isProjectExpired(projectData.deadline);
+                  const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
+
+                  // Determine status based on funding_status from IPFS data
+                  let status: "active" | "completed" | "canceled" | "expired";
+                  if ("funding_status" in projectData && projectData.funding_status !== undefined) {
+                    // Use funding_status from IPFS if available
+                    status = projectData.funding_status;
+                  } else if (isExpired || isFullyFunded || !hasActiveSellOffer) {
+                    // Legacy: project is completed if expired, fully funded, or offer closed
+                    status = "completed";
+                  } else {
+                    status = "active";
+                  }
+
+                  // Get top supporters and account names (IPFS priority for closed projects)
+                  return pipe(
+                    Effect.all([
+                      getTopSupporters(
+                        config,
+                        projectData,
+                        claimableBalances,
+                        projectEntry.code,
+                        config.publicKey,
+                        10,
+                      ),
+                      getAccountName(config, projectData.contact_account_id),
+                      getAccountName(config, projectData.project_account_id),
+                    ]),
+                    Effect.map(([topSupporters, contactName, projectName]) => {
+                      const createdAt = getProjectCreatedAt(claimableBalances, projectEntry.code, config.publicKey);
+
+                      const baseProjectInfo = {
+                        name: projectData.name,
+                        code: projectData.code,
+                        description: projectData.description,
+                        fulldescription: projectData.fulldescription,
+                        contact_account_id: projectData.contact_account_id,
+                        project_account_id: projectData.project_account_id,
+                        target_amount: projectData.target_amount,
+                        deadline: projectData.deadline,
+                        current_amount: metrics.amount,
+                        supporters_count: metrics.supporters,
+                        ipfsUrl: `https://gateway.pinata.cloud/ipfs/${projectEntry.cid}`,
+                        status,
+                        funded_amount: "funded_amount" in projectData
+                          ? (projectData.funded_amount as string)
+                          : undefined,
+                        remaining_amount: "remaining_amount" in projectData
+                          ? (projectData.remaining_amount as string)
+                          : undefined,
+                        funding_status: "funding_status" in projectData
+                          ? (projectData.funding_status as "completed" | "canceled")
+                          : undefined,
+                        ...(contactName !== undefined ? { contact_name: contactName } : {}),
+                        ...(projectName !== undefined ? { project_name: projectName } : {}),
+                        ...(createdAt !== undefined ? { created_at: createdAt } : {}),
+                      };
+
+                      const projectInfo: ProjectInfo = topSupporters.length > 0
+                        ? { ...baseProjectInfo, supporters: topSupporters }
+                        : baseProjectInfo;
+
+                      return projectInfo;
+                    }),
+                  );
                 }),
+              );
             }),
           )
         ),
-        Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
-          // Find project entry by code (case insensitive)
-          const normalizedCode = code.toUpperCase();
-          const projectEntry = Object.entries(dataEntries)
-            .filter(([key]: readonly [string, string]) => key.startsWith("ipfshash-"))
-            .map(([key, value]: readonly [string, string]) => {
-              const fullCode = key.replace("ipfshash-", "");
-              const baseCode = fullCode.startsWith("P") ? fullCode.slice(1) : fullCode;
-              return {
-                code: baseCode,
-                fullCode,
-                cid: Buffer.from(value, "base64").toString(),
-              };
-            })
-            .find((entry: Readonly<{ code: string; fullCode: string; cid: string }>) =>
-              entry.code.toUpperCase() === normalizedCode
-            );
-
-          if (projectEntry === undefined) {
-            return Effect.succeed(null);
-          }
-
-          return pipe(
-            Effect.all([
-              fetchProjectDataFromIPFS(projectEntry.cid),
-              pipe(
-                getStellarConfig(),
-                Effect.flatMap((config: Readonly<StellarConfig>) =>
-                  checkTokenExists(config.server, config.publicKey, projectEntry.fullCode)
-                ),
-              ),
-              pipe(
-                getStellarConfig(),
-                Effect.flatMap((config: Readonly<StellarConfig>) =>
-                  getClaimableBalances(config.server, config.publicKey)
-                ),
-              ),
-              pipe(
-                getStellarConfig(),
-                Effect.flatMap((config: Readonly<StellarConfig>) =>
-                  checkActiveSellOffer(config.server, config.publicKey, `C${projectEntry.code}`)
-                ),
-              ),
-              getStellarConfig(),
-            ]),
-            Effect.flatMap(
-              (
-                [projectData, tokenExists, claimableBalances, hasActiveSellOffer, config]: readonly [
-                  ProjectData,
-                  boolean,
-                  readonly Horizon.ServerApi.ClaimableBalanceRecord[],
-                  boolean,
-                  StellarConfig,
-                ],
-              ) => {
-                if (!tokenExists) {
-                  return Effect.succeed(null);
-                }
-
-                // Get funding metrics (IPFS priority for closed projects)
-                const metrics = getCurrentFundingMetrics(
-                  projectData,
-                  claimableBalances,
-                  projectEntry.code,
-                  config.publicKey,
-                );
-
-                const isExpired = isProjectExpired(projectData.deadline);
-                const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
-
-                // Determine status based on funding_status from IPFS data
-                let status: "active" | "completed" | "canceled" | "expired";
-                if ("funding_status" in projectData && projectData.funding_status !== undefined) {
-                  // Use funding_status from IPFS if available
-                  status = projectData.funding_status as "completed" | "canceled";
-                } else if (isExpired || isFullyFunded || !hasActiveSellOffer) {
-                  // Legacy: project is completed if expired, fully funded, or offer closed
-                  status = "completed";
-                } else {
-                  status = "active";
-                }
-
-                // Get top supporters and account names (IPFS priority for closed projects)
-                return pipe(
-                  Effect.all([
-                    getTopSupporters(
-                      config,
-                      projectData,
-                      claimableBalances,
-                      projectEntry.code,
-                      config.publicKey,
-                      10,
-                    ),
-                    getAccountName(config, projectData.contact_account_id),
-                    getAccountName(config, projectData.project_account_id),
-                  ]),
-                  Effect.map(([topSupporters, contactName, projectName]) => {
-                    const createdAt = getProjectCreatedAt(claimableBalances, projectEntry.code, config.publicKey);
-
-                    const baseProjectInfo = {
-                      name: projectData.name,
-                      code: projectData.code,
-                      description: projectData.description,
-                      fulldescription: projectData.fulldescription,
-                      contact_account_id: projectData.contact_account_id,
-                      project_account_id: projectData.project_account_id,
-                      target_amount: projectData.target_amount,
-                      deadline: projectData.deadline,
-                      current_amount: metrics.amount,
-                      supporters_count: metrics.supporters,
-                      ipfsUrl: `https://gateway.pinata.cloud/ipfs/${projectEntry.cid}`,
-                      status,
-                      funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
-                      remaining_amount: "remaining_amount" in projectData
-                        ? (projectData.remaining_amount as string)
-                        : undefined,
-                      funding_status: "funding_status" in projectData
-                        ? (projectData.funding_status as "completed" | "canceled")
-                        : undefined,
-                      ...(contactName !== undefined ? { contact_name: contactName } : {}),
-                      ...(projectName !== undefined ? { project_name: projectName } : {}),
-                      ...(createdAt !== undefined ? { created_at: createdAt } : {}),
-                    };
-
-                    const projectInfo: ProjectInfo = topSupporters.length > 0
-                      ? { ...baseProjectInfo, supporters: topSupporters }
-                      : baseProjectInfo;
-
-                    return projectInfo;
-                  }),
-                );
-              },
-            ),
-          );
-        }),
       ),
 
     getProjects: () =>
       pipe(
         getStellarConfig(),
         Effect.flatMap((config: Readonly<StellarConfig>) =>
-          retryTransient(
-            Effect.tryPromise({
-              try: async () => {
-                const account = await config.server.loadAccount(config.publicKey);
-                return account.data_attr;
-              },
-              catch: (error) =>
-                new StellarError({
-                  cause: error,
-                  operation: "load_account",
-                }),
+          pipe(
+            retryTransient(
+              Effect.tryPromise({
+                try: async () => {
+                  const account = await config.server.loadAccount(config.publicKey);
+                  return account.data_attr;
+                },
+                catch: (error) =>
+                  new StellarError({
+                    cause: error,
+                    operation: "load_account",
+                  }),
+              }),
+            ),
+            Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
+              const projectEntries = Object.entries(dataEntries)
+                .filter(([key]: readonly [string, string]) => key.startsWith("ipfshash-"))
+                .map(([key, value]: readonly [string, string]) => {
+                  const fullCode = key.replace("ipfshash-", "");
+                  // Remove P prefix to get base project code (e.g., PRHODESIA -> RHODESIA)
+                  const baseCode = fullCode.startsWith("P") ? fullCode.slice(1) : fullCode;
+                  return {
+                    code: baseCode,
+                    fullCode, // Keep original P-token name for checkTokenExists
+                    cid: Buffer.from(value, "base64").toString(),
+                  };
+                });
+
+              return Effect.all(
+                projectEntries.map((entry: Readonly<{ code: string; fullCode: string; cid: string }>) =>
+                  pipe(
+                    Effect.all([
+                      fetchProjectDataFromIPFS(entry.cid),
+                      checkTokenExists(config.server, config.publicKey, entry.fullCode),
+                      getClaimableBalances(config.server, config.publicKey),
+                      checkActiveSellOffer(config.server, config.publicKey, `C${entry.code}`),
+                    ]),
+                    Effect.flatMap(([projectData, tokenExists, claimableBalances, hasActiveSellOffer]) => {
+                      if (!tokenExists) {
+                        return Effect.succeed(null); // Skip projects without P-tokens (project doesn't exist)
+                      }
+
+                      // Get funding metrics (IPFS priority for closed projects)
+                      const metrics = getCurrentFundingMetrics(
+                        projectData,
+                        claimableBalances,
+                        entry.code,
+                        config.publicKey,
+                      );
+
+                      const isExpired = isProjectExpired(projectData.deadline);
+                      const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
+
+                      // Determine status based on funding_status from IPFS data
+                      let status: "active" | "completed" | "canceled" | "expired";
+                      if ("funding_status" in projectData && projectData.funding_status !== undefined) {
+                        // Use funding_status from IPFS if available
+                        status = projectData.funding_status;
+                      } else if (isExpired || isFullyFunded || !hasActiveSellOffer) {
+                        // Legacy: project is completed if expired, fully funded, or offer closed
+                        status = "completed";
+                      } else {
+                        status = "active";
+                      }
+
+                      const createdAt = getProjectCreatedAt(claimableBalances, entry.code, config.publicKey);
+
+                      const baseProjectInfo = {
+                        name: projectData.name,
+                        code: projectData.code,
+                        description: projectData.description,
+                        fulldescription: projectData.fulldescription,
+                        contact_account_id: projectData.contact_account_id,
+                        project_account_id: projectData.project_account_id,
+                        target_amount: projectData.target_amount,
+                        deadline: projectData.deadline,
+                        current_amount: metrics.amount,
+                        supporters_count: metrics.supporters,
+                        ipfsUrl: `https://gateway.pinata.cloud/ipfs/${entry.cid}`,
+                        status,
+                        funded_amount: "funded_amount" in projectData
+                          ? (projectData.funded_amount as string)
+                          : undefined,
+                        remaining_amount: "remaining_amount" in projectData
+                          ? (projectData.remaining_amount as string)
+                          : undefined,
+                        funding_status: "funding_status" in projectData
+                          ? (projectData.funding_status as "completed" | "canceled")
+                          : undefined,
+                        ...(createdAt !== undefined ? { created_at: createdAt } : {}),
+                      };
+
+                      // Enrich supporters with names if needed (fallback for old projects)
+                      // enrichSupportersWithNames is best-effort (Effect<_, never>),
+                      // so no error-channel handling is needed here.
+                      if ("supporters" in projectData && projectData.supporters !== undefined) {
+                        return pipe(
+                          enrichSupportersWithNames(
+                            config,
+                            projectData.supporters as readonly SupporterContributionExact[],
+                          ),
+                          Effect.map((enrichedSupporters) => ({
+                            ...baseProjectInfo,
+                            supporters: enrichedSupporters,
+                          })),
+                        );
+                      }
+
+                      return Effect.succeed(baseProjectInfo);
+                    }),
+                    Effect.catchAll((error) =>
+                      pipe(
+                        Effect.log(`[getProjects] skipping ${entry.code} after retries: ${String(error)}`),
+                        Effect.map(() => null),
+                      )
+                    ),
+                  )
+                ),
+                { concurrency: "unbounded" },
+              );
+            }),
+            Effect.map((projects: readonly (ProjectInfo | null)[]) => {
+              const validProjects = projects.filter(
+                (p: Readonly<ProjectInfo | null>): p is ProjectInfo => p !== null,
+              );
+              return sortProjectsByPriority(validProjects);
             }),
           )
         ),
-        Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
-          const projectEntries = Object.entries(dataEntries)
-            .filter(([key]: readonly [string, string]) => key.startsWith("ipfshash-"))
-            .map(([key, value]: readonly [string, string]) => {
-              const fullCode = key.replace("ipfshash-", "");
-              // Remove P prefix to get base project code (e.g., PRHODESIA -> RHODESIA)
-              const baseCode = fullCode.startsWith("P") ? fullCode.slice(1) : fullCode;
-              return {
-                code: baseCode,
-                fullCode, // Keep original P-token name for checkTokenExists
-                cid: Buffer.from(value, "base64").toString(),
-              };
-            });
-
-          return Effect.all(
-            projectEntries.map((entry: Readonly<{ code: string; fullCode: string; cid: string }>) =>
-              pipe(
-                Effect.all([
-                  fetchProjectDataFromIPFS(entry.cid),
-                  pipe(
-                    getStellarConfig(),
-                    Effect.flatMap((config: Readonly<StellarConfig>) =>
-                      checkTokenExists(config.server, config.publicKey, entry.fullCode)
-                    ),
-                  ),
-                  pipe(
-                    getStellarConfig(),
-                    Effect.flatMap((config: Readonly<StellarConfig>) =>
-                      getClaimableBalances(config.server, config.publicKey)
-                    ),
-                  ),
-                  pipe(
-                    getStellarConfig(),
-                    Effect.flatMap((config: Readonly<StellarConfig>) =>
-                      checkActiveSellOffer(config.server, config.publicKey, `C${entry.code}`)
-                    ),
-                  ),
-                  getStellarConfig(),
-                ]),
-                Effect.flatMap(
-                  (
-                    [projectData, tokenExists, claimableBalances, hasActiveSellOffer, config]: readonly [
-                      ProjectData,
-                      boolean,
-                      readonly Horizon.ServerApi.ClaimableBalanceRecord[],
-                      boolean,
-                      StellarConfig,
-                    ],
-                  ) => {
-                    if (!tokenExists) {
-                      return Effect.succeed(null); // Skip projects without P-tokens (project doesn't exist)
-                    }
-
-                    // Get funding metrics (IPFS priority for closed projects)
-                    const metrics = getCurrentFundingMetrics(
-                      projectData,
-                      claimableBalances,
-                      entry.code,
-                      config.publicKey,
-                    );
-
-                    const isExpired = isProjectExpired(projectData.deadline);
-                    const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
-
-                    // Determine status based on funding_status from IPFS data
-                    let status: "active" | "completed" | "canceled" | "expired";
-                    if ("funding_status" in projectData && projectData.funding_status !== undefined) {
-                      // Use funding_status from IPFS if available
-                      status = projectData.funding_status as "completed" | "canceled";
-                    } else if (isExpired || isFullyFunded || !hasActiveSellOffer) {
-                      // Legacy: project is completed if expired, fully funded, or offer closed
-                      status = "completed";
-                    } else {
-                      status = "active";
-                    }
-
-                    const createdAt = getProjectCreatedAt(claimableBalances, entry.code, config.publicKey);
-
-                    const baseProjectInfo = {
-                      name: projectData.name,
-                      code: projectData.code,
-                      description: projectData.description,
-                      fulldescription: projectData.fulldescription,
-                      contact_account_id: projectData.contact_account_id,
-                      project_account_id: projectData.project_account_id,
-                      target_amount: projectData.target_amount,
-                      deadline: projectData.deadline,
-                      current_amount: metrics.amount,
-                      supporters_count: metrics.supporters,
-                      ipfsUrl: `https://gateway.pinata.cloud/ipfs/${entry.cid}`,
-                      status,
-                      funded_amount: "funded_amount" in projectData ? (projectData.funded_amount as string) : undefined,
-                      remaining_amount: "remaining_amount" in projectData
-                        ? (projectData.remaining_amount as string)
-                        : undefined,
-                      funding_status: "funding_status" in projectData
-                        ? (projectData.funding_status as "completed" | "canceled")
-                        : undefined,
-                      ...(createdAt !== undefined ? { created_at: createdAt } : {}),
-                    };
-
-                    // Enrich supporters with names if needed (fallback for old projects)
-                    if ("supporters" in projectData && projectData.supporters !== undefined) {
-                      return pipe(
-                        enrichSupportersWithNames(
-                          config,
-                          projectData.supporters as readonly SupporterContributionExact[],
-                        ),
-                        Effect.map((enrichedSupporters) => ({
-                          ...baseProjectInfo,
-                          supporters: enrichedSupporters,
-                        })),
-                        Effect.catchAll((error) =>
-                          pipe(
-                            Effect.log(
-                              `[getProjects] failed to enrich supporters for ${entry.code}: ${String(error)}`,
-                            ),
-                            Effect.map(() => baseProjectInfo),
-                          )
-                        ),
-                      );
-                    }
-
-                    return Effect.succeed(baseProjectInfo);
-                  },
-                ),
-                Effect.catchAll((error) =>
-                  pipe(
-                    Effect.log(`[getProjects] skipping ${entry.code} after retries: ${String(error)}`),
-                    Effect.map(() => null),
-                  )
-                ),
-              )
-            ),
-            { concurrency: "unbounded" },
-          );
-        }),
-        Effect.map((projects: readonly (ProjectInfo | null)[]) => {
-          const validProjects = projects.filter((p: Readonly<ProjectInfo | null>): p is ProjectInfo => p !== null);
-          return sortProjectsByPriority(validProjects);
-        }),
       ),
   }),
 );

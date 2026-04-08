@@ -121,6 +121,7 @@ bun dev                        # Dev server
 bun run cli project <command>  # CLI
 bun run build                  # Production build
 bun run lint                   # Linter
+bunx tsc --noEmit              # Typecheck (no script alias exists)
 ```
 
 ## Testing
@@ -150,11 +151,14 @@ test("test", async () => {
 
 1. **ALWAYS use Effect-TS** - no async/await
 2. **Funding metrics** - use `getCurrentFundingMetrics()`, never duplicate
-3. **Caching** - use `getProject()` from `@/lib/projects`
-4. **CLI commands** - output XDR, never auto-sign
-5. **IPFS upload** - only via PinataService
-6. **Testing** - ManagedRuntime + dispose() in finally
-7. **Types** - distinguish `ProjectData` vs `ProjectDataWithResults`
+3. **Caching** - use `withStaleFallback` from `@/lib/cache` (SWR, serves stale on error); `getProject()`/`getProjects()` from `@/lib/projects` are the canonical callers
+4. **External I/O retry** - wrap every Stellar/IPFS `Effect.tryPromise` in `retryTransient` from `@/lib/stellar/retry` (4 attempts, exponential backoff)
+5. **Error → null discipline** - return `null` from `getProject` ONLY for real "not found" (no manageData entry, no P-token). NEVER add blanket `Effect.catchAll(() => null)` — let transient errors propagate so SWR can serve stale and `error.tsx` can render 500 instead of a misleading 404
+6. **CLI commands** - output XDR, never auto-sign
+7. **IPFS upload** - only via PinataService
+8. **Logging** - `Effect.log` only, never `Effect.logWarning` or `console.log`
+9. **Testing** - ManagedRuntime + dispose() in finally
+10. **Types** - distinguish `ProjectData` vs `ProjectDataWithResults`
 
 ## Documentation
 
@@ -171,5 +175,7 @@ test("test", async () => {
 ## Common Issues
 
 1. **Closed projects show zero** - Use `getCurrentFundingMetrics()` (see `/docs/guides/funding-metrics.md`)
-2. **Duplicate caching** - Use `getProject()` from `@/lib/projects`
+2. **Duplicate caching** - Use `getProject()`/`getProjects()` from `@/lib/projects` (not a new `withCache` wrapper — the old one was replaced by `withStaleFallback`)
 3. **Optional field errors** - Use conditional spread: `{ ...(condition ? { field: value } : {}) }`
+4. **Intermittent 404 on project pages** - Usually Pinata IPFS gateway rate-limiting (HTTP 429). Never reintroduce `catchAll(() => null)` in the fetch path; trust `retryTransient` + `withStaleFallback` to handle it (issue #6, fixed in PR #8)
+5. **Pinata public gateway is rate-limited** - Aggressive HTTP 429s under real traffic. Any new `fetch("gateway.pinata.cloud/...")` MUST go through `retryTransient`
