@@ -2,6 +2,7 @@ import type { Horizon } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
+import { retryTransient } from "./retry";
 import type { ProjectData, ProjectInfo, SupporterContributionExact } from "./types";
 import {
   enrichSupportersWithNames,
@@ -28,7 +29,7 @@ const checkClaimableBalancesForToken = (
   publicKey: Readonly<string>,
   assetCode: Readonly<string>,
 ): Effect.Effect<boolean, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         let callBuilder = server.claimableBalances()
@@ -73,7 +74,7 @@ const checkAccountBalancesForToken = (
   publicKey: Readonly<string>,
   assetCode: Readonly<string>,
 ): Effect.Effect<boolean, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         const account = await server.loadAccount(publicKey);
@@ -128,7 +129,7 @@ const checkActiveSellOffer = (
   publicKey: Readonly<string>,
   crowdfundingTokenCode: Readonly<string>,
 ): Effect.Effect<boolean, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         const allRecords: Horizon.ServerApi.OfferRecord[] = [];
@@ -172,7 +173,7 @@ const getClaimableBalances = (
   server: Readonly<Horizon.Server>,
   publicKey: Readonly<string>,
 ): Effect.Effect<readonly Horizon.ServerApi.ClaimableBalanceRecord[], StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         const allRecords: Horizon.ServerApi.ClaimableBalanceRecord[] = [];
@@ -217,17 +218,19 @@ export const StellarServiceLive = Layer.succeed(
       pipe(
         getStellarConfig(),
         Effect.flatMap((config: Readonly<StellarConfig>) =>
-          Effect.tryPromise({
-            try: async () => {
-              const account = await config.server.loadAccount(config.publicKey);
-              return account.data_attr;
-            },
-            catch: (error) =>
-              new StellarError({
-                cause: error,
-                operation: "load_account",
-              }),
-          })
+          retryTransient(
+            Effect.tryPromise({
+              try: async () => {
+                const account = await config.server.loadAccount(config.publicKey);
+                return account.data_attr;
+              },
+              catch: (error) =>
+                new StellarError({
+                  cause: error,
+                  operation: "load_account",
+                }),
+            }),
+          )
         ),
         Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
           // Find project entry by code (case insensitive)
@@ -362,12 +365,6 @@ export const StellarServiceLive = Layer.succeed(
                 );
               },
             ),
-            Effect.catchAll((error) =>
-              pipe(
-                Effect.logWarning(`Failed to load project ${code}: ${String(error)}`),
-                Effect.map(() => null),
-              )
-            ),
           );
         }),
       ),
@@ -376,17 +373,19 @@ export const StellarServiceLive = Layer.succeed(
       pipe(
         getStellarConfig(),
         Effect.flatMap((config: Readonly<StellarConfig>) =>
-          Effect.tryPromise({
-            try: async () => {
-              const account = await config.server.loadAccount(config.publicKey);
-              return account.data_attr;
-            },
-            catch: (error) =>
-              new StellarError({
-                cause: error,
-                operation: "load_account",
-              }),
-          })
+          retryTransient(
+            Effect.tryPromise({
+              try: async () => {
+                const account = await config.server.loadAccount(config.publicKey);
+                return account.data_attr;
+              },
+              catch: (error) =>
+                new StellarError({
+                  cause: error,
+                  operation: "load_account",
+                }),
+            }),
+          )
         ),
         Effect.flatMap((dataEntries: Readonly<Record<string, string>>) => {
           const projectEntries = Object.entries(dataEntries)
@@ -502,8 +501,8 @@ export const StellarServiceLive = Layer.succeed(
                         })),
                         Effect.catchAll((error) =>
                           pipe(
-                            Effect.logWarning(
-                              `Failed to enrich supporters for project ${entry.code}: ${String(error)}`,
+                            Effect.log(
+                              `[getProjects] failed to enrich supporters for ${entry.code}: ${String(error)}`,
                             ),
                             Effect.map(() => baseProjectInfo),
                           )
@@ -516,7 +515,7 @@ export const StellarServiceLive = Layer.succeed(
                 ),
                 Effect.catchAll((error) =>
                   pipe(
-                    Effect.logWarning(`Failed to load project ${entry.code}: ${String(error)}`),
+                    Effect.log(`[getProjects] skipping ${entry.code} after retries: ${String(error)}`),
                     Effect.map(() => null),
                   )
                 ),

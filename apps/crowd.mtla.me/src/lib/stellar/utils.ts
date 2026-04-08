@@ -1,77 +1,64 @@
 import type { Horizon } from "@stellar/stellar-sdk";
 import { Effect, pipe } from "effect";
+import { withStaleFallback } from "../cache";
 import type { StellarConfig } from "./config";
 import { StellarError } from "./errors";
+import { retryTransient } from "./retry";
 import type { ProjectData, ProjectDataWithResults, ProjectInfo, SupporterContributionExact } from "./types";
 
-/**
- * In-memory cache for account names
- * TTL: 24 hours (86400000 ms)
- */
-interface CachedName {
-  readonly name: string | undefined;
-  readonly timestamp: number;
-}
-
-const accountNamesCache = new Map<string, CachedName>();
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ACCOUNT_NAME_FRESH_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
- * Get account name from manageData entry "Name" with 24h caching
- * Returns decoded name or undefined if not found
+ * Get account name from manageData entry "Name".
  *
- * Cache rationale:
- * - Account names change very rarely
- * - Reduces Horizon API calls significantly
- * - 24h TTL ensures eventual consistency
+ * Uses the shared `withStaleFallback` cache with a 24h fresh window:
+ * account names change very rarely, so we keep them cached for a day.
+ * If the Horizon lookup fails transiently, an older cached value is
+ * returned.
+ *
+ * Name resolution is best-effort — a failure here must never prevent a
+ * project from rendering. If both the fresh lookup and the stale cache
+ * fail to produce a value, we log and return `undefined`.
+ *
+ * Returns the decoded name or `undefined` if the account has no Name entry.
  */
 export const getAccountName = (
   config: Readonly<StellarConfig>,
   accountId: Readonly<string>,
-): Effect.Effect<string | undefined, StellarError> => {
-  // Check cache first
-  const cached = accountNamesCache.get(accountId);
-  const now = Date.now();
+): Effect.Effect<string | undefined, never> =>
+  pipe(
+    withStaleFallback(
+      `account-name-${accountId}`,
+      retryTransient(
+        Effect.tryPromise({
+          try: async () => {
+            const account = await config.server.loadAccount(accountId);
+            const nameEntry = account.data_attr["Name"];
 
-  if (cached !== undefined && (now - cached.timestamp) < CACHE_TTL_MS) {
-    return pipe(
-      Effect.succeed(cached.name),
-      Effect.tap(() => Effect.log(`[Cache HIT] Account name for ${accountId.slice(0, 8)}...`)),
-    );
-  }
+            if (nameEntry === undefined) {
+              return undefined;
+            }
 
-  // Cache miss or expired - fetch from Horizon
-  return pipe(
-    Effect.tryPromise({
-      try: async () => {
-        const account = await config.server.loadAccount(accountId);
-        const nameEntry = account.data_attr["Name"];
-
-        if (nameEntry === undefined) {
-          return undefined;
-        }
-
-        return Buffer.from(nameEntry, "base64").toString("utf-8");
-      },
-      catch: (error) =>
-        new StellarError({
-          cause: error,
-          operation: "get_account_name",
+            return Buffer.from(nameEntry, "base64").toString("utf-8");
+          },
+          catch: (error) =>
+            new StellarError({
+              cause: error,
+              operation: "get_account_name",
+            }),
         }),
-    }),
-    Effect.tap((name) => {
-      accountNamesCache.set(accountId, { name, timestamp: now });
-      return Effect.log(`[Cache MISS] Account name for ${accountId.slice(0, 8)}...: ${name ?? "undefined"}`);
-    }),
-    Effect.catchAll(() =>
+      ),
+      ACCOUNT_NAME_FRESH_MS,
+    ),
+    Effect.catchAll((error) =>
       pipe(
-        Effect.sync(() => accountNamesCache.set(accountId, { name: undefined, timestamp: now })),
-        Effect.tap(() => Effect.log(`[Cache MISS] Account ${accountId.slice(0, 8)}... not found or has no name`)),
+        Effect.log(
+          `[getAccountName] ${accountId.slice(0, 8)}... lookup failed, returning undefined: ${String(error)}`,
+        ),
         Effect.map(() => undefined),
       )
     ),
   );
-};
 
 /**
  * Enrich supporters array with account names from Stellar manageData
@@ -106,7 +93,9 @@ export const enrichSupportersWithNames = <
           ),
           Effect.catchAll((error) =>
             pipe(
-              Effect.logWarning(`Failed to fetch name for ${supporter.account_id.slice(0, 8)}...: ${String(error)}`),
+              Effect.log(
+                `[enrichSupporters] failed to fetch name for ${supporter.account_id.slice(0, 8)}...: ${String(error)}`,
+              ),
               Effect.map(() => supporter),
             )
           ),
@@ -123,11 +112,15 @@ export const enrichSupportersWithNames = <
   );
 
 /**
- * Fetch project data from IPFS using CID
- * Returns ProjectDataWithResults which includes optional funding results
+ * Fetch project data from IPFS using CID.
+ * Returns ProjectDataWithResults which includes optional funding results.
+ *
+ * Wrapped in `retryTransient`: IPFS gateway latency and intermittent
+ * failures are the primary source of transient errors in the project
+ * fetch path, so aggressive retries pay off here the most.
  */
 export const fetchProjectDataFromIPFS = (cid: string): Effect.Effect<ProjectDataWithResults, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
