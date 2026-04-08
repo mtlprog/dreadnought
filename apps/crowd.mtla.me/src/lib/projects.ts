@@ -1,73 +1,49 @@
 import { Effect, pipe } from "effect";
-import { withCache } from "./cache";
+import { withStaleFallback } from "./cache";
 import { type ProjectInfo, StellarServiceLive, StellarServiceTag } from "./stellar";
 
-/**
- * Cached project fetching service
- */
-export const getProjectsWithCache = (): Effect.Effect<ProjectInfo[], never> =>
-  pipe(
-    withCache(
-      "projects",
-      pipe(
-        Effect.gen(function*() {
-          const stellarService = yield* StellarServiceTag;
-          return yield* stellarService.getProjects();
-        }),
-        Effect.provide(StellarServiceLive),
-      ),
-      60 * 1000, // 1 minutes cache
-    ),
-    Effect.catchAll(() => Effect.succeed([])), // Return empty array on error
-  );
+const PROJECT_FRESH_MS = 60 * 1000; // 1 minute
 
 /**
- * Cached single project fetching service
- */
-export const getProjectWithCache = (code: string): Effect.Effect<ProjectInfo | null, never> =>
-  pipe(
-    withCache(
-      `project-${code.toUpperCase()}`,
-      pipe(
-        Effect.gen(function*() {
-          const stellarService = yield* StellarServiceTag;
-          return yield* stellarService.getProject(code);
-        }),
-        Effect.provide(StellarServiceLive),
-      ),
-      60 * 1000, // 1 minutes cache
-    ),
-    Effect.catchAll(() => Effect.succeed(null)), // Return null on error
-  );
-
-/**
- * Server-side function to get projects data
- * This should be called from server components or API routes
+ * Server-side function to get the list of all projects.
+ *
+ * Cached with stale-fallback: if the live fetch fails but a previous
+ * successful result exists, the old list is served and the failure is
+ * logged. Only a complete failure with no prior cache propagates as an
+ * error (and will trigger the Next.js error boundary → 500 page).
  */
 export const getProjects = async (): Promise<ProjectInfo[]> => {
-  const program = getProjectsWithCache();
+  const program = pipe(
+    Effect.gen(function*() {
+      const stellarService = yield* StellarServiceTag;
+      return yield* stellarService.getProjects();
+    }),
+    Effect.provide(StellarServiceLive),
+    (effect) => withStaleFallback("projects", effect, PROJECT_FRESH_MS),
+  );
 
-  try {
-    // Run the Effect program directly
-    return await Effect.runPromise(program);
-  } catch (error) {
-    console.error("Failed to fetch projects:", error);
-    return [];
-  }
+  return Effect.runPromise(program);
 };
 
 /**
- * Server-side function to get single project data
- * This should be called from server components or API routes
+ * Server-side function to get a single project by code.
+ *
+ * Returns `null` only for a real "project not found" result from the
+ * Stellar service (no matching manageData entry, or no P-token issued).
+ * Transient fetch failures are absorbed by `withStaleFallback` when a
+ * previous successful result exists, otherwise they propagate and are
+ * rendered as a 500 page.
  */
 export const getProject = async (code: string): Promise<ProjectInfo | null> => {
-  const program = getProjectWithCache(code);
+  const key = `project-${code.toUpperCase()}`;
+  const program = pipe(
+    Effect.gen(function*() {
+      const stellarService = yield* StellarServiceTag;
+      return yield* stellarService.getProject(code);
+    }),
+    Effect.provide(StellarServiceLive),
+    (effect) => withStaleFallback(key, effect, PROJECT_FRESH_MS),
+  );
 
-  try {
-    // Run the Effect program directly
-    return await Effect.runPromise(program);
-  } catch (error) {
-    console.error("Failed to fetch project:", error);
-    return null;
-  }
+  return Effect.runPromise(program);
 };
