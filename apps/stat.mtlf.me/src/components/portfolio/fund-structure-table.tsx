@@ -44,7 +44,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
             </span>
           </div>
           <div className="flex justify-between gap-4">
-            <span className="text-steel-gray uppercase font-bold">ORDERBOOK ({details.priceType.toUpperCase()}):</span>
+            <span className="text-steel-gray uppercase font-bold">ORDERBOOK{details.priceType != null ? ` (${details.priceType.toUpperCase()})` : ""}:</span>
             <span className={`${details.chosenSource === "orderbook" ? "text-cyber-green font-bold" : "text-steel-gray"}`}>
               {details.orderbookPrice !== null ? formatNumber(parseFloat(details.orderbookPrice), 7) : "—"}
             </span>
@@ -88,14 +88,14 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
         {details.orderbookData !== null && details.orderbookData !== undefined && (
           <div className="text-[10px] space-y-2 pt-2 border-t border-steel-gray/30">
             {/* Best source indicator */}
-            {details.orderbookData.bestSource !== "none" && (
+            {details.orderbookData.bestSource != null && details.orderbookData.bestSource !== "none" && (
               <div className="text-electric-cyan uppercase text-[9px] font-bold">
                 BEST SOURCE: {details.orderbookData.bestSource.toUpperCase()}
               </div>
             )}
 
             {/* Orderbook prices */}
-            {(details.orderbookData.orderbook.ask !== null || details.orderbookData.orderbook.bid !== null) && (
+            {(details.orderbookData.orderbook?.ask != null || details.orderbookData.orderbook?.bid != null) && (
               <div className="space-y-0.5">
                 <div className="text-steel-gray uppercase text-[9px] font-bold">ORDERBOOK:</div>
                 <div className="flex justify-between gap-3">
@@ -103,7 +103,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                     ASK:
                   </span>
                   <span className={`font-mono ${details.priceType === "ask" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.orderbook.ask !== null ? formatNumber(parseFloat(details.orderbookData.orderbook.ask), 7) : "—"}
+                    {details.orderbookData.orderbook?.ask != null ? formatNumber(parseFloat(details.orderbookData.orderbook.ask), 7) : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
@@ -111,14 +111,14 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                     BID:
                   </span>
                   <span className={`font-mono ${details.priceType === "bid" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.orderbook.bid !== null ? formatNumber(parseFloat(details.orderbookData.orderbook.bid), 7) : "—"}
+                    {details.orderbookData.orderbook?.bid != null ? formatNumber(parseFloat(details.orderbookData.orderbook.bid), 7) : "—"}
                   </span>
                 </div>
               </div>
             )}
 
             {/* AMM prices */}
-            {(details.orderbookData.amm.ask !== null || details.orderbookData.amm.bid !== null) && (
+            {(details.orderbookData.amm?.ask != null || details.orderbookData.amm?.bid != null) && (
               <div className="space-y-0.5">
                 <div className="text-steel-gray uppercase text-[9px] font-bold">AMM POOL:</div>
                 <div className="flex justify-between gap-3">
@@ -126,7 +126,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                     ASK:
                   </span>
                   <span className={`font-mono ${details.priceType === "ask" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.amm.ask !== null ? formatNumber(parseFloat(details.orderbookData.amm.ask), 7) : "—"}
+                    {details.orderbookData.amm?.ask != null ? formatNumber(parseFloat(details.orderbookData.amm.ask), 7) : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
@@ -134,7 +134,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                     BID:
                   </span>
                   <span className={`font-mono ${details.priceType === "bid" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.amm.bid !== null ? formatNumber(parseFloat(details.orderbookData.amm.bid), 7) : "—"}
+                    {details.orderbookData.amm?.bid != null ? formatNumber(parseFloat(details.orderbookData.amm.bid), 7) : "—"}
                   </span>
                 </div>
               </div>
@@ -183,14 +183,14 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
               {showOrderbookDetails && hop.orderbook !== null && hop.orderbook !== undefined && (
                 <div className="pl-2 space-y-1.5 text-[10px]">
                   {/* Best source indicator */}
-                  {hop.orderbook.bestSource !== "none" && (
+                  {hop.orderbook.bestSource != null && hop.orderbook.bestSource !== "none" && (
                     <div className="text-electric-cyan uppercase text-[9px] font-bold">
                       BEST: {hop.orderbook.bestSource.toUpperCase()}
                     </div>
                   )}
 
                   {/* Orderbook prices */}
-                  {(hop.orderbook.orderbook.ask !== null || hop.orderbook.orderbook.bid !== null) && (
+                  {(hop.orderbook.orderbook?.ask != null || hop.orderbook.orderbook?.bid != null) && (
                     <div className="space-y-0.5">
                       <div className="text-steel-gray uppercase text-[9px] font-bold">ORDERBOOK:</div>
                       <div className="flex justify-between gap-3">
@@ -198,7 +198,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                           ASK:
                         </span>
                         <span className={`font-mono ${hop.orderbook.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
-                          {hop.orderbook.orderbook.ask !== null ? formatNumber(parseFloat(hop.orderbook.orderbook.ask), 7) : "—"}
+                          {hop.orderbook.orderbook?.ask != null ? formatNumber(parseFloat(hop.orderbook.orderbook.ask), 7) : "—"}
                         </span>
                       </div>
                       <div className="flex justify-between gap-3">
@@ -206,14 +206,14 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                           BID:
                         </span>
                         <span className={`font-mono ${hop.orderbook.bestSource === "orderbook" ? "text-warning-amber" : "text-steel-gray"}`}>
-                          {hop.orderbook.orderbook.bid !== null ? formatNumber(parseFloat(hop.orderbook.orderbook.bid), 7) : "—"}
+                          {hop.orderbook.orderbook?.bid != null ? formatNumber(parseFloat(hop.orderbook.orderbook.bid), 7) : "—"}
                         </span>
                       </div>
                     </div>
                   )}
 
                   {/* AMM prices */}
-                  {(hop.orderbook.amm.ask !== null || hop.orderbook.amm.bid !== null) && (
+                  {(hop.orderbook.amm?.ask != null || hop.orderbook.amm?.bid != null) && (
                     <div className="space-y-0.5 pt-1">
                       <div className="text-steel-gray uppercase text-[9px] font-bold">AMM POOL:</div>
                       <div className="flex justify-between gap-3">
@@ -221,7 +221,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                           ASK:
                         </span>
                         <span className={`font-mono ${hop.orderbook.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
-                          {hop.orderbook.amm.ask !== null ? formatNumber(parseFloat(hop.orderbook.amm.ask), 7) : "—"}
+                          {hop.orderbook.amm?.ask != null ? formatNumber(parseFloat(hop.orderbook.amm.ask), 7) : "—"}
                         </span>
                       </div>
                       <div className="flex justify-between gap-3">
@@ -229,10 +229,10 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                           BID:
                         </span>
                         <span className={`font-mono ${hop.orderbook.bestSource === "amm" ? "text-warning-amber" : "text-steel-gray"}`}>
-                          {hop.orderbook.amm.bid !== null ? formatNumber(parseFloat(hop.orderbook.amm.bid), 7) : "—"}
+                          {hop.orderbook.amm?.bid != null ? formatNumber(parseFloat(hop.orderbook.amm.bid), 7) : "—"}
                         </span>
                       </div>
-                      {hop.orderbook.amm.poolId !== null && hop.orderbook.amm.poolId !== undefined && (
+                      {hop.orderbook.amm?.poolId != null && (
                         <div className="text-steel-gray text-[9px] mt-0.5 truncate" title={hop.orderbook.amm.poolId}>
                           Pool: {hop.orderbook.amm.poolId.substring(0, 8)}...
                         </div>

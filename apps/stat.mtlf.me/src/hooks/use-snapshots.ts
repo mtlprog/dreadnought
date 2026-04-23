@@ -11,7 +11,7 @@ interface UseSnapshotsState {
   error: string | null;
 }
 
-export function useSnapshots(): UseSnapshotsState {
+export function useSnapshots(baseUrl = ""): UseSnapshotsState {
   const [state, setState] = useState<UseSnapshotsState>({
     snapshots: [],
     isLoading: true,
@@ -25,7 +25,7 @@ export function useSnapshots(): UseSnapshotsState {
       try {
         setState({ snapshots: [], isLoading: true, error: null });
 
-        const response = await fetch("/api/snapshots");
+        const response = await fetch(`${baseUrl}/api/snapshots`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -52,7 +52,7 @@ export function useSnapshots(): UseSnapshotsState {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [baseUrl]);
 
   return state;
 }

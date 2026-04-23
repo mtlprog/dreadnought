@@ -3,6 +3,7 @@
 import { FundStructureLoading } from "@/components/ui/loading-skeleton";
 import { useFundData } from "@/hooks/use-fund-data";
 import { useSnapshots } from "@/hooks/use-snapshots";
+import { API_ENDPOINTS, DEFAULT_ENDPOINT, loadEndpoint, saveEndpoint } from "@/lib/api-endpoints";
 import { FundStructureTable } from "./fund-structure-table";
 import {
   Select,
@@ -11,46 +12,53 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function PortfolioDemo() {
+  const [baseUrl, setBaseUrl] = useState(DEFAULT_ENDPOINT);
+
+  useEffect(() => {
+    setBaseUrl(loadEndpoint());
+  }, []);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const { snapshots, isLoading: snapshotsLoading } = useSnapshots();
-  const { data: fundData, isLoading, error } = useFundData(selectedDate);
+  const { snapshots, isLoading: snapshotsLoading } = useSnapshots(baseUrl);
+  const { data: fundData, isLoading, error } = useFundData(selectedDate, baseUrl);
 
-  if (error != null) {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <div className="border border-red-500 bg-red-500/10 p-6">
-          <h2 className="font-mono text-red-500 uppercase tracking-wider text-xl mb-2">
-            ❌ ОШИБКА ЗАГРУЗКИ
-          </h2>
-          <p className="font-mono text-red-400">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 bg-red-500 text-white px-4 py-2 font-mono uppercase tracking-wider hover:bg-red-600 transition-colors"
-          >
-            Обновить страницу
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const LOCAL_SENTINEL = "__local__";
 
-  if (isLoading === true) {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <FundStructureLoading accountCount={8} />
-      </div>
-    );
-  }
+  const handleEndpointChange = (value: string) => {
+    const url = value === LOCAL_SENTINEL ? "" : value;
+    setBaseUrl(url);
+    saveEndpoint(url);
+    setSelectedDate(null);
+  };
 
   return (
     <div className="container mx-auto px-4 py-16">
-      {/* Snapshot date selector */}
-      <div className="mb-8 flex items-center justify-end gap-4">
+      {/* Endpoint and snapshot selectors */}
+      <div className="mb-8 flex items-center justify-end gap-4 flex-wrap">
         <label className="font-mono text-sm uppercase tracking-wider text-steel-gray">
-          ВЫБРАТЬ SNAPSHOT:
+          ИСТОЧНИК:
+        </label>
+        <Select value={baseUrl || LOCAL_SENTINEL} onValueChange={handleEndpointChange}>
+          <SelectTrigger className="w-[220px] border-electric-cyan bg-background font-mono text-sm uppercase">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="border-electric-cyan bg-background">
+            {API_ENDPOINTS.map((ep) => (
+              <SelectItem
+                key={ep.label}
+                value={ep.value || LOCAL_SENTINEL}
+                className="font-mono text-sm uppercase cursor-pointer hover:bg-electric-cyan/20"
+              >
+                {ep.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <label className="font-mono text-sm uppercase tracking-wider text-steel-gray">
+          SNAPSHOT:
         </label>
         <Select
           value={selectedDate ?? "latest"}
@@ -83,6 +91,17 @@ export function PortfolioDemo() {
           </SelectContent>
         </Select>
       </div>
+
+      {error != null && (
+        <div className="border border-red-500 bg-red-500/10 p-6">
+          <h2 className="font-mono text-red-500 uppercase tracking-wider text-xl mb-2">
+            ОШИБКА ЗАГРУЗКИ
+          </h2>
+          <p className="font-mono text-red-400">{error}</p>
+        </div>
+      )}
+
+      {isLoading && <FundStructureLoading accountCount={8} />}
 
       {fundData != null && <FundStructureTable fundData={fundData} isLoading={false} />}
     </div>
