@@ -3,7 +3,7 @@
 import { FundStructureLoading } from "@/components/ui/loading-skeleton";
 import { useFundData } from "@/hooks/use-fund-data";
 import { useSnapshots } from "@/hooks/use-snapshots";
-import { API_ENDPOINTS, DEFAULT_ENDPOINT, loadEndpoint, saveEndpoint } from "@/lib/api-endpoints";
+import { API_ENDPOINTS, LOCAL_SENTINEL, loadEndpoint, saveEndpoint } from "@/lib/api-endpoints";
 import { FundStructureTable } from "./fund-structure-table";
 import {
   Select,
@@ -12,19 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export function PortfolioDemo() {
-  const [baseUrl, setBaseUrl] = useState(DEFAULT_ENDPOINT);
-
-  useEffect(() => {
-    setBaseUrl(loadEndpoint());
-  }, []);
+  const [baseUrl, setBaseUrl] = useState(loadEndpoint);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const { snapshots, isLoading: snapshotsLoading } = useSnapshots(baseUrl);
+  const { snapshots, isLoading: snapshotsLoading, error: snapshotsError } = useSnapshots(baseUrl);
   const { data: fundData, isLoading, error } = useFundData(selectedDate, baseUrl);
-
-  const LOCAL_SENTINEL = "__local__";
 
   const handleEndpointChange = (value: string) => {
     const url = value === LOCAL_SENTINEL ? "" : value;
@@ -92,12 +86,12 @@ export function PortfolioDemo() {
         </Select>
       </div>
 
-      {error != null && (
+      {(error ?? snapshotsError) != null && (
         <div className="border border-red-500 bg-red-500/10 p-6">
           <h2 className="font-mono text-red-500 uppercase tracking-wider text-xl mb-2">
             ОШИБКА ЗАГРУЗКИ
           </h2>
-          <p className="font-mono text-red-400">{error}</p>
+          <p className="font-mono text-red-400">{error ?? snapshotsError}</p>
         </div>
       )}
 
