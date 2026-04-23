@@ -49,4 +49,20 @@ describe("formatNumber", () => {
     expect(result).not.toContain(" "); // Regular space
     expect(result).not.toContain(","); // Comma separator
   });
+
+  test("should handle string values", () => {
+    expect(formatNumber("1234567.89", 2)).toBe("1\u202F234\u202F567.89");
+    expect(formatNumber("1234.5678", 7)).toBe("1\u202F234.5678000");
+    expect(formatNumber("0", 2)).toBe("0.00");
+  });
+
+  test("should handle non-numeric strings as zero", () => {
+    expect(formatNumber("not-a-number", 2)).toBe("0.00");
+    expect(formatNumber("", 2)).toBe("0.00");
+  });
+
+  test("should handle null and undefined", () => {
+    expect(formatNumber(null, 2)).toBe("0.00");
+    expect(formatNumber(undefined, 2)).toBe("0.00");
+  });
 });
