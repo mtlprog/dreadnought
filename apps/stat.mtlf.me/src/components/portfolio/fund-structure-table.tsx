@@ -5,6 +5,7 @@ import { StellarAccount } from "@/components/ui/stellar-account";
 import { StellarAsset } from "@/components/ui/stellar-asset";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { BlockchainExplorer } from "@/lib/blockchain-explorer";
 import type { FundAccountPortfolio, FundStructureData } from "@/lib/stellar/fund-structure-service";
 import type { PriceDetails } from "@/lib/stellar/types";
 import { formatNumber } from "@/lib/utils";
@@ -14,6 +15,7 @@ import { FundSummaryMetrics } from "./fund-summary-metrics";
 
 interface FundStructureTableProps {
   fundData: FundStructureData;
+  explorer: BlockchainExplorer;
   isLoading?: boolean;
 }
 
@@ -280,7 +282,7 @@ function AccountTypeIndicator({ type }: { type: "issuer" | "subfond" | "mutual" 
   );
 }
 
-function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountPortfolio; hideIlliquidTokens: boolean }) {
+function AccountSection({ account, hideIlliquidTokens, explorer }: { account: FundAccountPortfolio; hideIlliquidTokens: boolean; explorer: BlockchainExplorer }) {
   // Filter tokens based on hideIlliquidTokens setting
   const filteredTokens = hideIlliquidTokens
     ? account.tokens.filter((token) => token.valueInEURMTL !== null && token.valueInEURMTL !== undefined)
@@ -301,7 +303,7 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
             <p className="text-sm font-mono text-steel-gray mt-1">
               {account.description}
             </p>
-            <StellarAccount accountId={account.id} className="mt-1" />
+            <StellarAccount accountId={account.id} explorer={explorer} className="mt-1" />
           </div>
           <div className="text-right">
             <div className="text-sm font-mono text-steel-gray uppercase">ИТОГО СЧЁТА</div>
@@ -321,7 +323,7 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
           <TableBody>
             <TableRow className="border-border">
               <TableCell className="w-32">
-                <StellarAsset assetCode="XLM" />
+                <StellarAsset assetCode="XLM" explorer={explorer} />
               </TableCell>
               <TableCell className="font-mono text-foreground w-40">
                 {formatNumber(parseFloat(account.xlmBalance), 7)}
@@ -349,6 +351,7 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
                   <StellarAsset
                     assetCode={token.asset.code}
                     assetIssuer={token.asset.issuer}
+                    explorer={explorer}
                   />
                 </TableCell>
                 <TableCell className="font-mono text-foreground">
@@ -593,7 +596,7 @@ function AccountSection({ account, hideIlliquidTokens }: { account: FundAccountP
   );
 }
 
-export function FundStructureTable({ fundData, isLoading = false }: FundStructureTableProps) {
+export function FundStructureTable({ fundData, explorer, isLoading = false }: FundStructureTableProps) {
   const [hideIlliquidTokens, setHideIlliquidTokens] = React.useState(false);
 
   if (isLoading) {
@@ -713,7 +716,7 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
             {/* Account Sections */}
             <div className="space-y-6">
               {fundData.accounts.map((account, index) => (
-                <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} />
+                <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} explorer={explorer} />
               ))}
             </div>
           </div>
@@ -837,7 +840,7 @@ export function FundStructureTable({ fundData, isLoading = false }: FundStructur
               {/* Other Account Sections */}
               <div className="space-y-6">
                 {fundData.otherAccounts.map((account, index) => (
-                  <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} />
+                  <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} explorer={explorer} />
                 ))}
               </div>
             </div>

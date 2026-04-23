@@ -1,9 +1,10 @@
 "use client";
 
 import * as S from "@effect/schema/Schema";
-import { Effect, pipe } from "effect";
+import { Effect, Option, pipe } from "effect";
 import { Copy, ExternalLink } from "lucide-react";
 import { useState } from "react";
+import type { BlockchainExplorer } from "@/lib/blockchain-explorer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 // Error definitions
@@ -17,11 +18,12 @@ export class ClipboardError extends S.TaggedError<ClipboardError>()(
 
 interface StellarAccountProps {
   accountId: string;
+  explorer: BlockchainExplorer;
   className?: string;
   showIcon?: boolean;
 }
 
-export function StellarAccount({ accountId, className = "", showIcon = true }: StellarAccountProps) {
+export function StellarAccount({ accountId, explorer, className = "", showIcon = true }: StellarAccountProps) {
   const [copied, setCopied] = useState(false);
 
   const formatAddress = (address: string): string => {
@@ -58,26 +60,34 @@ export function StellarAccount({ accountId, className = "", showIcon = true }: S
     });
   };
 
-  const openInStellarExpert = () => {
-    const program = pipe(
-      Effect.sync(() => window.open(`https://stellar.expert/explorer/public/account/${accountId}`, "_blank")),
-      Effect.tap(() => Effect.log(`Opened Stellar Expert for account: ${accountId}`)),
-    );
+  const url = explorer.accountUrl(accountId);
 
-    Effect.runSync(program);
+  const openInExplorer = () => {
+    Option.match(url, {
+      onNone: () => {},
+      onSome: (href) => window.open(href, "_blank"),
+    });
   };
+
+  const addressElement = Option.isSome(url) ? (
+    <button
+      onClick={openInExplorer}
+      className="font-mono text-steel-gray hover:text-cyber-green transition-colors cursor-pointer"
+    >
+      {formatAddress(accountId)}
+      {showIcon && <ExternalLink className="w-3 h-3 inline ml-1" />}
+    </button>
+  ) : (
+    <span className="font-mono text-steel-gray">
+      {formatAddress(accountId)}
+    </span>
+  );
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
-            onClick={openInStellarExpert}
-            className="font-mono text-steel-gray hover:text-cyber-green transition-colors cursor-pointer"
-          >
-            {formatAddress(accountId)}
-            {showIcon && <ExternalLink className="w-3 h-3 inline ml-1" />}
-          </button>
+          {addressElement}
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
           <div className="font-mono space-y-2">
@@ -98,7 +108,7 @@ export function StellarAccount({ accountId, className = "", showIcon = true }: S
         </TooltipTrigger>
         <TooltipContent side="top">
           <div className="font-mono text-xs">
-            {copied ? "✅ COPIED!" : "Copy account ID"}
+            {copied ? "COPIED" : "Copy account ID"}
           </div>
         </TooltipContent>
       </Tooltip>

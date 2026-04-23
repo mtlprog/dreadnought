@@ -4,6 +4,7 @@ import { FundStructureLoading } from "@/components/ui/loading-skeleton";
 import { useFundData } from "@/hooks/use-fund-data";
 import { useSnapshots } from "@/hooks/use-snapshots";
 import { API_ENDPOINTS, LOCAL_SENTINEL, loadEndpoint, saveEndpoint } from "@/lib/api-endpoints";
+import { EXPLORERS, loadExplorer, saveExplorer } from "@/lib/blockchain-explorer";
 import { FundStructureTable } from "./fund-structure-table";
 import {
   Select,
@@ -17,6 +18,7 @@ import { useState } from "react";
 export function PortfolioDemo() {
   const [baseUrl, setBaseUrl] = useState(loadEndpoint);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [explorer, setExplorer] = useState(loadExplorer);
   const { snapshots, isLoading: snapshotsLoading, error: snapshotsError } = useSnapshots(baseUrl);
   const { data: fundData, isLoading, error } = useFundData(selectedDate, baseUrl);
 
@@ -27,15 +29,22 @@ export function PortfolioDemo() {
     setSelectedDate(null);
   };
 
+  const handleExplorerChange = (explorerId: string) => {
+    const selected = EXPLORERS.find((e) => e.id === explorerId);
+    if (selected === undefined) return;
+    setExplorer(selected);
+    saveExplorer(explorerId);
+  };
+
   return (
     <div className="container mx-auto px-4 py-16">
-      {/* Endpoint and snapshot selectors */}
-      <div className="mb-8 flex items-center justify-end gap-4 flex-wrap">
-        <label className="font-mono text-sm uppercase tracking-wider text-steel-gray">
-          ИСТОЧНИК:
+      {/* Endpoint, explorer, and snapshot selectors */}
+      <div className="mb-8 grid grid-cols-[auto_1fr] sm:grid-cols-[auto_auto_auto_auto_auto_auto] items-center gap-x-4 gap-y-3 sm:justify-end">
+        <label className="font-mono text-sm uppercase tracking-wider text-steel-gray whitespace-nowrap">
+          SOURCE:
         </label>
         <Select value={baseUrl || LOCAL_SENTINEL} onValueChange={handleEndpointChange}>
-          <SelectTrigger className="w-[220px] border-electric-cyan bg-background font-mono text-sm uppercase">
+          <SelectTrigger className="w-full sm:w-[200px] border-electric-cyan bg-background font-mono text-sm uppercase">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="border-electric-cyan bg-background">
@@ -51,7 +60,27 @@ export function PortfolioDemo() {
           </SelectContent>
         </Select>
 
-        <label className="font-mono text-sm uppercase tracking-wider text-steel-gray">
+        <label className="font-mono text-sm uppercase tracking-wider text-steel-gray whitespace-nowrap">
+          EXPLORER:
+        </label>
+        <Select value={explorer.id} onValueChange={handleExplorerChange}>
+          <SelectTrigger className="w-full sm:w-[200px] border-electric-cyan bg-background font-mono text-sm uppercase">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="border-electric-cyan bg-background">
+            {EXPLORERS.map((e) => (
+              <SelectItem
+                key={e.id}
+                value={e.id}
+                className="font-mono text-sm uppercase cursor-pointer hover:bg-electric-cyan/20"
+              >
+                {e.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <label className="font-mono text-sm uppercase tracking-wider text-steel-gray whitespace-nowrap">
           SNAPSHOT:
         </label>
         <Select
@@ -59,15 +88,15 @@ export function PortfolioDemo() {
           onValueChange={(value) => setSelectedDate(value === "latest" ? null : value)}
           disabled={snapshotsLoading}
         >
-          <SelectTrigger className="w-[280px] border-electric-cyan bg-background font-mono text-sm uppercase">
-            <SelectValue placeholder="ЗАГРУЗКА..." />
+          <SelectTrigger className="w-full sm:w-[260px] border-electric-cyan bg-background font-mono text-sm uppercase">
+            <SelectValue placeholder="LOADING..." />
           </SelectTrigger>
           <SelectContent className="max-h-[400px] border-electric-cyan bg-background">
             <SelectItem
               value="latest"
               className="font-mono text-sm uppercase cursor-pointer hover:bg-electric-cyan/20"
             >
-              ↗ ПОСЛЕДНИЙ SNAPSHOT
+              LATEST SNAPSHOT
             </SelectItem>
             {snapshots.map((snapshot) => (
               <SelectItem
@@ -97,7 +126,7 @@ export function PortfolioDemo() {
 
       {isLoading && <FundStructureLoading accountCount={8} />}
 
-      {fundData != null && <FundStructureTable fundData={fundData} isLoading={false} />}
+      {fundData != null && <FundStructureTable fundData={fundData} explorer={explorer} isLoading={false} />}
     </div>
   );
 }

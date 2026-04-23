@@ -1,8 +1,11 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { StellarAccount } from "@/components/ui/stellar-account";
+import { StellarAsset } from "@/components/ui/stellar-asset";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { BlockchainExplorer } from "@/lib/blockchain-explorer";
 import type { TokenPriceWithBalance } from "@/lib/stellar/price-service";
 import type { PriceDetails } from "@/lib/stellar/types";
 import { formatNumber } from "@/lib/utils";
@@ -13,16 +16,8 @@ interface PortfolioTableProps {
   tokens: readonly TokenPriceWithBalance[];
   xlmBalance: string;
   xlmPriceInEURMTL?: string | undefined;
+  explorer: BlockchainExplorer;
   isLoading?: boolean;
-}
-
-function formatTokenName(code: string): string {
-  if (code === "XLM") return "XLM";
-  return `${code}`;
-}
-
-function formatAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
 function formatPriceTooltip(details?: PriceDetails): React.ReactNode {
@@ -61,6 +56,7 @@ export function PortfolioTable({
   tokens,
   xlmBalance,
   xlmPriceInEURMTL,
+  explorer,
   isLoading = false,
 }: PortfolioTableProps) {
   // Filter out tokens that have no price in both XLM and EURMTL (illiquid service tokens)
@@ -98,7 +94,10 @@ export function PortfolioTable({
         <Card className="p-0 border-0 bg-black text-white overflow-hidden">
           <div className="bg-cyber-green text-black p-6">
             <h2 className="text-3xl font-mono uppercase tracking-wider">ПОРТФЕЛЬ</h2>
-            <p className="text-lg font-mono mt-2">СЧЕТ: {formatAddress(accountId)}</p>
+            <div className="text-lg font-mono mt-2 flex items-center gap-2">
+              <span>СЧЕТ:</span>
+              <StellarAccount accountId={accountId} explorer={explorer} className="[&_button]:text-background [&_button]:hover:text-steel-gray" />
+            </div>
           </div>
 
           <div className="p-6">
@@ -122,7 +121,9 @@ export function PortfolioTable({
               <TableBody>
                 {/* XLM Balance */}
                 <TableRow className="border-steel-gray hover:bg-steel-gray/10">
-                  <TableCell className="font-mono text-cyber-green">XLM</TableCell>
+                  <TableCell>
+                    <StellarAsset assetCode="XLM" explorer={explorer} />
+                  </TableCell>
                   <TableCell className="font-mono text-white">{formatNumber(parseFloat(xlmBalance), 7)}</TableCell>
                   <TableCell className="text-right font-mono text-white">
                     {xlmPriceInEURMTL != null && xlmPriceInEURMTL !== ""
@@ -143,8 +144,8 @@ export function PortfolioTable({
                 {/* Other Tokens */}
                 {liquidTokens.map((token, index) => (
                   <TableRow key={index} className="border-steel-gray hover:bg-steel-gray/10">
-                    <TableCell className="font-mono text-cyber-green">
-                      {formatTokenName(token.asset.code)}
+                    <TableCell>
+                      <StellarAsset assetCode={token.asset.code} assetIssuer={token.asset.issuer} explorer={explorer} />
                     </TableCell>
                     <TableCell className="font-mono text-white">
                       {formatNumber(parseFloat(token.balance), token.asset.code === "EURMTL" ? 2 : 7)}
