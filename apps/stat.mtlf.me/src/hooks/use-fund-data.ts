@@ -7,7 +7,7 @@ interface UseFundDataState {
   error: string | null;
 }
 
-export function useFundData(selectedDate?: string | null): UseFundDataState {
+export function useFundData(selectedDate?: string | null, baseUrl = ""): UseFundDataState {
   const [state, setState] = useState<UseFundDataState>({
     data: null,
     isLoading: true,
@@ -22,9 +22,11 @@ export function useFundData(selectedDate?: string | null): UseFundDataState {
         setState({ data: null, isLoading: true, error: null });
 
         // Build URL with optional date parameter
-        const url = selectedDate
-          ? `/api/fund-structure?date=${selectedDate}`
-          : "/api/fund-structure";
+        // Normalize date to YYYY-MM-DD (external APIs may return ISO timestamps)
+        const dateParam = selectedDate?.split("T")[0];
+        const url = dateParam
+          ? `${baseUrl}/api/fund-structure?date=${dateParam}`
+          : `${baseUrl}/api/fund-structure`;
 
         const response = await fetch(url);
 
@@ -53,7 +55,7 @@ export function useFundData(selectedDate?: string | null): UseFundDataState {
     return () => {
       mounted = false;
     };
-  }, [selectedDate]);
+  }, [selectedDate, baseUrl]);
 
   return state;
 }
