@@ -1,5 +1,6 @@
 "use client";
 
+import type { BlockchainExplorer } from "@/lib/blockchain-explorer";
 import type { TokenPriceWithBalance } from "@/lib/stellar/price-service";
 import { handleStateError } from "@/lib/utils/error-handling";
 import * as S from "@effect/schema/Schema";
@@ -26,9 +27,10 @@ interface PortfolioData {
 
 interface PortfolioClientProps {
   initialData?: PortfolioData;
+  explorer: BlockchainExplorer;
 }
 
-export function PortfolioClient({ initialData }: PortfolioClientProps) {
+export function PortfolioClient({ initialData, explorer }: PortfolioClientProps) {
   const [data, setData] = useState<PortfolioData | null>(initialData ?? null);
   const [loading, setLoading] = useState(initialData == null);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +111,7 @@ export function PortfolioClient({ initialData }: PortfolioClientProps) {
           accountId="GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V"
           tokens={[]}
           xlmBalance="0"
+          explorer={explorer}
           isLoading={true}
         />
       </div>
@@ -131,6 +134,7 @@ export function PortfolioClient({ initialData }: PortfolioClientProps) {
         accountId={data.accountId}
         tokens={data.tokens}
         xlmBalance={data.xlmBalance}
+        explorer={explorer}
         xlmPriceInEURMTL={data.xlmPriceInEURMTL}
         isLoading={false}
       />
