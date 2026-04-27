@@ -5,8 +5,9 @@ import { StellarAccount } from "@/components/ui/stellar-account";
 import { StellarAsset } from "@/components/ui/stellar-asset";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { FundSnapshotView } from "@/lib/api/snapshots";
 import type { BlockchainExplorer } from "@/lib/blockchain-explorer";
-import type { FundAccountPortfolio, FundStructureData } from "@/lib/stellar/fund-structure-service";
+import type { FundAccountPortfolio } from "@/lib/stellar/fund-structure-service";
 import type { PriceDetails } from "@/lib/stellar/types";
 import { formatNumber } from "@/lib/utils";
 import React from "react";
@@ -14,7 +15,7 @@ import { FilterTogglePanel } from "./filter-toggle-panel";
 import { FundSummaryMetrics } from "./fund-summary-metrics";
 
 interface FundStructureTableProps {
-  fundData: FundStructureData;
+  fundData: FundSnapshotView;
   explorer: BlockchainExplorer;
   isLoading?: boolean;
 }
@@ -610,17 +611,20 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
     );
   }
 
+  const totals = fundData.aggregatedTotals;
+
   return (
     <TooltipProvider>
       <div className="space-y-8">
-        {/* Fund Summary Metrics */}
-        <FundSummaryMetrics
-          totalEURMTL={fundData.aggregatedTotals.totalEURMTL}
-          totalXLM={fundData.aggregatedTotals.totalXLM}
-          accountCount={fundData.aggregatedTotals.accountCount}
-          tokenCount={fundData.aggregatedTotals.tokenCount}
-          isLoading={isLoading}
-        />
+        {totals !== null && (
+          <FundSummaryMetrics
+            totalEURMTL={totals.totalEURMTL}
+            totalXLM={totals.totalXLM}
+            accountCount={totals.accountCount}
+            tokenCount={totals.tokenCount}
+            isLoading={isLoading}
+          />
+        )}
 
         {/* Filter Toggle Panel */}
         <FilterTogglePanel
@@ -631,9 +635,11 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
         <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
           <div className="bg-cyber-green text-background p-6">
             <h2 className="text-3xl font-mono uppercase tracking-wider">СТРУКТУРА ФОНДА MONTELIBERO</h2>
-            <p className="text-lg font-mono mt-2">
-              {fundData.aggregatedTotals.accountCount} СЧЕТОВ // {fundData.aggregatedTotals.tokenCount} ТОКЕНОВ
-            </p>
+            {totals !== null && (
+              <p className="text-lg font-mono mt-2">
+                {totals.accountCount} СЧЕТОВ // {totals.tokenCount} ТОКЕНОВ
+              </p>
+            )}
           </div>
 
           <div className="p-6">
@@ -721,33 +727,34 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
             </div>
           </div>
 
-          {/* Aggregated Totals */}
-          <div className="border-t-4 border-cyber-green bg-cyber-green/10 p-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="text-3xl font-mono uppercase tracking-wider text-cyber-green">
-                  ОБЩИЙ ИТОГ ФОНДА
-                </span>
-                <div className="text-sm font-mono text-steel-gray mt-2">
-                  {fundData.aggregatedTotals.accountCount} СЧЕТОВ • {fundData.aggregatedTotals.tokenCount} ТОКЕНОВ
-                </div>
-              </div>
-              <div className="flex space-x-12">
-                <div className="text-right">
-                  <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО EURMTL</div>
-                  <div className="text-4xl font-mono text-warning-amber">
-                    {formatNumber(fundData.aggregatedTotals.totalEURMTL, 2)}
+          {totals !== null && (
+            <div className="border-t-4 border-cyber-green bg-cyber-green/10 p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="text-3xl font-mono uppercase tracking-wider text-cyber-green">
+                    ОБЩИЙ ИТОГ ФОНДА
+                  </span>
+                  <div className="text-sm font-mono text-steel-gray mt-2">
+                    {totals.accountCount} СЧЕТОВ • {totals.tokenCount} ТОКЕНОВ
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО XLM</div>
-                  <div className="text-4xl font-mono text-warning-amber">
-                    {formatNumber(fundData.aggregatedTotals.totalXLM, 7)}
+                <div className="flex space-x-12">
+                  <div className="text-right">
+                    <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО EURMTL</div>
+                    <div className="text-4xl font-mono text-warning-amber">
+                      {formatNumber(totals.totalEURMTL, 2)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО XLM</div>
+                    <div className="text-4xl font-mono text-warning-amber">
+                      {formatNumber(totals.totalXLM, 7)}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </Card>
 
         {/* Other Accounts Section (separate from main fund totals) */}
