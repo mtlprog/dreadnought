@@ -111,4 +111,59 @@ describe("IndicatorsGrid", () => {
     expect(screen.getByRole("button", { name: "CARDS" }).getAttribute("aria-pressed")).toBe("true");
     expect(screen.getByRole("button", { name: "LIST" }).getAttribute("aria-pressed")).toBe("false");
   });
+
+  test("ID search \"I30\" filters to id=30 row only", () => {
+    const items: Indicator[] = [
+      make(26, "EURMTL Volume", "Volume metric"),
+      make(30, "Price Book Ratio", "Book ratio metric"),
+    ];
+    render(<IndicatorsGrid data={items} isLoading={false} error={null} />);
+    fireEvent.change(screen.getByLabelText("Search indicators"), { target: { value: "I30" } });
+    expect(screen.getByText("Price Book Ratio")).toBeDefined();
+    expect(screen.queryByText("EURMTL Volume")).toBeNull();
+  });
+
+  test("ID prefix \"I3\" includes id=30 but excludes id=130", () => {
+    const items: Indicator[] = [
+      make(30, "Three", ""),
+      make(130, "OneThirty", ""),
+    ];
+    render(<IndicatorsGrid data={items} isLoading={false} error={null} />);
+    fireEvent.change(screen.getByLabelText("Search indicators"), { target: { value: "I3" } });
+    expect(screen.getByText("Three")).toBeDefined();
+    expect(screen.queryByText("OneThirty")).toBeNull();
+  });
+
+  test("list view ready: header row is rendered", () => {
+    render(<IndicatorsGrid data={sample} isLoading={false} error={null} />);
+    expect(screen.getByText("ID")).toBeDefined();
+    expect(screen.getByText("NAME")).toBeDefined();
+    expect(screen.getByText("VALUE")).toBeDefined();
+    expect(screen.getByText("30D")).toBeDefined();
+  });
+
+  test("list view loading: header row is rendered", () => {
+    render(<IndicatorsGrid data={[]} isLoading={true} error={null} />);
+    expect(screen.getByText("ID")).toBeDefined();
+    expect(screen.getByText("NAME")).toBeDefined();
+  });
+
+  test("cards view ready: header row is NOT rendered", () => {
+    render(<IndicatorsGrid data={sample} isLoading={false} error={null} />);
+    fireEvent.click(screen.getByRole("button", { name: "CARDS" }));
+    expect(screen.queryByText("ID")).toBeNull();
+    expect(screen.queryByText("NAME")).toBeNull();
+  });
+
+  test("empty state: header row is NOT rendered", () => {
+    render(<IndicatorsGrid data={[]} isLoading={false} error={null} />);
+    expect(screen.queryByText("ID")).toBeNull();
+    expect(screen.queryByText("NAME")).toBeNull();
+  });
+
+  test("error state: header row is NOT rendered", () => {
+    render(<IndicatorsGrid data={[]} isLoading={false} error="boom" />);
+    expect(screen.queryByText("ID")).toBeNull();
+    expect(screen.queryByText("NAME")).toBeNull();
+  });
 });

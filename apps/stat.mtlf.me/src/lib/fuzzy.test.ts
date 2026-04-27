@@ -38,13 +38,26 @@ describe("scoreIndicator", () => {
     expect(scoreIndicator("I30", i30)).toBeGreaterThan(0);
   });
 
-  test("\"I30\" prefers id=30 over id=26", () => {
+  test("\"I30\" exact code outranks unrelated indicator", () => {
     expect(scoreIndicator("I30", i30)).toBeGreaterThan(scoreIndicator("I30", i26));
   });
 
+  test("\"I3\" does NOT match id=30 (would otherwise be ambiguous)", () => {
+    expect(scoreIndicator("I3", { id: 3, name: "Foo", description: "" })).toBeGreaterThan(0);
+    expect(scoreIndicator("I3", { id: 30, name: "Foo", description: "" })).toBeGreaterThan(0);
+    expect(scoreIndicator("I3", { id: 3, name: "Foo", description: "" }))
+      .toBeGreaterThanOrEqual(scoreIndicator("I3", { id: 30, name: "Foo", description: "" }));
+  });
+
+  test("\"I3\" prefix-matches I3, I30, I300 but not I130", () => {
+    const prefix = scoreIndicator("I3", { id: 30, name: "X", description: "" });
+    const nonPrefix = scoreIndicator("I3", { id: 130, name: "X", description: "" });
+    expect(prefix).toBeGreaterThan(0);
+    expect(nonPrefix).toBe(0);
+  });
+
   test("ID match outranks accidental letter matches", () => {
-    const noMatch = { id: 7, name: "EURMTL participants", description: "" };
-    expect(scoreIndicator("I7", { id: 7, name: noMatch.name, description: noMatch.description }))
+    expect(scoreIndicator("I7", { id: 7, name: "EURMTL participants", description: "" }))
       .toBeGreaterThan(scoreIndicator("I7", { id: 99, name: "Insurance index 7", description: "" }));
   });
 
@@ -58,5 +71,9 @@ describe("scoreIndicator", () => {
 
   test("empty query returns positive score (show-all contract)", () => {
     expect(scoreIndicator("", i30)).toBeGreaterThan(0);
+  });
+
+  test("whitespace-only query behaves like empty", () => {
+    expect(scoreIndicator("   ", i30)).toBeGreaterThan(0);
   });
 });
