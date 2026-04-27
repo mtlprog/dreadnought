@@ -24,8 +24,8 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
   if (details === null || details === undefined) {
     return (
       <div className="font-mono">
-        <div className="text-warning-amber">НЕТ ДАННЫХ</div>
-        <div className="text-xs text-steel-gray mt-1">Цена недоступна</div>
+        <div className="text-warning-amber">NO DATA</div>
+        <div className="text-xs text-steel-gray mt-1">Price unavailable</div>
       </div>
     );
   }
@@ -35,7 +35,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
     return (
       <div className="font-mono space-y-2">
         <div className="text-cyber-green uppercase text-xs font-bold border-b border-cyber-green/30 pb-1">
-          ЛУЧШАЯ ЦЕНА: {details.chosenSource === "path" ? "ПОИСК ПУТИ" : "ORDERBOOK"}
+          BEST PRICE: {details.chosenSource === "path" ? "PATH FINDING" : "ORDERBOOK"}
         </div>
 
         {/* Price comparison */}
@@ -61,14 +61,14 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
         {/* Show details of chosen source */}
         {details.chosenSource === "path" && details.pathDetails !== null && details.pathDetails !== undefined && (
           <div className="text-[10px] text-steel-gray">
-            <div className="uppercase font-bold mb-1">ДЕТАЛИ ПУТИ:</div>
+            <div className="uppercase font-bold mb-1">PATH DETAILS:</div>
             {formatPriceTooltip(details.pathDetails, false)}
           </div>
         )}
         {details.chosenSource === "orderbook" && details.orderbookDetails !== null
           && details.orderbookDetails !== undefined && (
           <div className="text-[10px] text-steel-gray">
-            <div className="uppercase font-bold mb-1">ДЕТАЛИ ORDERBOOK:</div>
+            <div className="uppercase font-bold mb-1">ORDERBOOK DETAILS:</div>
             {formatPriceTooltip(details.orderbookDetails, true)}
           </div>
         )}
@@ -81,18 +81,18 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
     return (
       <div className="font-mono space-y-2">
         <div className="text-warning-amber uppercase text-xs font-bold border-b border-warning-amber/30 pb-1">
-          ПРЯМОЙ ORDERBOOK
+          DIRECT ORDERBOOK
         </div>
 
         <div className="text-[10px] space-y-1">
           <div className="flex justify-between gap-4">
-            <span className="text-steel-gray uppercase font-bold">ТИП ЦЕНЫ:</span>
+            <span className="text-steel-gray uppercase font-bold">PRICE TYPE:</span>
             <span
               className={`${
                 details.priceType === "bid" ? "text-cyber-green" : "text-warning-amber"
               } font-bold uppercase`}
             >
-              {details.priceType === "bid" ? "BID (ПОКУПКА)" : "ASK (ПРОДАЖА)"}
+              {details.priceType === "bid" ? "BID (BUY)" : "ASK (SELL)"}
             </span>
           </div>
         </div>
@@ -218,7 +218,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
     return (
       <div className="font-mono space-y-2">
         <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-          ПОИСК ПУТИ
+          PATH FINDING
         </div>
 
         {/* Show trade amounts if available (for full balance tooltips) */}
@@ -226,15 +226,15 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
           && details.destinationAmount !== null && details.destinationAmount !== undefined && (
           <div className="text-[10px] space-y-0.5 pb-2 border-b border-steel-gray/30">
             <div className="flex justify-between gap-4">
-              <span className="text-steel-gray uppercase font-bold">ПРОДАЖА:</span>
+              <span className="text-steel-gray uppercase font-bold">SELL:</span>
               <span className="text-warning-amber">{formatNumber(parseFloat(details.sourceAmount), 7)}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-steel-gray uppercase font-bold">ПОЛУЧЕНИЕ:</span>
+              <span className="text-steel-gray uppercase font-bold">RECEIVE:</span>
               <span className="text-cyber-green">{formatNumber(parseFloat(details.destinationAmount), 7)}</span>
             </div>
             <div className="flex justify-between gap-4">
-              <span className="text-steel-gray uppercase font-bold">ЭФФЕКТ. ЦЕНА:</span>
+              <span className="text-steel-gray uppercase font-bold">EFFECTIVE PRICE:</span>
               <span className="text-electric-cyan">
                 {formatNumber(parseFloat(details.destinationAmount) / parseFloat(details.sourceAmount), 7)}
               </span>
@@ -345,7 +345,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                   )}
 
                   {/* No data message */}
-                  {hop.orderbook.bestSource === "none" && <div className="text-steel-gray italic">нет данных</div>}
+                  {hop.orderbook.bestSource === "none" && <div className="text-steel-gray italic">no data</div>}
                 </div>
               )}
             </div>
@@ -368,11 +368,11 @@ function AccountTypeIndicator({ type }: { type: "issuer" | "subfond" | "mutual" 
   };
 
   const labels = {
-    issuer: "ЭМИТЕНТ",
-    subfond: "САБФОНД",
-    mutual: "МУТУАЛ",
-    operational: "ОПЕРАЦ.",
-    other: "ПРОЧЕЕ",
+    issuer: "ISSUER",
+    subfond: "SUBFUND",
+    mutual: "MUTUAL",
+    operational: "OPERATIONAL",
+    other: "OTHER",
   };
 
   return (
@@ -412,7 +412,7 @@ function AccountSection(
             <StellarAccount accountId={account.id} explorer={explorer} className="mt-1" />
           </div>
           <div className="text-right">
-            <div className="text-sm font-mono text-steel-gray uppercase">ИТОГО СЧЁТА</div>
+            <div className="text-sm font-mono text-steel-gray uppercase">ACCOUNT TOTAL</div>
             <div className="text-lg font-mono text-warning-amber">
               {formatNumber(account.totalEURMTL, 2)} EURMTL
             </div>
@@ -485,21 +485,21 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                              ОЦЕНКА NFT ФОНДА
+                              FUND NFT VALUATION
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Источник оценки:</div>
+                              <div className="text-steel-gray">Valuation source:</div>
                               <div className="text-electric-cyan font-mono text-[9px] break-all">
                                 {token.nftValuationAccount}
                               </div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Статус:</div>
-                              <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
+                              <div className="text-steel-gray">Status:</div>
+                              <div className="text-warning-amber">NOMINAL (ILLIQUID)</div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Баланс NFT:</div>
-                              <div className="text-foreground">0.0000001 (1 струп)</div>
+                              <div className="text-steel-gray">NFT balance:</div>
+                              <div className="text-foreground">0.0000001 (1 strup)</div>
                             </div>
                           </div>
                         )
@@ -507,20 +507,20 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                              ЦЕНА ИЗ DATA ENTRY
+                              PRICE FROM DATA ENTRY
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Источник:</div>
+                              <div className="text-steel-gray">Source:</div>
                               <div className="text-electric-cyan font-mono text-[9px] break-all">
                                 {token.nftValuationAccount}
                               </div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Тип оценки:</div>
+                              <div className="text-steel-gray">Valuation type:</div>
                               <div className="text-foreground">{token.asset.code}_1COST</div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Цена за единицу:</div>
+                              <div className="text-steel-gray">Unit price:</div>
                               <div className="text-cyber-green">
                                 {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 7) : "—"}
                                 {" "}
@@ -557,21 +557,21 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                              ОЦЕНКА NFT ФОНДА
+                              FUND NFT VALUATION
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Источник оценки:</div>
+                              <div className="text-steel-gray">Valuation source:</div>
                               <div className="text-electric-cyan font-mono text-[9px] break-all">
                                 {token.nftValuationAccount}
                               </div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Статус:</div>
-                              <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
+                              <div className="text-steel-gray">Status:</div>
+                              <div className="text-warning-amber">NOMINAL (ILLIQUID)</div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Конверсия:</div>
-                              <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
+                              <div className="text-steel-gray">Conversion:</div>
+                              <div className="text-foreground">EURMTL → XLM at DEX rate</div>
                             </div>
                           </div>
                         )
@@ -579,27 +579,27 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                              ЦЕНА ИЗ DATA ENTRY
+                              PRICE FROM DATA ENTRY
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Источник:</div>
+                              <div className="text-steel-gray">Source:</div>
                               <div className="text-electric-cyan font-mono text-[9px] break-all">
                                 {token.nftValuationAccount}
                               </div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Тип оценки:</div>
+                              <div className="text-steel-gray">Valuation type:</div>
                               <div className="text-foreground">{token.asset.code}_1COST</div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Цена за единицу:</div>
+                              <div className="text-steel-gray">Unit price:</div>
                               <div className="text-cyber-green">
                                 {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"} XLM
                               </div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Конверсия:</div>
-                              <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
+                              <div className="text-steel-gray">Conversion:</div>
+                              <div className="text-foreground">EURMTL → XLM at DEX rate</div>
                             </div>
                           </div>
                         )
@@ -632,14 +632,14 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                              ОЦЕНКА NFT ФОНДА
+                              FUND NFT VALUATION
                             </div>
                             <div className="text-[10px] space-y-0.5">
                               <div className="text-warning-amber uppercase font-bold">
-                                ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                                ⚠ NOT INCLUDED IN LIQUID TOTAL
                               </div>
                               <div className="text-steel-gray mt-2">
-                                NFT включены только в номинальный итог фонда
+                                NFTs are only counted in the nominal fund total
                               </div>
                             </div>
                           </div>
@@ -648,14 +648,14 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                              СТОИМОСТЬ ИЗ DATA ENTRY
+                              VALUE FROM DATA ENTRY
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Расчет:</div>
-                              <div className="text-foreground">Цена × Количество</div>
+                              <div className="text-steel-gray">Calculation:</div>
+                              <div className="text-foreground">Price × Quantity</div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Цена из:</div>
+                              <div className="text-steel-gray">Price from:</div>
                               <div className="text-electric-cyan">{token.asset.code}_1COST</div>
                             </div>
                           </div>
@@ -689,14 +689,14 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                              ОЦЕНКА NFT ФОНДА
+                              FUND NFT VALUATION
                             </div>
                             <div className="text-[10px] space-y-0.5">
                               <div className="text-warning-amber uppercase font-bold">
-                                ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                                ⚠ NOT INCLUDED IN LIQUID TOTAL
                               </div>
                               <div className="text-steel-gray mt-2">
-                                NFT включены только в номинальный итог фонда
+                                NFTs are only counted in the nominal fund total
                               </div>
                             </div>
                           </div>
@@ -705,15 +705,15 @@ function AccountSection(
                         ? (
                           <div className="font-mono space-y-2">
                             <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                              СТОИМОСТЬ ИЗ DATA ENTRY
+                              VALUE FROM DATA ENTRY
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Расчет:</div>
-                              <div className="text-foreground">Цена × Количество</div>
+                              <div className="text-steel-gray">Calculation:</div>
+                              <div className="text-foreground">Price × Quantity</div>
                             </div>
                             <div className="text-[10px] space-y-0.5">
-                              <div className="text-steel-gray">Конверсия:</div>
-                              <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
+                              <div className="text-steel-gray">Conversion:</div>
+                              <div className="text-foreground">EURMTL → XLM at DEX rate</div>
                             </div>
                           </div>
                         )
@@ -739,8 +739,8 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
     return (
       <Card className="p-8 border-0 bg-background text-white">
         <div className="text-center">
-          <div className="text-2xl text-cyber-green mb-4">⏳ ЗАГРУЗКА СТРУКТУРЫ ФОНДА...</div>
-          <div className="text-steel-gray">Получение данных по всем счетам...</div>
+          <div className="text-2xl text-cyber-green mb-4">⏳ LOADING FUND STRUCTURE...</div>
+          <div className="text-steel-gray">Fetching data for all accounts...</div>
         </div>
       </Card>
     );
@@ -769,10 +769,10 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
 
         <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
           <div className="bg-cyber-green text-background p-6">
-            <h2 className="text-3xl font-mono uppercase tracking-wider">СТРУКТУРА ФОНДА MONTELIBERO</h2>
+            <h2 className="text-3xl font-mono uppercase tracking-wider">MONTELIBERO FUND STRUCTURE</h2>
             {totals !== null && (
               <p className="text-lg font-mono mt-2">
-                {totals.accountCount} СЧЕТОВ // {totals.tokenCount} ТОКЕНОВ
+                {totals.accountCount} ACCOUNTS // {totals.tokenCount} TOKENS
               </p>
             )}
           </div>
@@ -784,23 +784,23 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                 <TableHeader>
                   <TableRow className="border-steel-gray">
                     <TableHead className="text-foreground font-mono uppercase tracking-wider w-32 bg-background">
-                      ТОКЕН
+                      TOKEN
                     </TableHead>
                     <TableHead className="text-foreground font-mono uppercase tracking-wider w-40 bg-background">
-                      БАЛАНС
+                      BALANCE
                     </TableHead>
                     <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help underline-offset-2 hover:underline">
-                            ЦЕНА (EURMTL)
+                            PRICE (EURMTL)
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="font-mono text-xs space-y-1">
-                            <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
+                            <div className="text-electric-cyan uppercase font-bold">PRICE PER TOKEN</div>
                             <div className="text-steel-gray">
-                              Показывает цену обмена за одну единицу токена в EURMTL
+                              Exchange price for one token unit in EURMTL
                             </div>
                           </div>
                         </TooltipContent>
@@ -810,13 +810,13 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help underline-offset-2 hover:underline">
-                            ЦЕНА (XLM)
+                            PRICE (XLM)
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="font-mono text-xs space-y-1">
-                            <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
-                            <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в XLM</div>
+                            <div className="text-electric-cyan uppercase font-bold">PRICE PER TOKEN</div>
+                            <div className="text-steel-gray">Exchange price for one token unit in XLM</div>
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -825,14 +825,14 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help underline-offset-2 hover:underline">
-                            СТОИМОСТЬ (EURMTL)
+                            VALUE (EURMTL)
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="font-mono text-xs space-y-1">
-                            <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                            <div className="text-electric-cyan uppercase font-bold">TOTAL BALANCE VALUE</div>
                             <div className="text-steel-gray">
-                              Показывает стоимость продажи всего баланса токена в EURMTL
+                              Sale value of the full token balance in EURMTL
                             </div>
                           </div>
                         </TooltipContent>
@@ -842,14 +842,14 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span className="cursor-help underline-offset-2 hover:underline">
-                            СТОИМОСТЬ (XLM)
+                            VALUE (XLM)
                           </span>
                         </TooltipTrigger>
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="font-mono text-xs space-y-1">
-                            <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                            <div className="text-electric-cyan uppercase font-bold">TOTAL BALANCE VALUE</div>
                             <div className="text-steel-gray">
-                              Показывает стоимость продажи всего баланса токена в XLM
+                              Sale value of the full token balance in XLM
                             </div>
                           </div>
                         </TooltipContent>
@@ -878,21 +878,21 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
               <div className="flex justify-between items-center">
                 <div>
                   <span className="text-3xl font-mono uppercase tracking-wider text-cyber-green">
-                    ОБЩИЙ ИТОГ ФОНДА
+                    FUND GRAND TOTAL
                   </span>
                   <div className="text-sm font-mono text-steel-gray mt-2">
-                    {totals.accountCount} СЧЕТОВ • {totals.tokenCount} ТОКЕНОВ
+                    {totals.accountCount} ACCOUNTS • {totals.tokenCount} TOKENS
                   </div>
                 </div>
                 <div className="flex space-x-12">
                   <div className="text-right">
-                    <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО EURMTL</div>
+                    <div className="text-sm font-mono text-steel-gray uppercase">TOTAL EURMTL</div>
                     <div className="text-4xl font-mono text-warning-amber">
                       {formatNumber(totals.totalEURMTL, 2)}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-mono text-steel-gray uppercase">ВСЕГО XLM</div>
+                    <div className="text-sm font-mono text-steel-gray uppercase">TOTAL XLM</div>
                     <div className="text-4xl font-mono text-warning-amber">
                       {formatNumber(totals.totalXLM, 7)}
                     </div>
@@ -907,9 +907,9 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
         {fundData.otherAccounts && fundData.otherAccounts.length > 0 && (
           <Card className="p-0 border-0 bg-card text-card-foreground overflow-hidden">
             <div className="bg-steel-gray/30 text-foreground p-6 border-l-4 border-steel-gray">
-              <h2 className="text-2xl font-mono uppercase tracking-wider">ПРОЧИЕ СЧЕТА</h2>
+              <h2 className="text-2xl font-mono uppercase tracking-wider">OTHER ACCOUNTS</h2>
               <p className="text-sm font-mono mt-2 text-steel-gray">
-                Не входят в общий итог фонда
+                Not included in fund grand total
               </p>
             </div>
 
@@ -920,23 +920,23 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                   <TableHeader>
                     <TableRow className="border-steel-gray">
                       <TableHead className="text-foreground font-mono uppercase tracking-wider w-32 bg-background">
-                        ТОКЕН
+                        TOKEN
                       </TableHead>
                       <TableHead className="text-foreground font-mono uppercase tracking-wider w-40 bg-background">
-                        БАЛАНС
+                        BALANCE
                       </TableHead>
                       <TableHead className="text-foreground font-mono uppercase tracking-wider text-right w-32 bg-background">
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="cursor-help underline-offset-2 hover:underline">
-                              ЦЕНА (EURMTL)
+                              PRICE (EURMTL)
                             </span>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="max-w-xs">
                             <div className="font-mono text-xs space-y-1">
-                              <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
+                              <div className="text-electric-cyan uppercase font-bold">PRICE PER TOKEN</div>
                               <div className="text-steel-gray">
-                                Показывает цену обмена за одну единицу токена в EURMTL
+                                Exchange price for one token unit in EURMTL
                               </div>
                             </div>
                           </TooltipContent>
@@ -946,13 +946,13 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="cursor-help underline-offset-2 hover:underline">
-                              ЦЕНА (XLM)
+                              PRICE (XLM)
                             </span>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="max-w-xs">
                             <div className="font-mono text-xs space-y-1">
-                              <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
-                              <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в XLM</div>
+                              <div className="text-electric-cyan uppercase font-bold">PRICE PER TOKEN</div>
+                              <div className="text-steel-gray">Exchange price for one token unit in XLM</div>
                             </div>
                           </TooltipContent>
                         </Tooltip>
@@ -961,14 +961,14 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="cursor-help underline-offset-2 hover:underline">
-                              СТОИМОСТЬ (EURMTL)
+                              VALUE (EURMTL)
                             </span>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="max-w-xs">
                             <div className="font-mono text-xs space-y-1">
-                              <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                              <div className="text-electric-cyan uppercase font-bold">TOTAL BALANCE VALUE</div>
                               <div className="text-steel-gray">
-                                Показывает стоимость продажи всего баланса токена в EURMTL
+                                Sale value of the full token balance in EURMTL
                               </div>
                             </div>
                           </TooltipContent>
@@ -978,14 +978,14 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span className="cursor-help underline-offset-2 hover:underline">
-                              СТОИМОСТЬ (XLM)
+                              VALUE (XLM)
                             </span>
                           </TooltipTrigger>
                           <TooltipContent side="top" className="max-w-xs">
                             <div className="font-mono text-xs space-y-1">
-                              <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
+                              <div className="text-electric-cyan uppercase font-bold">TOTAL BALANCE VALUE</div>
                               <div className="text-steel-gray">
-                                Показывает стоимость продажи всего баланса токена в XLM
+                                Sale value of the full token balance in XLM
                               </div>
                             </div>
                           </TooltipContent>

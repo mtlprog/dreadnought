@@ -83,20 +83,20 @@ export function TruncatedNumber({
             {copied
               ? (
                 <div className="text-cyber-green uppercase text-sm font-bold">
-                  ✓ СКОПИРОВАНО
+                  ✓ COPIED
                 </div>
               )
               : (
                 <>
                   <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                    ПОЛНОЕ ЗНАЧЕНИЕ
+                    FULL VALUE
                   </div>
                   <div className="text-foreground text-sm break-all">
                     {fullDisplay}
                     {suffix}
                   </div>
                   <div className="text-steel-gray text-[10px] uppercase mt-2 pt-2 border-t border-steel-gray/30">
-                    Нажмите для копирования
+                    Click to copy
                   </div>
                 </>
               )}

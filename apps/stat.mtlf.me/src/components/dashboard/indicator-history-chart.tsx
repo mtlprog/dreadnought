@@ -91,17 +91,17 @@ export function IndicatorHistoryChart({
       <div className="h-[220px]">
         {error !== null && (
           <div className="flex h-full items-center justify-center font-mono text-xs uppercase text-red-400">
-            ОШИБКА: {error}
+            ERROR: {error}
           </div>
         )}
         {error === null && isLoading && (
           <div className="flex h-full items-center justify-center font-mono text-xs uppercase text-steel-gray">
-            ЗАГРУЗКА…
+            LOADING…
           </div>
         )}
         {error === null && !isLoading && points.length === 0 && (
           <div className="flex h-full items-center justify-center font-mono text-xs uppercase text-steel-gray">
-            НЕТ ДАННЫХ
+            NO DATA
           </div>
         )}
         {error === null && !isLoading && points.length > 0 && (

@@ -10,17 +10,17 @@ export function Footer() {
       description="MONTELIBERO FOUNDATION PORTFOLIO STATISTICS // REAL-TIME STELLAR BLOCKCHAIN DATA"
       sections={[
         {
-          title: "РЕСУРСЫ",
+          title: "RESOURCES",
           links: [
             { href: "https://github.com/mtlprog/dreadnought", label: "GITHUB", icon: Github },
-            { href: "https://montelibero.org/mtl-fund/", label: "ФОНД MONTELIBERO", icon: ExternalLink },
+            { href: "https://montelibero.org/mtl-fund/", label: "MONTELIBERO FUND", icon: ExternalLink },
           ],
         },
         {
-          title: "СООБЩЕСТВО",
+          title: "COMMUNITY",
           links: [
             { href: "https://t.me/Montelibero_ru", label: "MONTELIBERO", icon: MessageCircle },
-            { href: "https://t.me/montelibero_agora/43852", label: "ГИЛЬДИЯ ПРОГРАММИСТОВ", icon: MessageCircle },
+            { href: "https://t.me/montelibero_agora/43852", label: "DEVELOPERS GUILD", icon: MessageCircle },
           ],
         },
       ]}

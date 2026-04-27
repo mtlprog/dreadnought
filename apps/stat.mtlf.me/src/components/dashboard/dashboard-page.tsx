@@ -19,6 +19,7 @@ const KEY_INDICATORS: readonly { id: number; name: string }[] = [
 ];
 
 const KEY_IDS = KEY_INDICATORS.map((k) => k.id);
+const TOTAL_INDICATOR_ID = 3;
 
 export function DashboardPage() {
   const { data: subfundData, isLoading: subfundLoading, error: subfundError } = useSubfundBalance();
@@ -27,27 +28,34 @@ export function DashboardPage() {
   const { series, isLoading: historyLoading, error: historyError } = useIndicatorHistory(KEY_IDS, range);
 
   const seriesById = new Map(series.map((s) => [s.id, s]));
+  const totalIndicator = indicators.find((i) => i.id === TOTAL_INDICATOR_ID);
 
   return (
     <div className="container mx-auto space-y-8 px-4 py-8">
       <section>
         {subfundError !== null && (
           <div className="border border-red-500 bg-red-500/10 p-6 font-mono text-sm text-red-400">
-            ОШИБКА ЗАГРУЗКИ САБФОНДОВ: {subfundError}
+            SUBFUND LOAD ERROR: {subfundError}
           </div>
         )}
         {subfundError === null && subfundLoading && (
           <div className="h-[480px] border border-cyber-green/30 bg-steel-gray/10 animate-pulse" />
         )}
         {subfundError === null && !subfundLoading && subfundData !== null && (
-          <SubfundPieChart slices={subfundData.slices} date={subfundData.date} />
+          <SubfundPieChart
+            slices={subfundData.slices}
+            date={subfundData.date}
+            {...(totalIndicator !== undefined
+              ? { totalValue: totalIndicator.value, totalUnit: totalIndicator.unit }
+              : {})}
+          />
         )}
       </section>
 
       <section>
         <div className="mb-4 flex flex-wrap items-baseline justify-between gap-3">
           <h2 className="font-mono text-xl uppercase tracking-wider text-cyber-green">
-            ДИНАМИКА КЛЮЧЕВЫХ ПОКАЗАТЕЛЕЙ
+            KEY METRICS HISTORY
           </h2>
           <RangeSelector value={range} onChange={setRange} />
         </div>

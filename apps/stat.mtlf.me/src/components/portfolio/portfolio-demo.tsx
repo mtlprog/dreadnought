@@ -72,7 +72,7 @@ export function PortfolioDemo() {
                 value={snapshot.date}
                 className="font-mono text-sm cursor-pointer hover:bg-steel-gray/20"
               >
-                {new Date(snapshot.date).toLocaleDateString("ru-RU", {
+                {new Date(snapshot.date).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -86,7 +86,7 @@ export function PortfolioDemo() {
       {(error ?? snapshotsError) != null && (
         <div className="border border-red-500 bg-red-500/10 p-6">
           <h2 className="font-mono text-red-500 uppercase tracking-wider text-xl mb-2">
-            ОШИБКА ЗАГРУЗКИ
+            LOAD ERROR
           </h2>
           <p className="font-mono text-red-400">{error ?? snapshotsError}</p>
         </div>

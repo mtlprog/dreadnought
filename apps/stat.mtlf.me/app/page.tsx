@@ -1,8 +1,6 @@
 import { DashboardPage } from "@/components/dashboard/dashboard-page";
 import { Footer } from "@/components/layout/footer";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
 
 export default function Home() {
   return (
@@ -18,16 +16,7 @@ export default function Home() {
                 MONTELIBERO FOUNDATION // PORTFOLIO STATISTICS
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/fund"
-                className="inline-flex items-center gap-2 border border-cyber-green bg-background px-4 py-2 font-mono text-sm uppercase tracking-wider text-cyber-green hover:bg-cyber-green hover:text-background transition-colors"
-              >
-                FUND DETAILS
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <ModeToggle />
-            </div>
+            <ModeToggle />
           </div>
         </div>
       </div>

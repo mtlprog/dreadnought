@@ -65,26 +65,26 @@ const FUND_ACCOUNTS_RAW = [
     id: "GACKTN5DAZGWXRWB2WLM6OPBDHAMT6SJNGLJZPQMEZBUR4JUGBX2UK7V",
     name: "MAIN ISSUER",
     type: "issuer",
-    description: "Основной эмитент токенов фонда",
+    description: "Main fund token issuer",
   },
   // Subfonds
   {
     id: "GAQ5ERJVI6IW5UVNPEVXUUVMXH3GCDHJ4BJAXMAAKPR5VBWWAUOMABIZ",
     name: "MABIZ",
     type: "subfond",
-    description: "Сабфонд малого и среднего бизнеса",
+    description: "Small and medium business subfund",
   },
   {
     id: "GCOJHUKGHI6IATN7AIEK4PSNBPXIAIZ7KB2AWTTUCNIAYVPUB2DMCITY",
     name: "CITY",
     type: "subfond",
-    description: "Сабфонд городской инфраструктуры",
+    description: "Urban infrastructure subfund",
   },
   {
     id: "GAEZHXMFRW2MWLWCXSBNZNUSE6SN3ODZDDOMPFH3JPMJXN4DKBPMDEFI",
     name: "DEFI",
     type: "subfond",
-    description: "Сабфонд децентрализованных финансов",
+    description: "Decentralized finance subfund",
   },
   // Mutuals
   {
@@ -104,26 +104,26 @@ const FUND_ACCOUNTS_RAW = [
     id: "GBSCMGJCE4DLQ6TYRNUMXUZZUXGZBM4BXVZUIHBBL5CSRRW2GWEHUADM",
     name: "ADMIN",
     type: "operational",
-    description: "Операционный счёт администрирования",
+    description: "Administration operating account",
   },
   // Others (not included in fund totals)
   {
     id: "GA7I6SGUHQ26ARNCD376WXV5WSE7VJRX6OEFNFCEGRLFGZWQIV73LABR",
     name: "LABR",
     type: "other",
-    description: "Трудовые ресурсы (не входит в общий счёт фонда)",
+    description: "Labor resources (not included in fund total)",
   },
   {
     id: "GCR5J3NU2NNG2UKDQ5XSZVX7I6TDLB3LEN2HFUR2EPJUMNWCUL62MTLM",
     name: "MTLM",
     type: "other",
-    description: "Montelibero Meta (не входит в общий счёт фонда)",
+    description: "Montelibero Meta (not included in fund total)",
   },
   {
     id: "GDRLJC6EOKRR3BPKWGJPGI5GUN4GZFZRWQFDG3RJNZJEIBYA7B3EPROG",
     name: "PROGRAMMERS GUILD",
     type: "other",
-    description: "Гильдия программистов (не входит в общий счёт фонда)",
+    description: "Programmers Guild (not included in fund total)",
   },
 ] as const;
 

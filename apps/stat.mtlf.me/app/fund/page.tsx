@@ -11,13 +11,6 @@ export default function FundPage() {
         <div className="container mx-auto">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-electric-cyan hover:text-cyber-green transition-colors mb-3"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                DASHBOARD
-              </Link>
               <h1 className="text-5xl font-mono uppercase tracking-wider text-cyber-green mb-2">
                 MTLF.FUND
               </h1>
@@ -25,10 +18,20 @@ export default function FundPage() {
                 FUND STRUCTURE // ACCOUNTS // TOKENS
               </p>
             </div>
-            <div className="mt-2">
-              <ModeToggle />
-            </div>
+            <ModeToggle />
           </div>
+        </div>
+      </div>
+
+      <div className="border-b border-border bg-background">
+        <div className="container mx-auto px-6 py-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-electric-cyan hover:text-cyber-green transition-colors"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            BACK TO DASHBOARD
+          </Link>
         </div>
       </div>
 

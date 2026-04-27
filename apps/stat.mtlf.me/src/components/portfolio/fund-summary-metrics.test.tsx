@@ -17,8 +17,8 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      expect(screen.getByText("⏳ ЗАГРУЗКА МЕТРИК...")).toBeInTheDocument();
-      expect(screen.getByText("Получение суммарных данных фонда...")).toBeInTheDocument();
+      expect(screen.getByText("⏳ LOADING METRICS...")).toBeInTheDocument();
+      expect(screen.getByText("Fetching aggregated fund data...")).toBeInTheDocument();
     });
   });
 
@@ -34,18 +34,14 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
-      expect(
-        screen.getByText("Цена за 1 токен × Баланс"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("FUND TOTALS")).toBeInTheDocument();
+      expect(screen.getByText("Price per token × balance")).toBeInTheDocument();
 
-      // Check for section labels
-      expect(screen.getByText("ИТОГО EURMTL")).toBeInTheDocument();
-      expect(screen.getByText("ИТОГО XLM")).toBeInTheDocument();
-      expect(screen.getByText("СЧЕТОВ")).toBeInTheDocument();
-      expect(screen.getByText("ТОКЕНОВ")).toBeInTheDocument();
+      expect(screen.getByText("TOTAL EURMTL")).toBeInTheDocument();
+      expect(screen.getByText("TOTAL XLM")).toBeInTheDocument();
+      expect(screen.getByText("ACCOUNTS")).toBeInTheDocument();
+      expect(screen.getByText("TOKENS")).toBeInTheDocument();
 
-      // Check account and token counts (exact text match)
       const accountCountElements = screen.getAllByText("8");
       expect(accountCountElements.length).toBeGreaterThan(0);
 
@@ -64,7 +60,7 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
+      expect(screen.getByText("FUND TOTALS")).toBeInTheDocument();
     });
 
     test("should use electric-cyan styling", () => {
@@ -98,10 +94,9 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      // Verify nominal section is removed
-      expect(screen.queryByText("НОМИНАЛЬНЫЙ ИТОГ")).not.toBeInTheDocument();
-      expect(screen.queryByText("НОМИНАЛ EURMTL")).not.toBeInTheDocument();
-      expect(screen.queryByText("НОМИНАЛ XLM")).not.toBeInTheDocument();
+      expect(screen.queryByText("NOMINAL TOTAL")).not.toBeInTheDocument();
+      expect(screen.queryByText("NOMINAL EURMTL")).not.toBeInTheDocument();
+      expect(screen.queryByText("NOMINAL XLM")).not.toBeInTheDocument();
     });
 
     test("should NOT display liquid totals section", () => {
@@ -115,10 +110,9 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      // Verify liquid section is removed
-      expect(screen.queryByText("ЛИКВИДНЫЙ ИТОГ")).not.toBeInTheDocument();
-      expect(screen.queryByText("ЛИКВИД EURMTL")).not.toBeInTheDocument();
-      expect(screen.queryByText("ЛИКВИД XLM")).not.toBeInTheDocument();
+      expect(screen.queryByText("LIQUID TOTAL")).not.toBeInTheDocument();
+      expect(screen.queryByText("LIQUID EURMTL")).not.toBeInTheDocument();
+      expect(screen.queryByText("LIQUID XLM")).not.toBeInTheDocument();
     });
 
     test("should NOT display slippage columns", () => {
@@ -132,9 +126,8 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      // Verify slippage columns are removed
-      expect(screen.queryByText("ПРОСКАЛЬЗЫВАНИЕ EURMTL")).not.toBeInTheDocument();
-      expect(screen.queryByText("ПРОСКАЛЬЗЫВАНИЕ XLM")).not.toBeInTheDocument();
+      expect(screen.queryByText("SLIPPAGE EURMTL")).not.toBeInTheDocument();
+      expect(screen.queryByText("SLIPPAGE XLM")).not.toBeInTheDocument();
     });
 
     test("should NOT mention slippage in description", () => {
@@ -148,13 +141,8 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      // Verify the description no longer mentions slippage
-      expect(
-        screen.queryByText(/с учетом проскальзывания/i),
-      ).not.toBeInTheDocument();
-      expect(
-        screen.queryByText(/без учета проскальзывания/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/with slippage/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/without slippage/i)).not.toBeInTheDocument();
     });
   });
 
@@ -170,7 +158,6 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      // Find the grid
       const grid = container.querySelector(".grid");
       expect(grid).toBeDefined();
 
@@ -192,11 +179,11 @@ describe("FundSummaryMetrics", () => {
       );
 
       const uppercaseElements = [
-        "ИТОГО ПО ФОНДУ",
-        "ИТОГО EURMTL",
-        "ИТОГО XLM",
-        "СЧЕТОВ",
-        "ТОКЕНОВ",
+        "FUND TOTALS",
+        "TOTAL EURMTL",
+        "TOTAL XLM",
+        "ACCOUNTS",
+        "TOKENS",
       ];
 
       for (const text of uppercaseElements) {
@@ -230,7 +217,6 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      // Card component should have border-0 class (zero border)
       const cards = container.querySelectorAll(".border-0");
       expect(cards.length).toBeGreaterThan(0);
     });
@@ -248,7 +234,7 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
+      expect(screen.getByText("FUND TOTALS")).toBeInTheDocument();
     });
 
     test("should default isLoading to false when not provided", () => {
@@ -261,9 +247,8 @@ describe("FundSummaryMetrics", () => {
         />,
       );
 
-      // Should show content, not loading state
-      expect(screen.queryByText("⏳ ЗАГРУЗКА МЕТРИК...")).not.toBeInTheDocument();
-      expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
+      expect(screen.queryByText("⏳ LOADING METRICS...")).not.toBeInTheDocument();
+      expect(screen.getByText("FUND TOTALS")).toBeInTheDocument();
     });
   });
 });
