@@ -1,11 +1,11 @@
 "use client";
 
-import { fuzzyScore } from "@/lib/fuzzy";
+import { scoreIndicator } from "@/lib/fuzzy";
 import type { Indicator } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { LayoutGrid, List, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { IndicatorCard, IndicatorRow } from "./indicator-card";
+import { IndicatorCard, IndicatorRow, IndicatorRowHeader } from "./indicator-card";
 
 type ViewMode = "list" | "cards";
 
@@ -14,12 +14,6 @@ interface IndicatorsGridProps {
   isLoading: boolean;
   error: string | null;
 }
-
-const scoreIndicator = (query: string, indicator: Indicator): number => {
-  const nameScore = fuzzyScore(query, indicator.name);
-  const descScore = fuzzyScore(query, indicator.description);
-  return Math.max(nameScore * 1.5, descScore);
-};
 
 export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) {
   const [query, setQuery] = useState("");
@@ -68,7 +62,7 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="SEARCH INDICATORS BY NAME OR DESCRIPTION"
+          placeholder="SEARCH BY ID (E.G. I30), NAME OR DESCRIPTION"
           className="flex-1 bg-transparent font-mono text-xs uppercase tracking-wider text-foreground placeholder:text-steel-gray focus:outline-none"
           aria-label="Search indicators"
         />
@@ -90,17 +84,20 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
       )}
 
       {state === "loading" && (
-        <IndicatorListLayout view={view}>
-          {Array.from({ length: view === "cards" ? 8 : 6 }).map((_, i) => (
-            <div
-              key={i}
-              className={cn(
-                "border border-steel-gray/30 bg-steel-gray/10 animate-pulse",
-                view === "cards" ? "h-44" : "h-10",
-              )}
-            />
-          ))}
-        </IndicatorListLayout>
+        <>
+          {view === "list" && <IndicatorRowHeader />}
+          <IndicatorListLayout view={view}>
+            {Array.from({ length: view === "cards" ? 8 : 6 }).map((_, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "border border-steel-gray/30 bg-steel-gray/10 animate-pulse",
+                  view === "cards" ? "h-44" : "h-10",
+                )}
+              />
+            ))}
+          </IndicatorListLayout>
+        </>
       )}
 
       {state === "empty" && (
@@ -112,13 +109,16 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
       )}
 
       {state === "ready" && (
-        <IndicatorListLayout view={view}>
-          {filtered.map((indicator) =>
-            view === "cards"
-              ? <IndicatorCard key={indicator.id} indicator={indicator} />
-              : <IndicatorRow key={indicator.id} indicator={indicator} />
-          )}
-        </IndicatorListLayout>
+        <>
+          {view === "list" && <IndicatorRowHeader />}
+          <IndicatorListLayout view={view}>
+            {filtered.map((indicator) =>
+              view === "cards"
+                ? <IndicatorCard key={indicator.id} indicator={indicator} />
+                : <IndicatorRow key={indicator.id} indicator={indicator} />
+            )}
+          </IndicatorListLayout>
+        </>
       )}
     </section>
   );

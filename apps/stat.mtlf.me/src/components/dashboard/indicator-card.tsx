@@ -16,6 +16,9 @@ const PERIOD_LABEL: Record<Range, string> = {
   all: "ALL",
 };
 
+export const INDICATOR_ROW_GRID =
+  "grid grid-cols-[3rem_minmax(0,1fr)_minmax(7rem,auto)] sm:grid-cols-[3rem_minmax(0,1fr)_minmax(7rem,auto)_repeat(3,minmax(4.5rem,auto))] items-center gap-x-3";
+
 const toNum = (raw: string): number => {
   const n = parseFloat(raw);
   return Number.isFinite(n) ? n : 0;
@@ -90,7 +93,9 @@ export function IndicatorRow({ indicator }: IndicatorCardProps) {
   const { value, unit } = formatIndicatorValue(indicator);
 
   return (
-    <div className="grid grid-cols-[3rem_1fr_auto_auto] items-center gap-3 border border-steel-gray/40 bg-card px-3 py-2 hover:border-electric-cyan transition-colors">
+    <div
+      className={`${INDICATOR_ROW_GRID} border border-steel-gray/40 bg-card px-3 py-2 hover:border-electric-cyan transition-colors`}
+    >
       <span className="font-mono text-[10px] uppercase tracking-widest text-steel-gray">
         I{indicator.id}
       </span>
@@ -100,23 +105,37 @@ export function IndicatorRow({ indicator }: IndicatorCardProps) {
       >
         {indicator.name}
       </span>
-      <span className="font-mono text-sm tabular-nums whitespace-nowrap">
+      <span className="font-mono text-sm tabular-nums whitespace-nowrap text-right">
         <span className="text-cyber-green">{value}</span>
         <span className="ml-1 text-[10px] uppercase text-steel-gray">{unit}</span>
       </span>
-      <span className="hidden sm:flex items-center gap-3 font-mono text-[11px] tabular-nums whitespace-nowrap">
-        {PERIODS.map((p) => {
-          const change = indicator.changes?.[p];
-          return (
-            <span key={p} className="flex items-baseline gap-1">
-              <span className="uppercase tracking-wider text-steel-gray">{PERIOD_LABEL[p]}</span>
-              <span className={change !== undefined ? changeColor(change.pct) : "text-steel-gray/60"}>
-                {change !== undefined ? `${formatSignedPct(change.pct)}%` : "—"}
-              </span>
-            </span>
-          );
-        })}
-      </span>
+      {PERIODS.map((p) => {
+        const change = indicator.changes?.[p];
+        const colorClass = change !== undefined ? changeColor(change.pct) : "text-steel-gray/60";
+        return (
+          <span
+            key={p}
+            className={`hidden sm:block font-mono text-[11px] tabular-nums whitespace-nowrap text-right ${colorClass}`}
+          >
+            {change !== undefined ? `${formatSignedPct(change.pct)}%` : "—"}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+export function IndicatorRowHeader() {
+  return (
+    <div className={`${INDICATOR_ROW_GRID} px-3 pb-1 font-mono text-[10px] uppercase tracking-widest text-steel-gray`}>
+      <span>ID</span>
+      <span>NAME</span>
+      <span className="text-right">VALUE</span>
+      {PERIODS.map((p) => (
+        <span key={p} className="hidden sm:block text-right">
+          {PERIOD_LABEL[p]}
+        </span>
+      ))}
     </div>
   );
 }
