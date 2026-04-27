@@ -1,7 +1,7 @@
 import { loadAccount } from "@dreadnought/stellar-core";
 import { Context, Effect, Layer, pipe } from "effect";
-import type { EnvironmentError, StellarError } from "./errors";
 import { getStellarConfig } from "./config";
+import type { EnvironmentError, StellarError } from "./errors";
 
 /**
  * NFT valuation from account DATA entries
@@ -110,12 +110,11 @@ const getNFTValuationsImpl = (
     Effect.tap((valuations) =>
       Effect.log(
         `Parsed ${valuations.length} NFT valuations from account ${accountId}`,
-      ),
+      )
     ),
   );
 
-const isNFTBalanceImpl = (balance: string): boolean =>
-  balance === NFT_BALANCE_STROOP;
+const isNFTBalanceImpl = (balance: string): boolean => balance === NFT_BALANCE_STROOP;
 
 const findNFTValuationImpl = (
   tokenCode: string,

@@ -199,9 +199,7 @@ const fetchFromCoinGecko = (
       }
       return Effect.fail(error);
     }),
-    Effect.tap((response) =>
-      Effect.log(`Fetched prices from CoinGecko: ${JSON.stringify(response)}`),
-    ),
+    Effect.tap((response) => Effect.log(`Fetched prices from CoinGecko: ${JSON.stringify(response)}`)),
   );
 };
 
@@ -213,7 +211,7 @@ const isExternalPriceSymbolImpl = (value: string): value is ExternalPriceSymbol 
  * Create service implementation with Effect Ref for cache state
  * This avoids global mutable state and makes the service testable
  */
-const makeExternalPriceService = Effect.gen(function* () {
+const makeExternalPriceService = Effect.gen(function*() {
   // Create cache ref with empty initial state
   const cacheRef = yield* Ref.make<PriceCache>(new Map());
 
@@ -323,8 +321,7 @@ const makeExternalPriceService = Effect.gen(function* () {
       }),
     );
 
-  const clearCache = (): Effect.Effect<void, never> =>
-    Ref.set(cacheRef, new Map());
+  const clearCache = (): Effect.Effect<void, never> => Ref.set(cacheRef, new Map());
 
   return {
     getPriceInEUR,

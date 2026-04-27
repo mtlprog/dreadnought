@@ -1,9 +1,5 @@
-import {
-  fetchLatestSnapshot,
-  fetchSnapshotByDate,
-  type FundSnapshotView,
-} from "@/lib/api/snapshots";
-import { useEffect, useState } from "react";
+import { fetchLatestSnapshot, fetchSnapshotByDate, type FundSnapshotView } from "@/lib/api/snapshots";
+import { useApiResource } from "./use-api-resource";
 
 interface UseFundDataState {
   data: FundSnapshotView | null;
@@ -12,44 +8,12 @@ interface UseFundDataState {
 }
 
 export function useFundData(selectedDate?: string | null): UseFundDataState {
-  const [state, setState] = useState<UseFundDataState>({
-    data: null,
-    isLoading: true,
-    error: null,
-  });
+  const dateParam = selectedDate?.split("T")[0];
+  const dateKey = dateParam !== undefined && dateParam !== "" ? dateParam : null;
 
-  useEffect(() => {
-    let mounted = true;
-
-    const run = async () => {
-      try {
-        setState({ data: null, isLoading: true, error: null });
-
-        const dateParam = selectedDate?.split("T")[0];
-        const data = dateParam !== undefined && dateParam !== ""
-          ? await fetchSnapshotByDate(dateParam)
-          : await fetchLatestSnapshot();
-
-        if (mounted) {
-          setState({ data, isLoading: false, error: null });
-        }
-      } catch (error) {
-        if (mounted) {
-          setState({
-            data: null,
-            isLoading: false,
-            error: error instanceof Error ? error.message : "Unknown error occurred",
-          });
-        }
-      }
-    };
-
-    void run();
-
-    return () => {
-      mounted = false;
-    };
-  }, [selectedDate]);
-
-  return state;
+  return useApiResource(
+    "useFundData",
+    (options) => (dateKey === null ? fetchLatestSnapshot(options) : fetchSnapshotByDate(dateKey, options)),
+    [dateKey],
+  );
 }

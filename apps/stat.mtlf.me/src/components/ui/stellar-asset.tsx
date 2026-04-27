@@ -21,18 +21,20 @@ export function StellarAsset({ assetCode, assetIssuer, explorer, className = "" 
     });
   };
 
-  const codeElement = Option.isSome(url) ? (
-    <button
-      onClick={openInExplorer}
-      className={`font-mono text-cyber-green hover:text-white transition-colors cursor-pointer ${className}`}
-    >
-      {assetCode}
-    </button>
-  ) : (
-    <span className={`font-mono text-cyber-green ${className}`}>
-      {assetCode}
-    </span>
-  );
+  const codeElement = Option.isSome(url)
+    ? (
+      <button
+        onClick={openInExplorer}
+        className={`font-mono text-cyber-green hover:text-white transition-colors cursor-pointer ${className}`}
+      >
+        {assetCode}
+      </button>
+    )
+    : (
+      <span className={`font-mono text-cyber-green ${className}`}>
+        {assetCode}
+      </span>
+    );
 
   return (
     <Tooltip>

@@ -1,6 +1,6 @@
 import { fetchIndicatorHistory } from "@/lib/api/indicators";
 import type { IndicatorSeries, Range } from "@/lib/api/types";
-import { useEffect, useState } from "react";
+import { useApiResource } from "./use-api-resource";
 
 interface UseIndicatorHistoryState {
   series: IndicatorSeries[];
@@ -12,42 +12,20 @@ export function useIndicatorHistory(
   ids: readonly number[],
   range: Range,
 ): UseIndicatorHistoryState {
-  const [state, setState] = useState<UseIndicatorHistoryState>({
-    series: [],
-    isLoading: true,
-    error: null,
-  });
-
+  // ids is an array; depending on it directly would re-fetch on every render
+  // because identity changes even when contents don't. idsKey is a stable
+  // string derived from contents.
   const idsKey = ids.join(",");
 
-  useEffect(() => {
-    let mounted = true;
+  const { data, isLoading, error } = useApiResource(
+    "useIndicatorHistory",
+    (options) => fetchIndicatorHistory(ids, range, options),
+    [idsKey, range],
+  );
 
-    const run = async () => {
-      try {
-        setState((prev) => ({ ...prev, isLoading: true, error: null }));
-        const result = await fetchIndicatorHistory(ids, range);
-        if (mounted) {
-          setState({ series: [...result.series], isLoading: false, error: null });
-        }
-      } catch (error) {
-        if (mounted) {
-          setState({
-            series: [],
-            isLoading: false,
-            error: error instanceof Error ? error.message : "Unknown error occurred",
-          });
-        }
-      }
-    };
-
-    void run();
-
-    return () => {
-      mounted = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idsKey, range]);
-
-  return state;
+  return {
+    series: data !== null ? [...data.series] : [],
+    isLoading,
+    error,
+  };
 }

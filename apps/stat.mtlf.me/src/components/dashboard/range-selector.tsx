@@ -1,6 +1,6 @@
 "use client";
 
-import { RANGES, type Range } from "@/lib/api/types";
+import { type Range, RANGES } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 
 const LABELS: Record<Range, string> = {
