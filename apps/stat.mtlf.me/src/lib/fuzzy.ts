@@ -18,16 +18,26 @@ export const fuzzyScore = (query: string, text: string): number => {
   return score / (t.length + q.length);
 };
 
-interface IndicatorSearchFields {
+export interface IndicatorSearchFields {
   readonly id: number;
   readonly name: string;
   readonly description: string;
 }
 
+const codeMatchScore = (query: string, code: string): number => {
+  const q = query.toLowerCase();
+  const c = code.toLowerCase();
+  if (q === c) return 3;
+  if (c.startsWith(q)) return 2;
+  return 0;
+};
+
 export const scoreIndicator = (query: string, indicator: IndicatorSearchFields): number => {
+  const trimmed = query.trim();
+  if (trimmed === "") return fuzzyScore("", indicator.name);
   const code = `I${indicator.id}`;
-  const idScore = fuzzyScore(query, code);
-  const nameScore = fuzzyScore(query, indicator.name);
-  const descScore = fuzzyScore(query, indicator.description);
-  return Math.max(idScore * 2, nameScore * 1.5, descScore);
+  const idScore = codeMatchScore(trimmed, code);
+  const nameScore = fuzzyScore(trimmed, indicator.name);
+  const descScore = fuzzyScore(trimmed, indicator.description);
+  return Math.max(idScore, nameScore * 1.5, descScore);
 };
