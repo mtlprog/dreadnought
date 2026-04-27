@@ -125,7 +125,10 @@ export function IndicatorHistoryChart({
                 width={64}
                 tickFormatter={(v: number) => formatNumber(v, 0)}
               />
-              <Tooltip content={renderTooltip(unit)} cursor={{ stroke: "var(--electric-cyan)", strokeDasharray: "2 2" }} />
+              <Tooltip
+                content={renderTooltip(unit)}
+                cursor={{ stroke: "var(--electric-cyan)", strokeDasharray: "2 2" }}
+              />
               <Line
                 type="linear"
                 dataKey="value"

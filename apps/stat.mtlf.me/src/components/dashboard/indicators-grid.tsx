@@ -45,9 +45,7 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
 
       {error === null && !isLoading && data.length > 0 && (
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {data.map((indicator) => (
-            <IndicatorCard key={indicator.id} indicator={indicator} />
-          ))}
+          {data.map((indicator) => <IndicatorCard key={indicator.id} indicator={indicator} />)}
         </div>
       )}
     </section>

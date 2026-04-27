@@ -1,9 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { ManagedRuntime } from "effect";
-import {
-  ExternalPriceServiceLive,
-  ExternalPriceServiceTag,
-} from "./external-price-service";
+import { ExternalPriceServiceLive, ExternalPriceServiceTag } from "./external-price-service";
 
 describe("ExternalPriceService", () => {
   describe("isExternalPriceSymbol", () => {

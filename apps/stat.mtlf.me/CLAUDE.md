@@ -198,10 +198,9 @@ Effect.all(items.map(process), { concurrency: 3 });
 ## Documentation
 
 ### App Guides
-- **[Price Discovery](/apps/stat.mtlf.me/docs/guides/price-discovery.md)** - Price algorithms
-- **[Fund Structure](/apps/stat.mtlf.me/docs/guides/fund-structure-service.md)** - Fund architecture
+- **[Price Discovery](/apps/stat.mtlf.me/docs/guides/price-discovery.md)** - Price algorithms (CLI)
+- **[Fund Structure](/apps/stat.mtlf.me/docs/guides/fund-structure-service.md)** - Fund architecture (CLI)
 - **[CLI Usage](/apps/stat.mtlf.me/docs/guides/cli-usage.md)** - CLI commands
-- **[UI Components](/apps/stat.mtlf.me/docs/guides/ui-components.md)** - Component docs
 
 ### Monorepo Guides
 - **[Effect-TS Patterns](/docs/guides/effect-ts-patterns.md)** - Core patterns

@@ -10,8 +10,7 @@ export interface BlockchainExplorer {
 export const STELLAR_EXPERT: BlockchainExplorer = {
   id: "stellar-expert",
   label: "stellar.expert",
-  accountUrl: (accountId) =>
-    Option.some(`https://stellar.expert/explorer/public/account/${accountId}`),
+  accountUrl: (accountId) => Option.some(`https://stellar.expert/explorer/public/account/${accountId}`),
   assetUrl: (assetCode, assetIssuer?) =>
     assetCode === "XLM" || assetIssuer === undefined || assetIssuer === ""
       ? Option.some("https://stellar.expert/explorer/public/asset/XLM")
@@ -21,8 +20,7 @@ export const STELLAR_EXPERT: BlockchainExplorer = {
 export const LORE_MTLPROG: BlockchainExplorer = {
   id: "lore",
   label: "lore.mtlprog.xyz",
-  accountUrl: (accountId) =>
-    Option.some(`https://lore.mtlprog.xyz/accounts/${accountId}`),
+  accountUrl: (accountId) => Option.some(`https://lore.mtlprog.xyz/accounts/${accountId}`),
   assetUrl: (assetCode, assetIssuer?) =>
     assetCode === "XLM" || assetIssuer === undefined || assetIssuer === ""
       ? Option.none()

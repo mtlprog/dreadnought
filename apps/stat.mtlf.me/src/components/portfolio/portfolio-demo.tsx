@@ -1,21 +1,10 @@
 "use client";
 
 import { FundStructureLoading } from "@/components/ui/loading-skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFundData } from "@/hooks/use-fund-data";
 import { useSnapshots } from "@/hooks/use-snapshots";
-import {
-  EXPLORERS,
-  LORE_MTLPROG,
-  loadExplorer,
-  saveExplorer,
-} from "@/lib/blockchain-explorer";
+import { EXPLORERS, loadExplorer, LORE_MTLPROG, saveExplorer } from "@/lib/blockchain-explorer";
 import { useEffect, useState } from "react";
 import { FundStructureTable } from "./fund-structure-table";
 

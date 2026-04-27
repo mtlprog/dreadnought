@@ -47,8 +47,12 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
             </span>
           </div>
           <div className="flex justify-between gap-4">
-            <span className="text-steel-gray uppercase font-bold">ORDERBOOK{details.priceType != null ? ` (${details.priceType.toUpperCase()})` : ""}:</span>
-            <span className={`${details.chosenSource === "orderbook" ? "text-cyber-green font-bold" : "text-steel-gray"}`}>
+            <span className="text-steel-gray uppercase font-bold">
+              ORDERBOOK{details.priceType != null ? ` (${details.priceType.toUpperCase()})` : ""}:
+            </span>
+            <span
+              className={`${details.chosenSource === "orderbook" ? "text-cyber-green font-bold" : "text-steel-gray"}`}
+            >
               {details.orderbookPrice !== null ? formatNumber(parseFloat(details.orderbookPrice), 7) : "—"}
             </span>
           </div>
@@ -61,7 +65,8 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
             {formatPriceTooltip(details.pathDetails, false)}
           </div>
         )}
-        {details.chosenSource === "orderbook" && details.orderbookDetails !== null && details.orderbookDetails !== undefined && (
+        {details.chosenSource === "orderbook" && details.orderbookDetails !== null
+          && details.orderbookDetails !== undefined && (
           <div className="text-[10px] text-steel-gray">
             <div className="uppercase font-bold mb-1">ДЕТАЛИ ORDERBOOK:</div>
             {formatPriceTooltip(details.orderbookDetails, true)}
@@ -82,7 +87,11 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
         <div className="text-[10px] space-y-1">
           <div className="flex justify-between gap-4">
             <span className="text-steel-gray uppercase font-bold">ТИП ЦЕНЫ:</span>
-            <span className={`${details.priceType === "bid" ? "text-cyber-green" : "text-warning-amber"} font-bold uppercase`}>
+            <span
+              className={`${
+                details.priceType === "bid" ? "text-cyber-green" : "text-warning-amber"
+              } font-bold uppercase`}
+            >
               {details.priceType === "bid" ? "BID (ПОКУПКА)" : "ASK (ПРОДАЖА)"}
             </span>
           </div>
@@ -102,19 +111,47 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
               <div className="space-y-0.5">
                 <div className="text-steel-gray uppercase text-[9px] font-bold">ORDERBOOK:</div>
                 <div className="flex justify-between gap-3">
-                  <span className={`uppercase font-bold ${details.priceType === "ask" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                  <span
+                    className={`uppercase font-bold ${
+                      details.priceType === "ask" && details.orderbookData.bestSource === "orderbook"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
                     ASK:
                   </span>
-                  <span className={`font-mono ${details.priceType === "ask" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.orderbook?.ask != null ? formatNumber(parseFloat(details.orderbookData.orderbook.ask), 7) : "—"}
+                  <span
+                    className={`font-mono ${
+                      details.priceType === "ask" && details.orderbookData.bestSource === "orderbook"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
+                    {details.orderbookData.orderbook?.ask != null
+                      ? formatNumber(parseFloat(details.orderbookData.orderbook.ask), 7)
+                      : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <span className={`uppercase font-bold ${details.priceType === "bid" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                  <span
+                    className={`uppercase font-bold ${
+                      details.priceType === "bid" && details.orderbookData.bestSource === "orderbook"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
                     BID:
                   </span>
-                  <span className={`font-mono ${details.priceType === "bid" && details.orderbookData.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.orderbook?.bid != null ? formatNumber(parseFloat(details.orderbookData.orderbook.bid), 7) : "—"}
+                  <span
+                    className={`font-mono ${
+                      details.priceType === "bid" && details.orderbookData.bestSource === "orderbook"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
+                    {details.orderbookData.orderbook?.bid != null
+                      ? formatNumber(parseFloat(details.orderbookData.orderbook.bid), 7)
+                      : "—"}
                   </span>
                 </div>
               </div>
@@ -125,19 +162,47 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
               <div className="space-y-0.5">
                 <div className="text-steel-gray uppercase text-[9px] font-bold">AMM POOL:</div>
                 <div className="flex justify-between gap-3">
-                  <span className={`uppercase font-bold ${details.priceType === "ask" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                  <span
+                    className={`uppercase font-bold ${
+                      details.priceType === "ask" && details.orderbookData.bestSource === "amm"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
                     ASK:
                   </span>
-                  <span className={`font-mono ${details.priceType === "ask" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.amm?.ask != null ? formatNumber(parseFloat(details.orderbookData.amm.ask), 7) : "—"}
+                  <span
+                    className={`font-mono ${
+                      details.priceType === "ask" && details.orderbookData.bestSource === "amm"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
+                    {details.orderbookData.amm?.ask != null
+                      ? formatNumber(parseFloat(details.orderbookData.amm.ask), 7)
+                      : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between gap-3">
-                  <span className={`uppercase font-bold ${details.priceType === "bid" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                  <span
+                    className={`uppercase font-bold ${
+                      details.priceType === "bid" && details.orderbookData.bestSource === "amm"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
                     BID:
                   </span>
-                  <span className={`font-mono ${details.priceType === "bid" && details.orderbookData.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
-                    {details.orderbookData.amm?.bid != null ? formatNumber(parseFloat(details.orderbookData.amm.bid), 7) : "—"}
+                  <span
+                    className={`font-mono ${
+                      details.priceType === "bid" && details.orderbookData.bestSource === "amm"
+                        ? "text-cyber-green"
+                        : "text-steel-gray"
+                    }`}
+                  >
+                    {details.orderbookData.amm?.bid != null
+                      ? formatNumber(parseFloat(details.orderbookData.amm.bid), 7)
+                      : "—"}
                   </span>
                 </div>
               </div>
@@ -157,8 +222,8 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
         </div>
 
         {/* Show trade amounts if available (for full balance tooltips) */}
-        {details.sourceAmount !== null && details.sourceAmount !== undefined &&
-         details.destinationAmount !== null && details.destinationAmount !== undefined && (
+        {details.sourceAmount !== null && details.sourceAmount !== undefined
+          && details.destinationAmount !== null && details.destinationAmount !== undefined && (
           <div className="text-[10px] space-y-0.5 pb-2 border-b border-steel-gray/30">
             <div className="flex justify-between gap-4">
               <span className="text-steel-gray uppercase font-bold">ПРОДАЖА:</span>
@@ -197,19 +262,39 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                     <div className="space-y-0.5">
                       <div className="text-steel-gray uppercase text-[9px] font-bold">ORDERBOOK:</div>
                       <div className="flex justify-between gap-3">
-                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
+                        <span
+                          className={`uppercase font-bold ${
+                            hop.orderbook.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"
+                          }`}
+                        >
                           ASK:
                         </span>
-                        <span className={`font-mono ${hop.orderbook.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"}`}>
-                          {hop.orderbook.orderbook?.ask != null ? formatNumber(parseFloat(hop.orderbook.orderbook.ask), 7) : "—"}
+                        <span
+                          className={`font-mono ${
+                            hop.orderbook.bestSource === "orderbook" ? "text-cyber-green" : "text-steel-gray"
+                          }`}
+                        >
+                          {hop.orderbook.orderbook?.ask != null
+                            ? formatNumber(parseFloat(hop.orderbook.orderbook.ask), 7)
+                            : "—"}
                         </span>
                       </div>
                       <div className="flex justify-between gap-3">
-                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "orderbook" ? "text-warning-amber" : "text-steel-gray"}`}>
+                        <span
+                          className={`uppercase font-bold ${
+                            hop.orderbook.bestSource === "orderbook" ? "text-warning-amber" : "text-steel-gray"
+                          }`}
+                        >
                           BID:
                         </span>
-                        <span className={`font-mono ${hop.orderbook.bestSource === "orderbook" ? "text-warning-amber" : "text-steel-gray"}`}>
-                          {hop.orderbook.orderbook?.bid != null ? formatNumber(parseFloat(hop.orderbook.orderbook.bid), 7) : "—"}
+                        <span
+                          className={`font-mono ${
+                            hop.orderbook.bestSource === "orderbook" ? "text-warning-amber" : "text-steel-gray"
+                          }`}
+                        >
+                          {hop.orderbook.orderbook?.bid != null
+                            ? formatNumber(parseFloat(hop.orderbook.orderbook.bid), 7)
+                            : "—"}
                         </span>
                       </div>
                     </div>
@@ -220,18 +305,34 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                     <div className="space-y-0.5 pt-1">
                       <div className="text-steel-gray uppercase text-[9px] font-bold">AMM POOL:</div>
                       <div className="flex justify-between gap-3">
-                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                        <span
+                          className={`uppercase font-bold ${
+                            hop.orderbook.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"
+                          }`}
+                        >
                           ASK:
                         </span>
-                        <span className={`font-mono ${hop.orderbook.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"}`}>
+                        <span
+                          className={`font-mono ${
+                            hop.orderbook.bestSource === "amm" ? "text-cyber-green" : "text-steel-gray"
+                          }`}
+                        >
                           {hop.orderbook.amm?.ask != null ? formatNumber(parseFloat(hop.orderbook.amm.ask), 7) : "—"}
                         </span>
                       </div>
                       <div className="flex justify-between gap-3">
-                        <span className={`uppercase font-bold ${hop.orderbook.bestSource === "amm" ? "text-warning-amber" : "text-steel-gray"}`}>
+                        <span
+                          className={`uppercase font-bold ${
+                            hop.orderbook.bestSource === "amm" ? "text-warning-amber" : "text-steel-gray"
+                          }`}
+                        >
                           BID:
                         </span>
-                        <span className={`font-mono ${hop.orderbook.bestSource === "amm" ? "text-warning-amber" : "text-steel-gray"}`}>
+                        <span
+                          className={`font-mono ${
+                            hop.orderbook.bestSource === "amm" ? "text-warning-amber" : "text-steel-gray"
+                          }`}
+                        >
                           {hop.orderbook.amm?.bid != null ? formatNumber(parseFloat(hop.orderbook.amm.bid), 7) : "—"}
                         </span>
                       </div>
@@ -244,9 +345,7 @@ function formatPriceTooltip(details?: PriceDetails, showOrderbookDetails = true)
                   )}
 
                   {/* No data message */}
-                  {hop.orderbook.bestSource === "none" && (
-                    <div className="text-steel-gray italic">нет данных</div>
-                  )}
+                  {hop.orderbook.bestSource === "none" && <div className="text-steel-gray italic">нет данных</div>}
                 </div>
               )}
             </div>
@@ -283,7 +382,13 @@ function AccountTypeIndicator({ type }: { type: "issuer" | "subfond" | "mutual" 
   );
 }
 
-function AccountSection({ account, hideIlliquidTokens, explorer }: { account: FundAccountPortfolio; hideIlliquidTokens: boolean; explorer: BlockchainExplorer }) {
+function AccountSection(
+  { account, hideIlliquidTokens, explorer }: {
+    account: FundAccountPortfolio;
+    hideIlliquidTokens: boolean;
+    explorer: BlockchainExplorer;
+  },
+) {
   // Filter tokens based on hideIlliquidTokens setting
   const filteredTokens = hideIlliquidTokens
     ? account.tokens.filter((token) => token.valueInEURMTL !== null && token.valueInEURMTL !== undefined)
@@ -361,230 +466,260 @@ function AccountSection({ account, hideIlliquidTokens, explorer }: { account: Fu
                 <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${
-                        token.isNFT
-                          ? "text-purple-400"
-                          : token.nftValuationAccount != null
+                      <span
+                        className={`cursor-help underline-offset-2 hover:underline ${
+                          token.isNFT
+                            ? "text-purple-400"
+                            : token.nftValuationAccount != null
                             ? "text-electric-cyan"
                             : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInEURMTL != null
-                              ? "text-warning-amber"
-                              : ""
-                      }`}>
+                            ? "text-warning-amber"
+                            : ""
+                        }`}
+                      >
                         {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 4) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {token.isNFT ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                            ОЦЕНКА NFT ФОНДА
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Источник оценки:</div>
-                            <div className="text-electric-cyan font-mono text-[9px] break-all">
-                              {token.nftValuationAccount}
+                      {token.isNFT
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                              ОЦЕНКА NFT ФОНДА
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Источник оценки:</div>
+                              <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                {token.nftValuationAccount}
+                              </div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Статус:</div>
+                              <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Баланс NFT:</div>
+                              <div className="text-foreground">0.0000001 (1 струп)</div>
                             </div>
                           </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Статус:</div>
-                            <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Баланс NFT:</div>
-                            <div className="text-foreground">0.0000001 (1 струп)</div>
-                          </div>
-                        </div>
-                      ) : token.nftValuationAccount != null ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                            ЦЕНА ИЗ DATA ENTRY
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Источник:</div>
-                            <div className="text-electric-cyan font-mono text-[9px] break-all">
-                              {token.nftValuationAccount}
+                        )
+                        : token.nftValuationAccount != null
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                              ЦЕНА ИЗ DATA ENTRY
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Источник:</div>
+                              <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                {token.nftValuationAccount}
+                              </div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Тип оценки:</div>
+                              <div className="text-foreground">{token.asset.code}_1COST</div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Цена за единицу:</div>
+                              <div className="text-cyber-green">
+                                {token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 7) : "—"}
+                                {" "}
+                                EURMTL
+                              </div>
                             </div>
                           </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Тип оценки:</div>
-                            <div className="text-foreground">{token.asset.code}_1COST</div>
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Цена за единицу:</div>
-                            <div className="text-cyber-green">{token.priceInEURMTL != null ? formatNumber(parseFloat(token.priceInEURMTL), 7) : "—"} EURMTL</div>
-                          </div>
-                        </div>
-                      ) : (
-                        formatPriceTooltip(token.detailsEURMTL)
-                      )}
+                        )
+                        : (
+                          formatPriceTooltip(token.detailsEURMTL)
+                        )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-foreground">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${
-                        token.isNFT
-                          ? "text-purple-400"
-                          : token.nftValuationAccount != null
+                      <span
+                        className={`cursor-help underline-offset-2 hover:underline ${
+                          token.isNFT
+                            ? "text-purple-400"
+                            : token.nftValuationAccount != null
                             ? "text-electric-cyan"
                             : (token.valueInEURMTL === null || token.valueInXLM === null) && token.priceInXLM != null
-                              ? "text-warning-amber"
-                              : ""
-                      }`}>
+                            ? "text-warning-amber"
+                            : ""
+                        }`}
+                      >
                         {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {token.isNFT ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                            ОЦЕНКА NFT ФОНДА
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Источник оценки:</div>
-                            <div className="text-electric-cyan font-mono text-[9px] break-all">
-                              {token.nftValuationAccount}
+                      {token.isNFT
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                              ОЦЕНКА NFT ФОНДА
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Источник оценки:</div>
+                              <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                {token.nftValuationAccount}
+                              </div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Статус:</div>
+                              <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Конверсия:</div>
+                              <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
                             </div>
                           </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Статус:</div>
-                            <div className="text-warning-amber">НОМИНАЛЬНАЯ (НЕ ЛИКВИДНА)</div>
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Конверсия:</div>
-                            <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
-                          </div>
-                        </div>
-                      ) : token.nftValuationAccount != null ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                            ЦЕНА ИЗ DATA ENTRY
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Источник:</div>
-                            <div className="text-electric-cyan font-mono text-[9px] break-all">
-                              {token.nftValuationAccount}
+                        )
+                        : token.nftValuationAccount != null
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                              ЦЕНА ИЗ DATA ENTRY
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Источник:</div>
+                              <div className="text-electric-cyan font-mono text-[9px] break-all">
+                                {token.nftValuationAccount}
+                              </div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Тип оценки:</div>
+                              <div className="text-foreground">{token.asset.code}_1COST</div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Цена за единицу:</div>
+                              <div className="text-cyber-green">
+                                {token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"} XLM
+                              </div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Конверсия:</div>
+                              <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
                             </div>
                           </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Тип оценки:</div>
-                            <div className="text-foreground">{token.asset.code}_1COST</div>
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Цена за единицу:</div>
-                            <div className="text-cyber-green">{token.priceInXLM != null ? formatNumber(parseFloat(token.priceInXLM), 7) : "—"} XLM</div>
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Конверсия:</div>
-                            <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
-                          </div>
-                        </div>
-                      ) : (
-                        formatPriceTooltip(token.detailsXLM)
-                      )}
+                        )
+                        : (
+                          formatPriceTooltip(token.detailsXLM)
+                        )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${
-                        token.isNFT
-                          ? "text-purple-400"
-                          : (token.valueInEURMTL === null || token.valueInXLM === null) && (token.priceInEURMTL != null || token.priceInXLM != null)
+                      <span
+                        className={`cursor-help underline-offset-2 hover:underline ${
+                          token.isNFT
+                            ? "text-purple-400"
+                            : (token.valueInEURMTL === null || token.valueInXLM === null)
+                                && (token.priceInEURMTL != null || token.priceInXLM != null)
                             ? "text-warning-amber"
                             : ""
-                      }`}>
+                        }`}
+                      >
                         {token.valueInEURMTL != null
                           ? formatNumber(parseFloat(token.valueInEURMTL), 2)
-                          : "—"
-                        }
+                          : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {token.isNFT ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                            ОЦЕНКА NFT ФОНДА
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-warning-amber uppercase font-bold">
-                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                      {token.isNFT
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                              ОЦЕНКА NFT ФОНДА
                             </div>
-                            <div className="text-steel-gray mt-2">
-                              NFT включены только в номинальный итог фонда
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-warning-amber uppercase font-bold">
+                                ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                              </div>
+                              <div className="text-steel-gray mt-2">
+                                NFT включены только в номинальный итог фонда
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : token.nftValuationAccount != null ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                            СТОИМОСТЬ ИЗ DATA ENTRY
+                        )
+                        : token.nftValuationAccount != null
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                              СТОИМОСТЬ ИЗ DATA ENTRY
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Расчет:</div>
+                              <div className="text-foreground">Цена × Количество</div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Цена из:</div>
+                              <div className="text-electric-cyan">{token.asset.code}_1COST</div>
+                            </div>
                           </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Расчет:</div>
-                            <div className="text-foreground">Цена × Количество</div>
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Цена из:</div>
-                            <div className="text-electric-cyan">{token.asset.code}_1COST</div>
-                          </div>
-                        </div>
-                      ) : (
-                        formatPriceTooltip(token.detailsEURMTL, false)
-                      )}
+                        )
+                        : (
+                          formatPriceTooltip(token.detailsEURMTL, false)
+                        )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell className="text-right font-mono text-electric-cyan">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className={`cursor-help underline-offset-2 hover:underline ${
-                        token.isNFT
-                          ? "text-purple-400"
-                          : (token.valueInEURMTL === null || token.valueInXLM === null) && (token.priceInEURMTL != null || token.priceInXLM != null)
+                      <span
+                        className={`cursor-help underline-offset-2 hover:underline ${
+                          token.isNFT
+                            ? "text-purple-400"
+                            : (token.valueInEURMTL === null || token.valueInXLM === null)
+                                && (token.priceInEURMTL != null || token.priceInXLM != null)
                             ? "text-warning-amber"
                             : ""
-                      }`}>
+                        }`}
+                      >
                         {token.valueInXLM != null
                           ? formatNumber(parseFloat(token.valueInXLM), 7)
-                          : "—"
-                        }
+                          : "—"}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
-                      {token.isNFT ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
-                            ОЦЕНКА NFT ФОНДА
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-warning-amber uppercase font-bold">
-                              ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                      {token.isNFT
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-purple-400 uppercase text-xs font-bold border-b border-purple-400/30 pb-1">
+                              ОЦЕНКА NFT ФОНДА
                             </div>
-                            <div className="text-steel-gray mt-2">
-                              NFT включены только в номинальный итог фонда
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-warning-amber uppercase font-bold">
+                                ⚠ НЕ ВХОДИТ В ЛИКВИДНЫЙ ИТОГ
+                              </div>
+                              <div className="text-steel-gray mt-2">
+                                NFT включены только в номинальный итог фонда
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ) : token.nftValuationAccount != null ? (
-                        <div className="font-mono space-y-2">
-                          <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
-                            СТОИМОСТЬ ИЗ DATA ENTRY
+                        )
+                        : token.nftValuationAccount != null
+                        ? (
+                          <div className="font-mono space-y-2">
+                            <div className="text-electric-cyan uppercase text-xs font-bold border-b border-electric-cyan/30 pb-1">
+                              СТОИМОСТЬ ИЗ DATA ENTRY
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Расчет:</div>
+                              <div className="text-foreground">Цена × Количество</div>
+                            </div>
+                            <div className="text-[10px] space-y-0.5">
+                              <div className="text-steel-gray">Конверсия:</div>
+                              <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
+                            </div>
                           </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Расчет:</div>
-                            <div className="text-foreground">Цена × Количество</div>
-                          </div>
-                          <div className="text-[10px] space-y-0.5">
-                            <div className="text-steel-gray">Конверсия:</div>
-                            <div className="text-foreground">EURMTL → XLM по курсу DEX</div>
-                          </div>
-                        </div>
-                      ) : (
-                        formatPriceTooltip(token.detailsXLM, false)
-                      )}
+                        )
+                        : (
+                          formatPriceTooltip(token.detailsXLM, false)
+                        )}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
@@ -664,7 +799,9 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="font-mono text-xs space-y-1">
                             <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
-                            <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в EURMTL</div>
+                            <div className="text-steel-gray">
+                              Показывает цену обмена за одну единицу токена в EURMTL
+                            </div>
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -694,7 +831,9 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="font-mono text-xs space-y-1">
                             <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
-                            <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в EURMTL</div>
+                            <div className="text-steel-gray">
+                              Показывает стоимость продажи всего баланса токена в EURMTL
+                            </div>
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -709,7 +848,9 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                         <TooltipContent side="top" className="max-w-xs">
                           <div className="font-mono text-xs space-y-1">
                             <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
-                            <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в XLM</div>
+                            <div className="text-steel-gray">
+                              Показывает стоимость продажи всего баланса токена в XLM
+                            </div>
                           </div>
                         </TooltipContent>
                       </Tooltip>
@@ -722,7 +863,12 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
             {/* Account Sections */}
             <div className="space-y-6">
               {fundData.accounts.map((account, index) => (
-                <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} explorer={explorer} />
+                <AccountSection
+                  key={index}
+                  account={account}
+                  hideIlliquidTokens={hideIlliquidTokens}
+                  explorer={explorer}
+                />
               ))}
             </div>
           </div>
@@ -789,7 +935,9 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                           <TooltipContent side="top" className="max-w-xs">
                             <div className="font-mono text-xs space-y-1">
                               <div className="text-electric-cyan uppercase font-bold">ЦЕНА ЗА 1 ТОКЕН</div>
-                              <div className="text-steel-gray">Показывает цену обмена за одну единицу токена в EURMTL</div>
+                              <div className="text-steel-gray">
+                                Показывает цену обмена за одну единицу токена в EURMTL
+                              </div>
                             </div>
                           </TooltipContent>
                         </Tooltip>
@@ -819,7 +967,9 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                           <TooltipContent side="top" className="max-w-xs">
                             <div className="font-mono text-xs space-y-1">
                               <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
-                              <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в EURMTL</div>
+                              <div className="text-steel-gray">
+                                Показывает стоимость продажи всего баланса токена в EURMTL
+                              </div>
                             </div>
                           </TooltipContent>
                         </Tooltip>
@@ -834,7 +984,9 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
                           <TooltipContent side="top" className="max-w-xs">
                             <div className="font-mono text-xs space-y-1">
                               <div className="text-electric-cyan uppercase font-bold">СТОИМОСТЬ ВСЕГО БАЛАНСА</div>
-                              <div className="text-steel-gray">Показывает стоимость продажи всего баланса токена в XLM</div>
+                              <div className="text-steel-gray">
+                                Показывает стоимость продажи всего баланса токена в XLM
+                              </div>
                             </div>
                           </TooltipContent>
                         </Tooltip>
@@ -847,7 +999,12 @@ export function FundStructureTable({ fundData, explorer, isLoading = false }: Fu
               {/* Other Account Sections */}
               <div className="space-y-6">
                 {fundData.otherAccounts.map((account, index) => (
-                  <AccountSection key={index} account={account} hideIlliquidTokens={hideIlliquidTokens} explorer={explorer} />
+                  <AccountSection
+                    key={index}
+                    account={account}
+                    hideIlliquidTokens={hideIlliquidTokens}
+                    explorer={explorer}
+                  />
                 ))}
               </div>
             </div>

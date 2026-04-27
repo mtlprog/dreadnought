@@ -1,10 +1,10 @@
 "use client";
 
+import type { BlockchainExplorer } from "@/lib/blockchain-explorer";
 import * as S from "@effect/schema/Schema";
 import { Effect, Option, pipe } from "effect";
 import { Copy, ExternalLink } from "lucide-react";
 import { useState } from "react";
-import type { BlockchainExplorer } from "@/lib/blockchain-explorer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 
 // Error definitions
@@ -69,19 +69,21 @@ export function StellarAccount({ accountId, explorer, className = "", showIcon =
     });
   };
 
-  const addressElement = Option.isSome(url) ? (
-    <button
-      onClick={openInExplorer}
-      className="font-mono text-steel-gray hover:text-cyber-green transition-colors cursor-pointer"
-    >
-      {formatAddress(accountId)}
-      {showIcon && <ExternalLink className="w-3 h-3 inline ml-1" />}
-    </button>
-  ) : (
-    <span className="font-mono text-steel-gray">
-      {formatAddress(accountId)}
-    </span>
-  );
+  const addressElement = Option.isSome(url)
+    ? (
+      <button
+        onClick={openInExplorer}
+        className="font-mono text-steel-gray hover:text-cyber-green transition-colors cursor-pointer"
+      >
+        {formatAddress(accountId)}
+        {showIcon && <ExternalLink className="w-3 h-3 inline ml-1" />}
+      </button>
+    )
+    : (
+      <span className="font-mono text-steel-gray">
+        {formatAddress(accountId)}
+      </span>
+    );
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>

@@ -112,4 +112,3 @@ export function FundStructureLoading({ accountCount = 3 }: FundStructureLoadingP
     </div>
   );
 }
-

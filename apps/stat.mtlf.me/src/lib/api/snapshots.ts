@@ -1,5 +1,5 @@
 import type { FundAccountPortfolio } from "@/lib/stellar/fund-structure-service";
-import { apiGet } from "./client";
+import { apiGet, type ApiGetOptions, ApiShapeError } from "./client";
 import type { SnapshotSummary } from "./types";
 
 export interface AggregatedTotals {
@@ -36,77 +36,93 @@ interface AggregatedTotalsRaw {
   readonly tokenCount?: number;
 }
 
-type FundAccountPortfolioRaw = Omit<
-  FundAccountPortfolio,
-  "totalEURMTL" | "totalXLM"
-> & {
-  readonly totalEURMTL: number | string;
-  readonly totalXLM: number | string;
-};
+type FundAccountPortfolioRaw =
+  & Omit<
+    FundAccountPortfolio,
+    "totalEURMTL" | "totalXLM"
+  >
+  & {
+    readonly totalEURMTL: number | string;
+    readonly totalXLM: number | string;
+  };
 
-const toNumber = (value: number | string | null | undefined): number => {
-  if (value === null || value === undefined) return 0;
+const SNAPSHOT_PATH = "/api/v1/snapshots";
+
+const parseRequiredNumber = (
+  value: number | string | null | undefined,
+  fieldName: string,
+  path: string,
+): number => {
+  if (value === null || value === undefined) {
+    throw new ApiShapeError(path, `missing required numeric field: ${fieldName}`);
+  }
   const n = typeof value === "number" ? value : parseFloat(value);
-  return Number.isFinite(n) ? n : 0;
+  if (!Number.isFinite(n)) {
+    throw new ApiShapeError(path, `non-finite value for ${fieldName}: ${String(value)}`);
+  }
+  return n;
 };
 
-const normalizeAccount = (raw: FundAccountPortfolioRaw): FundAccountPortfolio => ({
+const normalizeAccount = (
+  raw: FundAccountPortfolioRaw,
+  path: string,
+  index: number,
+): FundAccountPortfolio => ({
   ...raw,
-  totalEURMTL: toNumber(raw.totalEURMTL),
-  totalXLM: toNumber(raw.totalXLM),
+  totalEURMTL: parseRequiredNumber(raw.totalEURMTL, `accounts[${index}].totalEURMTL`, path),
+  totalXLM: parseRequiredNumber(raw.totalXLM, `accounts[${index}].totalXLM`, path),
 });
 
 const normalizeAggregated = (
   raw: AggregatedTotalsRaw | undefined,
+  path: string,
 ): AggregatedTotals | null => {
   if (raw === undefined) return null;
   return {
-    totalEURMTL: toNumber(raw.totalEURMTL),
-    totalXLM: toNumber(raw.totalXLM),
+    totalEURMTL: parseRequiredNumber(raw.totalEURMTL, "aggregatedTotals.totalEURMTL", path),
+    totalXLM: parseRequiredNumber(raw.totalXLM, "aggregatedTotals.totalXLM", path),
     accountCount: raw.accountCount ?? 0,
     tokenCount: raw.tokenCount ?? 0,
   };
 };
 
-const adaptSnapshot = (envelope: SnapshotEnvelope): FundSnapshotView => {
-  const accounts = (envelope.data.accounts ?? []).map(normalizeAccount);
-  const otherAccountsRaw =
-    envelope.data.otherAccounts ?? envelope.otherAccounts ?? [];
-  const otherAccounts = otherAccountsRaw.map(normalizeAccount);
-  const aggregatedTotals = normalizeAggregated(envelope.data.aggregatedTotals);
+const adaptSnapshot = (envelope: SnapshotEnvelope, path: string): FundSnapshotView => {
+  if (envelope.data === null || envelope.data === undefined || typeof envelope.data !== "object") {
+    throw new ApiShapeError(path, "envelope.data missing or not an object");
+  }
+  const accounts = (envelope.data.accounts ?? []).map((raw, i) => normalizeAccount(raw, path, i));
+  const otherAccountsRaw = envelope.data.otherAccounts ?? envelope.otherAccounts ?? [];
+  const otherAccounts = otherAccountsRaw.map((raw, i) => normalizeAccount(raw, path, i));
+  const aggregatedTotals = normalizeAggregated(envelope.data.aggregatedTotals, path);
 
   return { accounts, otherAccounts, aggregatedTotals };
 };
 
-export async function fetchLatestSnapshot(): Promise<FundSnapshotView> {
-  const envelope = await apiGet<SnapshotEnvelope>("/api/v1/snapshots/latest");
-  return adaptSnapshot(envelope);
+export async function fetchLatestSnapshot(options?: ApiGetOptions): Promise<FundSnapshotView> {
+  const path = `${SNAPSHOT_PATH}/latest`;
+  const envelope = await apiGet<SnapshotEnvelope>(path, options);
+  return adaptSnapshot(envelope, path);
 }
 
 export async function fetchSnapshotByDate(
   date: string,
+  options?: ApiGetOptions,
 ): Promise<FundSnapshotView> {
-  const envelope = await apiGet<SnapshotEnvelope>(
-    `/api/v1/snapshots/${encodeURIComponent(date)}`,
-  );
-  return adaptSnapshot(envelope);
-}
-
-interface SnapshotListItem {
-  readonly id: number;
-  readonly entityId: number;
-  readonly snapshotDate: string;
+  const path = `${SNAPSHOT_PATH}/${encodeURIComponent(date)}`;
+  const envelope = await apiGet<SnapshotEnvelope>(path, options);
+  return adaptSnapshot(envelope, path);
 }
 
 export async function fetchSnapshotList(
   limit = 365,
+  options?: ApiGetOptions,
 ): Promise<SnapshotSummary[]> {
-  const items = await apiGet<SnapshotListItem[]>(
-    `/api/v1/snapshots?limit=${limit}`,
-  );
+  const items = await apiGet<SnapshotSummary[]>(`${SNAPSHOT_PATH}?limit=${limit}`, options);
   return items.map((item) => ({
     id: item.id,
     entityId: item.entityId,
     snapshotDate: item.snapshotDate,
   }));
 }
+
+export const __test__ = { adaptSnapshot, parseRequiredNumber };

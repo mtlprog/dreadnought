@@ -79,9 +79,7 @@ export function SubfundPieChart({ slices, date }: SubfundPieChartProps) {
               stroke="var(--background)"
               strokeWidth={2}
             >
-              {enriched.map((_, i) => (
-                <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
-              ))}
+              {enriched.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
             </Pie>
             <Tooltip content={renderTooltip} />
           </PieChart>

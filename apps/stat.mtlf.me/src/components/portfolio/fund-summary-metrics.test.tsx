@@ -1,6 +1,8 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, test } from "bun:test";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, test } from "bun:test";
 import { FundSummaryMetrics } from "./fund-summary-metrics";
+
+afterEach(cleanup);
 
 describe("FundSummaryMetrics", () => {
   describe("Loading state", () => {
@@ -12,7 +14,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={0}
           tokenCount={0}
           isLoading={true}
-        />
+        />,
       );
 
       expect(screen.getByText("⏳ ЗАГРУЗКА МЕТРИК...")).toBeInTheDocument();
@@ -29,12 +31,12 @@ describe("FundSummaryMetrics", () => {
           accountCount={8}
           tokenCount={150}
           isLoading={false}
-        />
+        />,
       );
 
       expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
       expect(
-        screen.getByText("Цена за 1 токен × Баланс")
+        screen.getByText("Цена за 1 токен × Баланс"),
       ).toBeInTheDocument();
 
       // Check for section labels
@@ -59,7 +61,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={0}
           tokenCount={0}
           isLoading={false}
-        />
+        />,
       );
 
       expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
@@ -73,7 +75,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       const card = container.querySelector(".bg-electric-cyan\\/10");
@@ -93,7 +95,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       // Verify nominal section is removed
@@ -110,7 +112,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       // Verify liquid section is removed
@@ -127,7 +129,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       // Verify slippage columns are removed
@@ -143,15 +145,15 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       // Verify the description no longer mentions slippage
       expect(
-        screen.queryByText(/с учетом проскальзывания/i)
+        screen.queryByText(/с учетом проскальзывания/i),
       ).not.toBeInTheDocument();
       expect(
-        screen.queryByText(/без учета проскальзывания/i)
+        screen.queryByText(/без учета проскальзывания/i),
       ).not.toBeInTheDocument();
     });
   });
@@ -165,7 +167,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       // Find the grid
@@ -186,7 +188,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       const uppercaseElements = [
@@ -210,7 +212,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       const monoElements = container.querySelectorAll(".font-mono");
@@ -225,7 +227,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={5}
           tokenCount={100}
           isLoading={false}
-        />
+        />,
       );
 
       // Card component should have border-0 class (zero border)
@@ -243,7 +245,7 @@ describe("FundSummaryMetrics", () => {
           accountCount={0}
           tokenCount={0}
           isLoading={false}
-        />
+        />,
       );
 
       expect(screen.getByText("ИТОГО ПО ФОНДУ")).toBeInTheDocument();
@@ -256,7 +258,7 @@ describe("FundSummaryMetrics", () => {
           totalXLM={500000}
           accountCount={5}
           tokenCount={100}
-        />
+        />,
       );
 
       // Should show content, not loading state
