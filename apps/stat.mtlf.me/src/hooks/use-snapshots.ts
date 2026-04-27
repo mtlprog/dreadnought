@@ -1,8 +1,8 @@
+import { fetchSnapshotList } from "@/lib/api/snapshots";
 import { useEffect, useState } from "react";
 
 export interface Snapshot {
   date: string;
-  createdAt: string;
 }
 
 interface UseSnapshotsState {
@@ -11,7 +11,9 @@ interface UseSnapshotsState {
   error: string | null;
 }
 
-export function useSnapshots(baseUrl = ""): UseSnapshotsState {
+const toDateKey = (iso: string): string => iso.split("T")[0] ?? iso;
+
+export function useSnapshots(): UseSnapshotsState {
   const [state, setState] = useState<UseSnapshotsState>({
     snapshots: [],
     isLoading: true,
@@ -21,20 +23,14 @@ export function useSnapshots(baseUrl = ""): UseSnapshotsState {
   useEffect(() => {
     let mounted = true;
 
-    const fetchSnapshots = async () => {
+    const run = async () => {
       try {
         setState({ snapshots: [], isLoading: true, error: null });
-
-        const response = await fetch(`${baseUrl}/api/snapshots`);
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const items = await fetchSnapshotList(365);
+        const snapshots = items.map((item) => ({ date: toDateKey(item.snapshotDate) }));
 
         if (mounted) {
-          setState({ snapshots: data, isLoading: false, error: null });
+          setState({ snapshots, isLoading: false, error: null });
         }
       } catch (error) {
         if (mounted) {
@@ -47,12 +43,12 @@ export function useSnapshots(baseUrl = ""): UseSnapshotsState {
       }
     };
 
-    void fetchSnapshots();
+    void run();
 
     return () => {
       mounted = false;
     };
-  }, [baseUrl]);
+  }, []);
 
   return state;
 }

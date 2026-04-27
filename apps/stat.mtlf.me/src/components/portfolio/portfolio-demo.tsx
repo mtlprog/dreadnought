@@ -1,11 +1,6 @@
 "use client";
 
 import { FundStructureLoading } from "@/components/ui/loading-skeleton";
-import { useFundData } from "@/hooks/use-fund-data";
-import { useSnapshots } from "@/hooks/use-snapshots";
-import { API_ENDPOINTS, LOCAL_SENTINEL, loadEndpoint, saveEndpoint } from "@/lib/api-endpoints";
-import { EXPLORERS, loadExplorer, saveExplorer } from "@/lib/blockchain-explorer";
-import { FundStructureTable } from "./fund-structure-table";
 import {
   Select,
   SelectContent,
@@ -13,21 +8,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useFundData } from "@/hooks/use-fund-data";
+import { useSnapshots } from "@/hooks/use-snapshots";
+import {
+  EXPLORERS,
+  LORE_MTLPROG,
+  loadExplorer,
+  saveExplorer,
+} from "@/lib/blockchain-explorer";
+import { useEffect, useState } from "react";
+import { FundStructureTable } from "./fund-structure-table";
 
 export function PortfolioDemo() {
-  const [baseUrl, setBaseUrl] = useState(loadEndpoint);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [explorer, setExplorer] = useState(loadExplorer);
-  const { snapshots, isLoading: snapshotsLoading, error: snapshotsError } = useSnapshots(baseUrl);
-  const { data: fundData, isLoading, error } = useFundData(selectedDate, baseUrl);
+  const [explorer, setExplorer] = useState(LORE_MTLPROG);
+  const { snapshots, isLoading: snapshotsLoading, error: snapshotsError } = useSnapshots();
+  const { data: fundData, isLoading, error } = useFundData(selectedDate);
 
-  const handleEndpointChange = (value: string) => {
-    const url = value === LOCAL_SENTINEL ? "" : value;
-    setBaseUrl(url);
-    saveEndpoint(url);
-    setSelectedDate(null);
-  };
+  useEffect(() => {
+    setExplorer(loadExplorer());
+  }, []);
 
   const handleExplorerChange = (explorerId: string) => {
     const selected = EXPLORERS.find((e) => e.id === explorerId);
@@ -38,28 +38,7 @@ export function PortfolioDemo() {
 
   return (
     <div className="container mx-auto px-4 py-16">
-      {/* Endpoint, explorer, and snapshot selectors */}
-      <div className="mb-8 grid grid-cols-[auto_1fr] sm:grid-cols-[auto_auto_auto_auto_auto_auto] items-center gap-x-4 gap-y-3 sm:justify-end">
-        <label className="font-mono text-sm uppercase tracking-wider text-steel-gray whitespace-nowrap">
-          SOURCE:
-        </label>
-        <Select value={baseUrl || LOCAL_SENTINEL} onValueChange={handleEndpointChange}>
-          <SelectTrigger className="w-full sm:w-[200px] border-electric-cyan bg-background font-mono text-sm uppercase">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="border-electric-cyan bg-background">
-            {API_ENDPOINTS.map((ep) => (
-              <SelectItem
-                key={ep.label}
-                value={ep.value || LOCAL_SENTINEL}
-                className="font-mono text-sm uppercase cursor-pointer hover:bg-electric-cyan/20"
-              >
-                {ep.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
+      <div className="mb-8 grid grid-cols-[auto_1fr] sm:grid-cols-[auto_auto_auto_auto] items-center gap-x-4 gap-y-3 sm:justify-end">
         <label className="font-mono text-sm uppercase tracking-wider text-steel-gray whitespace-nowrap">
           EXPLORER:
         </label>

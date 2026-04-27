@@ -9,34 +9,47 @@ Real-time statistics and portfolio composition for Montelibero Fund on Stellar b
 **Purpose**: Dashboard for tracking fund assets across multiple Stellar accounts with automatic price discovery
 
 **Key Features**:
-- Multi-account fund structure visualization
-- Real-time token price discovery (orderbook + path finding)
-- Aggregated portfolio totals in EURMTL and XLM
+- Dashboard `/` with subfund pie chart, key indicator history, full indicator grid
+- Fund details `/fund` with multi-account fund structure table
+- All data fetched from external API at `https://stat.mtlprog.xyz/api/v1/...` — no local backend
+- Real-time token price discovery via Stellar Horizon (CLI only)
 - CLI tools for manual price checks
-- Client-side data fetching with progress indicators
 
-**Tech Stack**: Next.js 15, Effect-TS, Stellar SDK 12.3.0, Tailwind CSS 4, next-themes
+**Tech Stack**: Next.js 15, Effect-TS (CLI), Stellar SDK 12.3.0, Tailwind CSS 4, next-themes, Recharts
 
 ## Project Structure
 
 ```
 apps/stat.mtlf.me/
+├── app/
+│   ├── page.tsx              # / — dashboard (charts + indicators)
+│   └── fund/page.tsx         # /fund — fund structure table
 ├── src/
-│   ├── cli/                    # CLI tools
-│   ├── components/             # React components
-│   ├── hooks/                  # Custom hooks
+│   ├── cli/                  # CLI tools (Stellar pricing)
+│   ├── components/
+│   │   ├── dashboard/        # Dashboard widgets (charts, KPI cards)
+│   │   ├── portfolio/        # Fund details table
+│   │   └── ui/               # Shared primitives
+│   ├── hooks/                # Data hooks (use-indicators, use-fund-data, ...)
 │   ├── lib/
-│   │   ├── stellar/           # Stellar services
-│   │   └── services/          # Client services
-│   └── app/                   # Next.js 15 App Router
-└── docs/guides/               # Detailed documentation
+│   │   ├── api/              # External API client (stat.mtlprog.xyz)
+│   │   └── stellar/          # Stellar services (CLI only)
+└── docs/guides/              # Detailed documentation
 ```
 
-## Core Services
+## External API
 
-All services use Effect-TS patterns (see `/docs/guides/effect-ts-patterns.md`).
+Single data source: `https://stat.mtlprog.xyz/api/v1`. Endpoints:
+- `GET /indicators?compare=30d,90d,365d` — KPI list with period deltas
+- `GET /charts/balance-by-subfund` — pie chart slices (MABIZ, MCITY, DEFI, BOSS)
+- `GET /charts/indicator-history?ids=&range=` — time-series for line charts
+- `GET /snapshots`, `/snapshots/latest`, `/snapshots/{date}` — fund snapshots
 
-**Database integration**: PostgreSQL with `@effect/sql-pg` (see `docs/guides/postgresql-effect-integration.md`)
+Wrappers in `src/lib/api/`. No local API routes; no database.
+
+## Core Services (CLI only)
+
+The Stellar Effect-TS services power CLI tools. See `/docs/guides/effect-ts-patterns.md`.
 
 ### 1. PortfolioService (`src/lib/stellar/portfolio-service.ts`)
 
@@ -80,10 +93,6 @@ interface FundStructureService {
 
 **📘 Full guide**: `docs/guides/fund-structure-service.md`
 
-### 4. FundDataClient (`src/lib/services/fund-data-client.ts`)
-
-Client-side API fetching with schema validation.
-
 ## CLI Tools
 
 **Setup**:
@@ -106,10 +115,9 @@ bun run cli xlm-usdc
 
 ## UI Components
 
-- **FundStructureTable** - Main table with sticky headers, tooltips
-- **StellarAsset** - Asset display with issuer tooltip
-- **StellarAccount** - Account ID with copy-to-clipboard
-- **PortfolioClient** - Client wrapper with progress
+- **DashboardPage** (`src/components/dashboard/`) — pie chart, indicator history, indicators grid
+- **FundStructureTable** — main table with sticky headers, tooltips
+- **StellarAsset / StellarAccount** — display primitives with explorer links
 
 **📘 Full guide**: `docs/guides/ui-components.md`
 
@@ -137,11 +145,7 @@ bun dev              # Dev server
 bun build            # Production build
 bun lint             # Linter
 bun run cli          # CLI tools
-bun run db:migrate   # Run database migrations
-bun run db:snapshot  # Generate fund snapshot
 ```
-
-**Database**: PostgreSQL via Railway, snapshots cached for 1 hour. See `docs/guides/postgresql-effect-integration.md` for complete setup.
 
 ## Testing
 
@@ -194,8 +198,6 @@ Effect.all(items.map(process), { concurrency: 3 });
 ## Documentation
 
 ### App Guides
-- **[PostgreSQL Integration](/apps/stat.mtlf.me/docs/guides/postgresql-effect-integration.md)** - Database setup, migrations, repositories, API routes
-- **[Services](/apps/stat.mtlf.me/docs/guides/services.md)** - Detailed service documentation
 - **[Price Discovery](/apps/stat.mtlf.me/docs/guides/price-discovery.md)** - Price algorithms
 - **[Fund Structure](/apps/stat.mtlf.me/docs/guides/fund-structure-service.md)** - Fund architecture
 - **[CLI Usage](/apps/stat.mtlf.me/docs/guides/cli-usage.md)** - CLI commands
@@ -207,31 +209,3 @@ Effect.all(items.map(process), { concurrency: 3 });
 - **[Stellar Integration](/docs/guides/stellar-integration.md)** - Stellar SDK integration
 - **[Design System](/docs/guides/design-system.md)** - Retrofuturistic UI/UX
 
-## PostgreSQL Snapshot System
-
-**Status**: ✅ Implemented (2025-10-15)
-
-**Architecture**:
-- Daily snapshots generated via CLI (`bun run db:snapshot`)
-- Stored in PostgreSQL (Railway) as JSONB
-- Served via Next.js API route with 1-hour cache
-- Performance: ~1 second (vs 90-150s direct from Stellar)
-
-**Tables**:
-- `fund_entities` - Fund configurations (mtlf, etc.)
-- `fund_snapshots` - Daily snapshots with JSONB data
-
-**Scripts**:
-- `bun run db:migrate` - Run migrations
-- `bun run db:snapshot` - Generate snapshot for today
-
-**See**: `docs/guides/postgresql-effect-integration.md` for complete guide
-
-## Future Enhancements
-
-- [ ] Historical price charts from snapshots
-- [ ] Price alerts and notifications
-- [ ] Export reports (CSV, PDF) from snapshot data
-- [ ] WebSocket real-time updates
-- [ ] Automated daily snapshot generation (cron)
-- [ ] Snapshot comparison and analytics

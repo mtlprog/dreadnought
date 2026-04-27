@@ -1,18 +1,15 @@
-import {
-  fetchLatestSnapshot,
-  fetchSnapshotByDate,
-  type FundSnapshotView,
-} from "@/lib/api/snapshots";
+import { fetchBalanceBySubfund } from "@/lib/api/charts";
+import type { BalanceBySubfund } from "@/lib/api/types";
 import { useEffect, useState } from "react";
 
-interface UseFundDataState {
-  data: FundSnapshotView | null;
+interface UseSubfundBalanceState {
+  data: BalanceBySubfund | null;
   isLoading: boolean;
   error: string | null;
 }
 
-export function useFundData(selectedDate?: string | null): UseFundDataState {
-  const [state, setState] = useState<UseFundDataState>({
+export function useSubfundBalance(): UseSubfundBalanceState {
+  const [state, setState] = useState<UseSubfundBalanceState>({
     data: null,
     isLoading: true,
     error: null,
@@ -24,12 +21,7 @@ export function useFundData(selectedDate?: string | null): UseFundDataState {
     const run = async () => {
       try {
         setState({ data: null, isLoading: true, error: null });
-
-        const dateParam = selectedDate?.split("T")[0];
-        const data = dateParam !== undefined && dateParam !== ""
-          ? await fetchSnapshotByDate(dateParam)
-          : await fetchLatestSnapshot();
-
+        const data = await fetchBalanceBySubfund();
         if (mounted) {
           setState({ data, isLoading: false, error: null });
         }
@@ -49,7 +41,7 @@ export function useFundData(selectedDate?: string | null): UseFundDataState {
     return () => {
       mounted = false;
     };
-  }, [selectedDate]);
+  }, []);
 
   return state;
 }

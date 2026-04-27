@@ -1,13 +1,15 @@
+import { DashboardPage } from "@/components/dashboard/dashboard-page";
 import { Footer } from "@/components/layout/footer";
-import { PortfolioDemo } from "@/components/portfolio/portfolio-demo";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div className="border-b border-border bg-background p-6">
         <div className="container mx-auto">
-          <div className="flex justify-between items-start">
+          <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h1 className="text-6xl font-mono uppercase tracking-wider text-cyber-green mb-2">
                 MTLF.STAT
@@ -16,7 +18,14 @@ export default function Home() {
                 MONTELIBERO FOUNDATION // PORTFOLIO STATISTICS
               </p>
             </div>
-            <div className="mt-2">
+            <div className="flex items-center gap-3">
+              <Link
+                href="/fund"
+                className="inline-flex items-center gap-2 border border-cyber-green bg-background px-4 py-2 font-mono text-sm uppercase tracking-wider text-cyber-green hover:bg-cyber-green hover:text-background transition-colors"
+              >
+                FUND DETAILS
+                <ArrowRight className="h-4 w-4" />
+              </Link>
               <ModeToggle />
             </div>
           </div>
@@ -24,7 +33,7 @@ export default function Home() {
       </div>
 
       <main className="flex-1 py-8">
-        <PortfolioDemo />
+        <DashboardPage />
       </main>
 
       <Footer />
