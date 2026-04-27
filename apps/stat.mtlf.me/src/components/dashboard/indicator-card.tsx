@@ -84,3 +84,39 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
     </div>
   );
 }
+
+export function IndicatorRow({ indicator }: IndicatorCardProps) {
+  const valueNum = toNum(indicator.value);
+  const decimals = indicator.unit === "%" ? 2 : valueNum >= 1000 ? 0 : 4;
+
+  return (
+    <div className="grid grid-cols-[3rem_1fr_auto_auto] items-center gap-3 border border-steel-gray/40 bg-card px-3 py-2 hover:border-electric-cyan transition-colors">
+      <span className="font-mono text-[10px] uppercase tracking-widest text-steel-gray">
+        I{indicator.id}
+      </span>
+      <span
+        className="font-mono text-xs uppercase tracking-wider text-foreground truncate"
+        title={indicator.description !== "" ? indicator.description : indicator.name}
+      >
+        {indicator.name}
+      </span>
+      <span className="font-mono text-sm tabular-nums whitespace-nowrap">
+        <span className="text-cyber-green">{formatNumber(valueNum, decimals)}</span>
+        <span className="ml-1 text-[10px] uppercase text-steel-gray">{indicator.unit}</span>
+      </span>
+      <span className="hidden sm:flex items-center gap-3 font-mono text-[11px] tabular-nums whitespace-nowrap">
+        {PERIODS.map((p) => {
+          const change = indicator.changes?.[p];
+          return (
+            <span key={p} className="flex items-baseline gap-1">
+              <span className="uppercase tracking-wider text-steel-gray">{PERIOD_LABEL[p]}</span>
+              <span className={change !== undefined ? changeColor(change.pct) : "text-steel-gray/60"}>
+                {change !== undefined ? `${formatSignedPct(change.pct)}%` : "—"}
+              </span>
+            </span>
+          );
+        })}
+      </span>
+    </div>
+  );
+}

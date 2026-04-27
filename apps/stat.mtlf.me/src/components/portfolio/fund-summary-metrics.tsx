@@ -23,8 +23,8 @@ export function FundSummaryMetrics({
     return (
       <Card className="p-8 border-0 bg-card text-card-foreground">
         <div className="text-center">
-          <div className="text-2xl text-cyber-green mb-4">⏳ ЗАГРУЗКА МЕТРИК...</div>
-          <div className="text-steel-gray">Получение суммарных данных фонда...</div>
+          <div className="text-2xl text-cyber-green mb-4">⏳ LOADING METRICS...</div>
+          <div className="text-steel-gray">Fetching aggregated fund data...</div>
         </div>
       </Card>
     );
@@ -35,16 +35,16 @@ export function FundSummaryMetrics({
       <div className="bg-electric-cyan/10 border-l-4 border-electric-cyan p-6">
         <div className="mb-4">
           <h3 className="text-xl font-mono uppercase tracking-wider text-foreground">
-            ИТОГО ПО ФОНДУ
+            FUND TOTALS
           </h3>
           <p className="text-xs font-mono text-steel-gray uppercase mt-1">
-            Цена за 1 токен × Баланс
+            Price per token × balance
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
           <div className="space-y-2 min-w-0">
             <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
-              ИТОГО EURMTL
+              TOTAL EURMTL
             </div>
             <div className="text-4xl font-mono text-electric-cyan break-all">
               <TruncatedNumber
@@ -57,7 +57,7 @@ export function FundSummaryMetrics({
           </div>
           <div className="space-y-2 min-w-0">
             <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
-              ИТОГО XLM
+              TOTAL XLM
             </div>
             <div className="text-4xl font-mono text-electric-cyan break-all">
               <TruncatedNumber
@@ -70,7 +70,7 @@ export function FundSummaryMetrics({
           </div>
           <div className="space-y-2 min-w-0">
             <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
-              СЧЕТОВ
+              ACCOUNTS
             </div>
             <div className="text-3xl font-mono text-steel-gray">
               {accountCount}
@@ -78,7 +78,7 @@ export function FundSummaryMetrics({
           </div>
           <div className="space-y-2 min-w-0">
             <div className="text-sm font-mono text-steel-gray uppercase tracking-wider">
-              ТОКЕНОВ
+              TOKENS
             </div>
             <div className="text-3xl font-mono text-steel-gray">
               {tokenCount}
