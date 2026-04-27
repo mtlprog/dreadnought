@@ -7,10 +7,12 @@ import Link from "next/link";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, type TooltipProps } from "recharts";
 
 const PALETTE = [
-  "var(--cyber-green)",
-  "var(--electric-cyan)",
-  "var(--warning-amber)",
-  "var(--secondary)",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
 ];
 
 interface SubfundPieChartProps {

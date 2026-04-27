@@ -17,3 +17,17 @@ export const fuzzyScore = (query: string, text: string): number => {
   if (qi < q.length) return 0;
   return score / (t.length + q.length);
 };
+
+interface IndicatorSearchFields {
+  readonly id: number;
+  readonly name: string;
+  readonly description: string;
+}
+
+export const scoreIndicator = (query: string, indicator: IndicatorSearchFields): number => {
+  const code = `I${indicator.id}`;
+  const idScore = fuzzyScore(query, code);
+  const nameScore = fuzzyScore(query, indicator.name);
+  const descScore = fuzzyScore(query, indicator.description);
+  return Math.max(idScore * 2, nameScore * 1.5, descScore);
+};
