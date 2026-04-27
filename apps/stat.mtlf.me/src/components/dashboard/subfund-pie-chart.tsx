@@ -95,6 +95,8 @@ export function SubfundPieChart({ slices, date, totalValue, totalUnit }: Subfund
               isAnimationActive={false}
               stroke="var(--background)"
               strokeWidth={2}
+              rootTabIndex={-1}
+              tabIndex={-1}
             >
               {enriched.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
             </Pie>
