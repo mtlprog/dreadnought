@@ -1,7 +1,7 @@
 import type { DecimalString, Indicator } from "@/lib/api/types";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, test } from "bun:test";
-import { IndicatorCard } from "./indicator-card";
+import { IndicatorCard, IndicatorRow } from "./indicator-card";
 
 afterEach(cleanup);
 
@@ -57,5 +57,59 @@ describe("IndicatorCard", () => {
   test("does not render changes block when changes prop missing", () => {
     render(<IndicatorCard indicator={indicator()} />);
     expect(screen.queryByText(/%$/)).toBeNull();
+  });
+});
+
+describe("IndicatorRow", () => {
+  test("renders id, name, and unit", () => {
+    render(<IndicatorRow indicator={indicator()} />);
+    expect(screen.getByText("I3")).toBeDefined();
+    expect(screen.getByText("Assets Value")).toBeDefined();
+    expect(screen.getByText("EURMTL")).toBeDefined();
+  });
+
+  test("renders positive change with cyber-green color", () => {
+    render(
+      <IndicatorRow
+        indicator={indicator({ changes: { "30d": { abs: dec("100"), pct: dec("3.07") } } })}
+      />,
+    );
+    const pct = screen.getByText("+3.07%");
+    expect(pct.className).toContain("text-cyber-green");
+  });
+
+  test("renders negative change with red color", () => {
+    render(
+      <IndicatorRow
+        indicator={indicator({ changes: { "30d": { abs: dec("-50"), pct: dec("-1.50") } } })}
+      />,
+    );
+    const pct = screen.getByText("-1.50%");
+    expect(pct.className).toContain("text-red-400");
+  });
+
+  test("renders em-dash for missing periods", () => {
+    render(
+      <IndicatorRow
+        indicator={indicator({ changes: { "30d": { abs: dec("0"), pct: dec("0") } } })}
+      />,
+    );
+    expect(screen.getAllByText("—").length).toBe(2);
+  });
+
+  test("title attribute falls back to name when description is empty", () => {
+    const { container } = render(
+      <IndicatorRow indicator={indicator({ description: "" })} />,
+    );
+    const titled = container.querySelector('[title="Assets Value"]');
+    expect(titled).not.toBeNull();
+  });
+
+  test("title attribute uses description when present", () => {
+    const { container } = render(
+      <IndicatorRow indicator={indicator({ description: "Total fund assets" })} />,
+    );
+    const titled = container.querySelector('[title="Total fund assets"]');
+    expect(titled).not.toBeNull();
   });
 });
