@@ -48,18 +48,27 @@ const toFiniteNumber = (raw: string): number => {
   return Number.isFinite(n) ? n : 0;
 };
 
-export function SubfundPieChart({ slices, date, totalValue, totalUnit }: SubfundPieChartProps) {
-  const data: ChartDatum[] = slices.map((slice) => ({
-    name: slice.name,
-    value: toFiniteNumber(slice.value),
-    rawValue: slice.value,
-    address: slice.address,
-    pct: 0,
-  }));
-  const total = data.reduce((sum, d) => sum + d.value, 0);
-  const enriched = data.map((d) => ({ ...d, pct: total > 0 ? (d.value / total) * 100 : 0 }));
+const parseFiniteOrNull = (raw: string | undefined): number | null => {
+  if (raw === undefined) return null;
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : null;
+};
 
-  const totalNum = totalValue !== undefined ? toFiniteNumber(totalValue) : null;
+export function SubfundPieChart({ slices, date, totalValue, totalUnit }: SubfundPieChartProps) {
+  const sliceValues = slices.map((s) => toFiniteNumber(s.value));
+  const total = sliceValues.reduce((sum, v) => sum + v, 0);
+  const enriched: ChartDatum[] = slices.map((slice, i) => {
+    const value = sliceValues[i] ?? 0;
+    return {
+      name: slice.name,
+      value,
+      rawValue: slice.value,
+      address: slice.address,
+      pct: total > 0 ? (value / total) * 100 : 0,
+    };
+  });
+
+  const totalNum = parseFiniteOrNull(totalValue);
 
   return (
     <div className="border border-cyber-green bg-card p-6">

@@ -16,7 +16,6 @@ interface IndicatorsGridProps {
 }
 
 const scoreIndicator = (query: string, indicator: Indicator): number => {
-  if (query === "") return 1;
   const nameScore = fuzzyScore(query, indicator.name);
   const descScore = fuzzyScore(query, indicator.description);
   return Math.max(nameScore * 1.5, descScore);
@@ -36,6 +35,16 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
       .map((entry) => entry.indicator);
   }, [data, query]);
 
+  const state: "error" | "loading" | "empty" | "no-matches" | "ready" = error !== null
+    ? "error"
+    : isLoading
+    ? "loading"
+    : data.length === 0
+    ? "empty"
+    : filtered.length === 0
+    ? "no-matches"
+    : "ready";
+
   return (
     <section className="border border-cyber-green bg-background p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -43,7 +52,7 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
           FUND INDICATORS
         </h2>
         <div className="flex items-center gap-3">
-          {!isLoading && error === null && (
+          {state === "ready" && (
             <span className="font-mono text-xs uppercase text-steel-gray">
               {filtered.length}
               {query !== "" && filtered.length !== data.length ? ` / ${data.length}` : ""} INDICATORS
@@ -74,56 +83,64 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
         )}
       </div>
 
-      {error !== null && (
+      {state === "error" && (
         <div className="border border-red-500 bg-red-500/10 p-4 font-mono text-sm text-red-400">
           ERROR: {error}
         </div>
       )}
 
-      {error === null && isLoading && (
-        view === "cards"
-          ? (
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-44 border border-steel-gray/30 bg-steel-gray/10 animate-pulse" />
-              ))}
-            </div>
-          )
-          : (
-            <div className="space-y-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-10 border border-steel-gray/30 bg-steel-gray/10 animate-pulse" />
-              ))}
-            </div>
-          )
+      {state === "loading" && (
+        <IndicatorListLayout view={view}>
+          {Array.from({ length: view === "cards" ? 8 : 6 }).map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "border border-steel-gray/30 bg-steel-gray/10 animate-pulse",
+                view === "cards" ? "h-44" : "h-10",
+              )}
+            />
+          ))}
+        </IndicatorListLayout>
       )}
 
-      {error === null && !isLoading && data.length === 0 && (
-        <div className="border border-steel-gray/40 bg-steel-gray/10 p-8 text-center font-mono text-sm uppercase tracking-wider text-steel-gray">
-          INDICATORS NOT YET COMPUTED
-        </div>
+      {state === "empty" && (
+        <EmptyState>INDICATORS NOT YET COMPUTED</EmptyState>
       )}
 
-      {error === null && !isLoading && data.length > 0 && filtered.length === 0 && (
-        <div className="border border-steel-gray/40 bg-steel-gray/10 p-8 text-center font-mono text-sm uppercase tracking-wider text-steel-gray">
-          NO MATCHES FOR &quot;{query}&quot;
-        </div>
+      {state === "no-matches" && (
+        <EmptyState>NO MATCHES FOR &quot;{query}&quot;</EmptyState>
       )}
 
-      {error === null && !isLoading && filtered.length > 0 && (
-        view === "cards"
-          ? (
-            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map((indicator) => <IndicatorCard key={indicator.id} indicator={indicator} />)}
-            </div>
-          )
-          : (
-            <div className="space-y-1.5">
-              {filtered.map((indicator) => <IndicatorRow key={indicator.id} indicator={indicator} />)}
-            </div>
-          )
+      {state === "ready" && (
+        <IndicatorListLayout view={view}>
+          {filtered.map((indicator) =>
+            view === "cards"
+              ? <IndicatorCard key={indicator.id} indicator={indicator} />
+              : <IndicatorRow key={indicator.id} indicator={indicator} />
+          )}
+        </IndicatorListLayout>
       )}
     </section>
+  );
+}
+
+function IndicatorListLayout({ view, children }: { view: ViewMode; children: React.ReactNode }) {
+  return (
+    <div
+      className={view === "cards"
+        ? "grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        : "space-y-1.5"}
+    >
+      {children}
+    </div>
+  );
+}
+
+function EmptyState({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border border-steel-gray/40 bg-steel-gray/10 p-8 text-center font-mono text-sm uppercase tracking-wider text-steel-gray">
+      {children}
+    </div>
   );
 }
 

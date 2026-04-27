@@ -34,6 +34,12 @@ const changeColor = (raw: string): string => {
   return "text-steel-gray";
 };
 
+const formatIndicatorValue = (indicator: Indicator): { value: string; unit: string } => {
+  const valueNum = toNum(indicator.value);
+  const decimals = indicator.unit === "%" ? 2 : valueNum >= 1000 ? 0 : 4;
+  return { value: formatNumber(valueNum, decimals), unit: indicator.unit };
+};
+
 function ChangeRow({ period, change }: { period: Range; change: IndicatorChange }) {
   return (
     <div className="flex items-baseline justify-between gap-2 font-mono text-[11px]">
@@ -46,8 +52,7 @@ function ChangeRow({ period, change }: { period: Range; change: IndicatorChange 
 }
 
 export function IndicatorCard({ indicator }: IndicatorCardProps) {
-  const valueNum = toNum(indicator.value);
-  const decimals = indicator.unit === "%" ? 2 : valueNum >= 1000 ? 0 : 4;
+  const { value, unit } = formatIndicatorValue(indicator);
 
   return (
     <div className="border border-steel-gray/40 bg-card p-4 hover:border-electric-cyan transition-colors">
@@ -59,12 +64,8 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
       </h3>
 
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="font-mono text-2xl text-cyber-green">
-          {formatNumber(valueNum, decimals)}
-        </span>
-        <span className="font-mono text-xs uppercase text-steel-gray">
-          {indicator.unit}
-        </span>
+        <span className="font-mono text-2xl text-cyber-green">{value}</span>
+        <span className="font-mono text-xs uppercase text-steel-gray">{unit}</span>
       </div>
 
       {indicator.changes !== undefined && (
@@ -86,8 +87,7 @@ export function IndicatorCard({ indicator }: IndicatorCardProps) {
 }
 
 export function IndicatorRow({ indicator }: IndicatorCardProps) {
-  const valueNum = toNum(indicator.value);
-  const decimals = indicator.unit === "%" ? 2 : valueNum >= 1000 ? 0 : 4;
+  const { value, unit } = formatIndicatorValue(indicator);
 
   return (
     <div className="grid grid-cols-[3rem_1fr_auto_auto] items-center gap-3 border border-steel-gray/40 bg-card px-3 py-2 hover:border-electric-cyan transition-colors">
@@ -101,8 +101,8 @@ export function IndicatorRow({ indicator }: IndicatorCardProps) {
         {indicator.name}
       </span>
       <span className="font-mono text-sm tabular-nums whitespace-nowrap">
-        <span className="text-cyber-green">{formatNumber(valueNum, decimals)}</span>
-        <span className="ml-1 text-[10px] uppercase text-steel-gray">{indicator.unit}</span>
+        <span className="text-cyber-green">{value}</span>
+        <span className="ml-1 text-[10px] uppercase text-steel-gray">{unit}</span>
       </span>
       <span className="hidden sm:flex items-center gap-3 font-mono text-[11px] tabular-nums whitespace-nowrap">
         {PERIODS.map((p) => {
