@@ -4,7 +4,7 @@ import { scoreIndicator } from "@/lib/fuzzy";
 import type { Indicator } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
 import { LayoutGrid, List, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { IndicatorCard, IndicatorRow, IndicatorRowHeader } from "./indicator-card";
 
 type ViewMode = "list" | "cards";
@@ -17,17 +17,18 @@ interface IndicatorsGridProps {
 
 export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) {
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [view, setView] = useState<ViewMode>("list");
 
   const filtered = useMemo(() => {
-    const q = query.trim();
+    const q = deferredQuery.trim();
     if (q === "") return data;
     return data
       .map((indicator) => ({ indicator, score: scoreIndicator(q, indicator) }))
       .filter((entry) => entry.score > 0)
       .sort((a, b) => b.score - a.score)
       .map((entry) => entry.indicator);
-  }, [data, query]);
+  }, [data, deferredQuery]);
 
   const state: "error" | "loading" | "empty" | "no-matches" | "ready" = error !== null
     ? "error"
@@ -40,7 +41,7 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
     : "ready";
 
   return (
-    <section className="border border-cyber-green bg-background p-6">
+    <section className="border border-cyber-green bg-background p-6 min-h-[640px]">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-mono text-xl uppercase tracking-wider text-cyber-green">
           FUND INDICATORS

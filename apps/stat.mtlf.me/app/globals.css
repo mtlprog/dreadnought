@@ -29,7 +29,7 @@
   --chart-1: #6366f1;         /* Indigo */
   --chart-2: #3b82f6;         /* Blue */
   --chart-3: #f59e0b;         /* Amber */
-  --chart-4: #8b5cf6;         /* Purple */
+  --chart-4: #f97316;         /* Orange */
   --chart-5: #ec4899;         /* Pink */
   --chart-6: #10b981;         /* Emerald */
 }
@@ -58,7 +58,7 @@
   --chart-1: #a78bfa;         /* Bright purple */
   --chart-2: #60a5fa;         /* Bright blue */
   --chart-3: #fbbf24;         /* Golden amber */
-  --chart-4: #c084fc;         /* Light violet */
+  --chart-4: #fb923c;         /* Bright orange */
   --chart-5: #f472b6;         /* Pink */
   --chart-6: #34d399;         /* Bright emerald */
 }
@@ -94,4 +94,14 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-mono); /* Monospace by default for terminal aesthetic */
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+.recharts-wrapper :focus,
+.recharts-sector:focus,
+.recharts-pie-sector path:focus {
+  outline: none;
 }
