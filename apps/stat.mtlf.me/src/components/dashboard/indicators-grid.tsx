@@ -8,34 +8,45 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { IndicatorCard, IndicatorRow, IndicatorRowHeader } from "./indicator-card";
 
 type ViewMode = "list" | "cards";
+type Scope = "key" | "all";
 
 interface IndicatorsGridProps {
   data: readonly Indicator[];
+  keyIds: readonly number[];
   isLoading: boolean;
   error: string | null;
 }
 
-export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) {
+export function IndicatorsGrid({ data, keyIds, isLoading, error }: IndicatorsGridProps) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [view, setView] = useState<ViewMode>("list");
+  const [scope, setScope] = useState<Scope>("key");
+
+  const scoped = useMemo(() => {
+    if (scope === "all") return data;
+    const allowed = new Set(keyIds);
+    return data.filter((indicator) => allowed.has(indicator.id));
+  }, [data, keyIds, scope]);
 
   const filtered = useMemo(() => {
     const q = deferredQuery.trim();
-    if (q === "") return data;
-    return data
+    if (q === "") return scoped;
+    return scoped
       .map((indicator) => ({ indicator, score: scoreIndicator(q, indicator) }))
       .filter((entry) => entry.score > 0)
       .sort((a, b) => b.score - a.score)
       .map((entry) => entry.indicator);
-  }, [data, deferredQuery]);
+  }, [scoped, deferredQuery]);
 
-  const state: "error" | "loading" | "empty" | "no-matches" | "ready" = error !== null
+  const state: "error" | "loading" | "empty" | "empty-key" | "no-matches" | "ready" = error !== null
     ? "error"
     : isLoading
     ? "loading"
     : data.length === 0
     ? "empty"
+    : scoped.length === 0
+    ? "empty-key"
     : filtered.length === 0
     ? "no-matches"
     : "ready";
@@ -50,9 +61,10 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
           {state === "ready" && (
             <span className="font-mono text-xs uppercase text-steel-gray">
               {filtered.length}
-              {query !== "" && filtered.length !== data.length ? ` / ${data.length}` : ""} INDICATORS
+              {query !== "" && filtered.length !== scoped.length ? ` / ${scoped.length}` : ""} INDICATORS
             </span>
           )}
+          <ScopeToggle value={scope} onChange={setScope} />
           <ViewToggle value={view} onChange={setView} />
         </div>
       </div>
@@ -105,6 +117,10 @@ export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) 
         <EmptyState>INDICATORS NOT YET COMPUTED</EmptyState>
       )}
 
+      {state === "empty-key" && (
+        <EmptyState>NO KEY INDICATORS AVAILABLE</EmptyState>
+      )}
+
       {state === "no-matches" && (
         <EmptyState>NO MATCHES FOR &quot;{query}&quot;</EmptyState>
       )}
@@ -145,6 +161,28 @@ function EmptyState({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ScopeToggle({ value, onChange }: { value: Scope; onChange: (v: Scope) => void }) {
+  return (
+    <div
+      role="group"
+      aria-label="Indicator scope"
+      className="inline-flex border border-electric-cyan bg-background"
+    >
+      <ToggleButton
+        active={value === "key"}
+        onClick={() => onChange("key")}
+        label="KEY"
+      />
+      <ToggleButton
+        active={value === "all"}
+        onClick={() => onChange("all")}
+        label="ALL"
+        bordered
+      />
+    </div>
+  );
+}
+
 function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMode) => void }) {
   return (
     <div
@@ -152,13 +190,13 @@ function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMo
       aria-label="View mode"
       className="inline-flex border border-electric-cyan bg-background"
     >
-      <ViewToggleButton
+      <ToggleButton
         active={value === "list"}
         onClick={() => onChange("list")}
         label="LIST"
         icon={<List className="h-3.5 w-3.5" aria-hidden />}
       />
-      <ViewToggleButton
+      <ToggleButton
         active={value === "cards"}
         onClick={() => onChange("cards")}
         label="CARDS"
@@ -169,12 +207,12 @@ function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (v: ViewMo
   );
 }
 
-function ViewToggleButton(
+function ToggleButton(
   { active, onClick, label, icon, bordered = false }: {
     active: boolean;
     onClick: () => void;
     label: string;
-    icon: React.ReactNode;
+    icon?: React.ReactNode;
     bordered?: boolean;
   },
 ) {
@@ -194,7 +232,7 @@ function ViewToggleButton(
       )}
     >
       {icon}
-      <span className="hidden sm:inline">{label}</span>
+      {icon ? <span className="hidden sm:inline">{label}</span> : label}
     </button>
   );
 }
