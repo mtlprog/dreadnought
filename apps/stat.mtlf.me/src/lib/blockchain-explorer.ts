@@ -27,7 +27,17 @@ export const LORE_MTLPROG: BlockchainExplorer = {
       : Option.some(`https://lore.mtlprog.xyz/tokens/${assetIssuer}/${assetCode}`),
 };
 
-export const EXPLORERS: readonly BlockchainExplorer[] = [LORE_MTLPROG, STELLAR_EXPERT];
+export const EURMTL_VIEWER: BlockchainExplorer = {
+  id: "eurmtl-viewer",
+  label: "viewer.eurmtl.me",
+  accountUrl: (accountId) => Option.some(`https://viewer.eurmtl.me/account/${accountId}`),
+  assetUrl: (assetCode, assetIssuer?) =>
+    assetCode === "XLM" || assetIssuer === undefined || assetIssuer === ""
+      ? Option.some("https://viewer.eurmtl.me/asset/XLM")
+      : Option.some(`https://viewer.eurmtl.me/asset/${assetCode}-${assetIssuer}`),
+};
+
+export const EXPLORERS: readonly BlockchainExplorer[] = [LORE_MTLPROG, STELLAR_EXPERT, EURMTL_VIEWER];
 
 const STORAGE_KEY = "stat-mtlf-blockchain-explorer";
 
