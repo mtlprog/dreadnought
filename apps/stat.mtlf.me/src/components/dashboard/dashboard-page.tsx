@@ -22,7 +22,7 @@ const KEY_IDS = KEY_INDICATORS.map((k) => k.id);
 const TOTAL_INDICATOR_ID = 3;
 
 const KEY_INDICATOR_IDS: readonly number[] = [
-  1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 15, 16, 17, 18, 22, 24, 27, 30, 40,
+  1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 15, 16, 17, 18, 21, 24, 27, 30, 40,
 ];
 
 export function DashboardPage() {
