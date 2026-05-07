@@ -37,10 +37,13 @@ const changeColor = (raw: string): string => {
   return "text-steel-gray";
 };
 
+const stripTrailingZeros = (s: string): string =>
+  s.includes(".") ? s.replace(/0+$/, "").replace(/\.$/, "") : s;
+
 const formatIndicatorValue = (indicator: Indicator): { value: string; unit: string } => {
   const valueNum = toNum(indicator.value);
-  const decimals = indicator.unit === "%" ? 2 : valueNum >= 1000 ? 0 : 4;
-  return { value: formatNumber(valueNum, decimals), unit: indicator.unit };
+  const decimals = indicator.unit === "%" ? 2 : valueNum >= 1000 ? 2 : 4;
+  return { value: stripTrailingZeros(formatNumber(valueNum, decimals)), unit: indicator.unit };
 };
 
 function ChangeRow({ period, change }: { period: Range; change: IndicatorChange }) {

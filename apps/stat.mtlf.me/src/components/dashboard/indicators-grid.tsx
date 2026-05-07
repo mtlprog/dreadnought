@@ -8,45 +8,34 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { IndicatorCard, IndicatorRow, IndicatorRowHeader } from "./indicator-card";
 
 type ViewMode = "list" | "cards";
-type Scope = "key" | "all";
 
 interface IndicatorsGridProps {
   data: readonly Indicator[];
-  keyIds: readonly number[];
   isLoading: boolean;
   error: string | null;
 }
 
-export function IndicatorsGrid({ data, keyIds, isLoading, error }: IndicatorsGridProps) {
+export function IndicatorsGrid({ data, isLoading, error }: IndicatorsGridProps) {
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [view, setView] = useState<ViewMode>("list");
-  const [scope, setScope] = useState<Scope>("key");
-
-  const scoped = useMemo(() => {
-    if (scope === "all") return data;
-    const allowed = new Set(keyIds);
-    return data.filter((indicator) => allowed.has(indicator.id));
-  }, [data, keyIds, scope]);
 
   const filtered = useMemo(() => {
     const q = deferredQuery.trim();
-    if (q === "") return scoped;
-    return scoped
+    if (q === "") return data;
+    return data
       .map((indicator) => ({ indicator, score: scoreIndicator(q, indicator) }))
       .filter((entry) => entry.score > 0)
       .sort((a, b) => b.score - a.score)
       .map((entry) => entry.indicator);
-  }, [scoped, deferredQuery]);
+  }, [data, deferredQuery]);
 
-  const state: "error" | "loading" | "empty" | "empty-key" | "no-matches" | "ready" = error !== null
+  const state: "error" | "loading" | "empty" | "no-matches" | "ready" = error !== null
     ? "error"
     : isLoading
     ? "loading"
     : data.length === 0
     ? "empty"
-    : scoped.length === 0
-    ? "empty-key"
     : filtered.length === 0
     ? "no-matches"
     : "ready";
@@ -61,10 +50,9 @@ export function IndicatorsGrid({ data, keyIds, isLoading, error }: IndicatorsGri
           {state === "ready" && (
             <span className="font-mono text-xs uppercase text-steel-gray">
               {filtered.length}
-              {query !== "" && filtered.length !== scoped.length ? ` / ${scoped.length}` : ""} INDICATORS
+              {query !== "" && filtered.length !== data.length ? ` / ${data.length}` : ""} INDICATORS
             </span>
           )}
-          <ScopeToggle value={scope} onChange={setScope} />
           <ViewToggle value={view} onChange={setView} />
         </div>
       </div>
@@ -117,10 +105,6 @@ export function IndicatorsGrid({ data, keyIds, isLoading, error }: IndicatorsGri
         <EmptyState>INDICATORS NOT YET COMPUTED</EmptyState>
       )}
 
-      {state === "empty-key" && (
-        <EmptyState>NO KEY INDICATORS AVAILABLE</EmptyState>
-      )}
-
       {state === "no-matches" && (
         <EmptyState>NO MATCHES FOR &quot;{query}&quot;</EmptyState>
       )}
@@ -157,28 +141,6 @@ function EmptyState({ children }: { children: React.ReactNode }) {
   return (
     <div className="border border-steel-gray/40 bg-steel-gray/10 p-8 text-center font-mono text-sm uppercase tracking-wider text-steel-gray">
       {children}
-    </div>
-  );
-}
-
-function ScopeToggle({ value, onChange }: { value: Scope; onChange: (v: Scope) => void }) {
-  return (
-    <div
-      role="group"
-      aria-label="Indicator scope"
-      className="inline-flex border border-electric-cyan bg-background"
-    >
-      <ToggleButton
-        active={value === "key"}
-        onClick={() => onChange("key")}
-        label="KEY"
-      />
-      <ToggleButton
-        active={value === "all"}
-        onClick={() => onChange("all")}
-        label="ALL"
-        bordered
-      />
     </div>
   );
 }
