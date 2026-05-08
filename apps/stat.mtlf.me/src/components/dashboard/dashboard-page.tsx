@@ -5,20 +5,38 @@ import { useIndicators } from "@/hooks/use-indicators";
 import { useSubfundBalance } from "@/hooks/use-subfund-balance";
 import type { Range } from "@/lib/api/types";
 import { useState } from "react";
+import { IndicatorComparisonChart } from "./indicator-comparison-chart";
 import { IndicatorHistoryChart } from "./indicator-history-chart";
 import { IndicatorsGrid } from "./indicators-grid";
 import { RangeSelector } from "./range-selector";
 import { SubfundPieChart } from "./subfund-pie-chart";
 
 const KEY_INDICATORS: readonly { id: number; name: string }[] = [
+  { id: 1, name: "Market Cap EUR" },
   { id: 3, name: "Assets Value MTLF" },
   { id: 4, name: "Operating Balance" },
+  { id: 17, name: "Annual Dividend Yield 2" },
+  { id: 24, name: "EURMTL Participants" },
+  { id: 27, name: "More-one-share Shareholders" },
   { id: 51, name: "DEFI Total Value" },
   { id: 52, name: "MCITY Total Value" },
   { id: 53, name: "MABIZ Total Value" },
 ];
 
-const KEY_IDS = KEY_INDICATORS.map((k) => k.id);
+const COMPARISON = {
+  marketId: 10,
+  bookId: 8,
+  marketName: "Share Market Price",
+  bookName: "Share Book Value",
+} as const;
+
+const COMPARISON_INSERT_AFTER = 4;
+
+const KEY_IDS = [
+  ...KEY_INDICATORS.map((k) => k.id),
+  COMPARISON.marketId,
+  COMPARISON.bookId,
+];
 const TOTAL_INDICATOR_ID = 3;
 
 export function DashboardPage() {
@@ -66,7 +84,29 @@ export function DashboardPage() {
           <RangeSelector value={range} onChange={setRange} />
         </div>
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-          {KEY_INDICATORS.map((kpi) => (
+          {KEY_INDICATORS.slice(0, COMPARISON_INSERT_AFTER).map((kpi) => (
+            <IndicatorHistoryChart
+              key={kpi.id}
+              id={kpi.id}
+              fallbackName={kpi.name}
+              series={seriesById.get(kpi.id)}
+              isLoading={historyLoading}
+              error={historyError}
+            />
+          ))}
+          <div className="lg:col-span-2">
+            <IndicatorComparisonChart
+              marketId={COMPARISON.marketId}
+              bookId={COMPARISON.bookId}
+              marketFallbackName={COMPARISON.marketName}
+              bookFallbackName={COMPARISON.bookName}
+              marketSeries={seriesById.get(COMPARISON.marketId)}
+              bookSeries={seriesById.get(COMPARISON.bookId)}
+              isLoading={historyLoading}
+              error={historyError}
+            />
+          </div>
+          {KEY_INDICATORS.slice(COMPARISON_INSERT_AFTER).map((kpi) => (
             <IndicatorHistoryChart
               key={kpi.id}
               id={kpi.id}
