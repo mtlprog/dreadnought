@@ -2,6 +2,7 @@ import { Asset } from "@stellar/stellar-sdk";
 import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
+import { retryTransient } from "./retry";
 
 export interface BalanceService {
   readonly getMTLCrowdBalance: (accountId: string) => Effect.Effect<string, StellarServiceError>;
@@ -20,7 +21,7 @@ const getMTLCrowdBalanceImpl = (
   config: StellarConfig,
   accountId: string,
 ): Effect.Effect<string, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         const account = await config.server.loadAccount(accountId);
@@ -54,7 +55,7 @@ const getEURMTLBalanceImpl = (
   config: StellarConfig,
   accountId: string,
 ): Effect.Effect<string, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         const account = await config.server.loadAccount(accountId);

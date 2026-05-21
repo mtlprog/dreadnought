@@ -2,6 +2,7 @@ import { Asset, BASE_FEE, Claimant, Operation, TimeoutInfinite, TransactionBuild
 import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig, TRANSACTION_COMMISSION_FEE } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
+import { retryTransient } from "./retry";
 
 export interface FundingService {
   readonly createFundingTransaction: (
@@ -30,7 +31,7 @@ const createFundingTransactionImpl = (
   projectCode: string,
   amount: string,
 ): Effect.Effect<string, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         // Load user account
@@ -94,7 +95,7 @@ const createFundingTransactionWithEURMTLImpl = (
   mtlCrowdAmount: string,
   eurMtlAmount: string,
 ): Effect.Effect<string, StellarError> =>
-  pipe(
+  retryTransient(
     Effect.tryPromise({
       try: async () => {
         // Load user account
