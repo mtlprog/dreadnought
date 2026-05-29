@@ -18,17 +18,9 @@ export async function fetchIndicators(options?: ApiGetOptions): Promise<Indicato
   }
 }
 
-export async function fetchIndicatorsByDate(date: string, options?: ApiGetOptions): Promise<Indicator[]> {
+export function fetchIndicatorsByDate(date: string, options?: ApiGetOptions): Promise<Indicator[]> {
   const path = `/api/v1/indicators/${encodeURIComponent(date)}?${COMPARE_QUERY}`;
-  try {
-    return await apiGet<Indicator[]>(path, options);
-  } catch (error) {
-    if (error instanceof ApiNotFoundError) {
-      logWarn("api.indicators", `404 from ${error.path} for date ${date} — treating as empty list`);
-      return [];
-    }
-    throw error;
-  }
+  return apiGet<Indicator[]>(path, options);
 }
 
 export function fetchIndicatorHistory(
