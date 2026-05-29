@@ -56,12 +56,23 @@ export function DashboardPage() {
     return new Map(
       [...map.entries()].map(([id, s]) => [
         id,
-        { ...s, points: s.points.filter((p) => p.date <= date) },
+        { ...s, points: s.points.filter((p) => (p.date.split("T")[0] ?? p.date) <= date) },
       ]),
     );
   }, [series, date]);
 
   const totalIndicator = indicators.find((i) => i.id === TOTAL_INDICATOR_ID);
+
+  const renderHistoryChart = (kpi: { id: number; name: string }) => (
+    <IndicatorHistoryChart
+      key={kpi.id}
+      id={kpi.id}
+      fallbackName={kpi.name}
+      series={seriesById.get(kpi.id)}
+      isLoading={historyLoading}
+      error={historyError}
+    />
+  );
 
   return (
     <div className="container mx-auto space-y-8 px-4 py-8">
@@ -100,16 +111,7 @@ export function DashboardPage() {
           <RangeSelector value={range} onChange={setRange} />
         </div>
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-          {KEY_INDICATORS.slice(0, COMPARISON_INSERT_AFTER).map((kpi) => (
-            <IndicatorHistoryChart
-              key={kpi.id}
-              id={kpi.id}
-              fallbackName={kpi.name}
-              series={seriesById.get(kpi.id)}
-              isLoading={historyLoading}
-              error={historyError}
-            />
-          ))}
+          {KEY_INDICATORS.slice(0, COMPARISON_INSERT_AFTER).map(renderHistoryChart)}
           <div className="lg:col-span-2">
             <IndicatorComparisonChart
               marketId={COMPARISON.marketId}
@@ -122,16 +124,7 @@ export function DashboardPage() {
               error={historyError}
             />
           </div>
-          {KEY_INDICATORS.slice(COMPARISON_INSERT_AFTER).map((kpi) => (
-            <IndicatorHistoryChart
-              key={kpi.id}
-              id={kpi.id}
-              fallbackName={kpi.name}
-              series={seriesById.get(kpi.id)}
-              isLoading={historyLoading}
-              error={historyError}
-            />
-          ))}
+          {KEY_INDICATORS.slice(COMPARISON_INSERT_AFTER).map(renderHistoryChart)}
         </div>
       </section>
     </div>
