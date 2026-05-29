@@ -20,6 +20,7 @@ interface SubfundPieChartProps {
   date: string;
   totalValue?: string;
   totalUnit?: string;
+  fundHref?: string;
 }
 
 interface ChartDatum {
@@ -56,7 +57,7 @@ const parseFiniteOrNull = (raw: string | undefined): number | null => {
   return Number.isFinite(n) ? n : null;
 };
 
-export function SubfundPieChart({ slices, date, totalValue, totalUnit }: SubfundPieChartProps) {
+export function SubfundPieChart({ slices, date, totalValue, totalUnit, fundHref = "/fund" }: SubfundPieChartProps) {
   const sliceValues = slices.map((s) => toFiniteNumber(s.value));
   const total = sliceValues.reduce((sum, v) => sum + v, 0);
   const enriched: ChartDatum[] = slices.map((slice, i) => {
@@ -140,7 +141,7 @@ export function SubfundPieChart({ slices, date, totalValue, totalUnit }: Subfund
           </div>
         </div>
         <Link
-          href="/fund"
+          href={fundHref}
           className="inline-flex items-center gap-2 border border-electric-cyan bg-background px-4 py-2 font-mono text-xs uppercase tracking-wider text-electric-cyan hover:bg-electric-cyan hover:text-background transition-colors"
         >
           DETAILS
