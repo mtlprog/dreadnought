@@ -4,7 +4,8 @@ import { useIndicatorHistory } from "@/hooks/use-indicator-history";
 import { useIndicators } from "@/hooks/use-indicators";
 import { useSubfundBalance } from "@/hooks/use-subfund-balance";
 import type { Range } from "@/lib/api/types";
-import { useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 import { IndicatorComparisonChart } from "./indicator-comparison-chart";
 import { IndicatorHistoryChart } from "./indicator-history-chart";
 import { IndicatorsGrid } from "./indicators-grid";
@@ -40,12 +41,26 @@ const KEY_IDS = [
 const TOTAL_INDICATOR_ID = 3;
 
 export function DashboardPage() {
-  const { data: subfundData, isLoading: subfundLoading, error: subfundError } = useSubfundBalance();
-  const { data: indicators, isLoading: indicatorsLoading, error: indicatorsError } = useIndicators();
+  const searchParams = useSearchParams();
+  const date = searchParams.get("date");
+  const { data: subfundData, isLoading: subfundLoading, error: subfundError } = useSubfundBalance(date);
+  const { data: indicators, isLoading: indicatorsLoading, error: indicatorsError } = useIndicators(date);
   const [range, setRange] = useState<Range>("90d");
   const { series, isLoading: historyLoading, error: historyError } = useIndicatorHistory(KEY_IDS, range);
 
-  const seriesById = new Map(series.map((s) => [s.id, s]));
+  const fundHref = date !== null ? `/fund?date=${encodeURIComponent(date)}` : "/fund";
+
+  const seriesById = useMemo(() => {
+    const map = new Map(series.map((s) => [s.id, s]));
+    if (date === null) return map;
+    return new Map(
+      [...map.entries()].map(([id, s]) => [
+        id,
+        { ...s, points: s.points.filter((p) => p.date <= date) },
+      ]),
+    );
+  }, [series, date]);
+
   const totalIndicator = indicators.find((i) => i.id === TOTAL_INDICATOR_ID);
 
   return (
@@ -63,6 +78,7 @@ export function DashboardPage() {
           <SubfundPieChart
             slices={subfundData.slices}
             date={subfundData.date}
+            fundHref={fundHref}
             {...(totalIndicator !== undefined
               ? { totalValue: totalIndicator.value, totalUnit: totalIndicator.unit }
               : {})}

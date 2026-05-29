@@ -8,10 +8,11 @@ interface UseSubfundBalanceState {
   error: string | null;
 }
 
-export function useSubfundBalance(): UseSubfundBalanceState {
+export function useSubfundBalance(date?: string | null): UseSubfundBalanceState {
+  const dateKey = date?.split("T")[0] ?? null;
   return useApiResource<BalanceBySubfund>(
     "useSubfundBalance",
-    (options) => fetchBalanceBySubfund(options),
-    [],
+    (options) => fetchBalanceBySubfund(dateKey, options),
+    [dateKey],
   );
 }

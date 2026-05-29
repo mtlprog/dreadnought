@@ -1,8 +1,9 @@
+import { BackToDashboard } from "@/components/layout/back-to-dashboard";
 import { Footer } from "@/components/layout/footer";
+import { SnapshotNav } from "@/components/layout/snapshot-nav";
 import { PortfolioDemo } from "@/components/portfolio/portfolio-demo";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Suspense } from "react";
 
 export default function FundPage() {
   return (
@@ -18,25 +19,24 @@ export default function FundPage() {
                 FUND STRUCTURE // ACCOUNTS // TOKENS
               </p>
             </div>
-            <ModeToggle />
+            <div className="flex items-center gap-4 flex-wrap">
+              <SnapshotNav />
+              <ModeToggle />
+            </div>
           </div>
         </div>
       </div>
 
       <div className="border-b border-border bg-background">
         <div className="container mx-auto px-6 py-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-electric-cyan hover:text-cyber-green transition-colors"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            BACK TO DASHBOARD
-          </Link>
+          <BackToDashboard />
         </div>
       </div>
 
       <main className="flex-1 py-8">
-        <PortfolioDemo />
+        <Suspense>
+          <PortfolioDemo />
+        </Suspense>
       </main>
 
       <Footer />

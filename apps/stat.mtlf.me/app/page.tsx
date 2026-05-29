@@ -1,6 +1,8 @@
 import { DashboardPage } from "@/components/dashboard/dashboard-page";
 import { Footer } from "@/components/layout/footer";
+import { SnapshotNav } from "@/components/layout/snapshot-nav";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { Suspense } from "react";
 
 export default function Home() {
   return (
@@ -16,13 +18,18 @@ export default function Home() {
                 MONTELIBERO FOUNDATION // PORTFOLIO STATISTICS
               </p>
             </div>
-            <ModeToggle />
+            <div className="flex items-center gap-4 flex-wrap">
+              <SnapshotNav />
+              <ModeToggle />
+            </div>
           </div>
         </div>
       </div>
 
       <main className="flex-1 py-8">
-        <DashboardPage />
+        <Suspense>
+          <DashboardPage />
+        </Suspense>
       </main>
 
       <Footer />
