@@ -17,7 +17,8 @@ Decentralized crowdfunding on Stellar blockchain for Montelibero community.
 
 - **active** - Fundraising open, deadline not passed
 - **completed** - Closed successfully (funded or deadline passed)
-- **canceled** - Closed without reaching goal
+- **canceled** - Closed without reaching goal (funds returned to supporters)
+- **force_funded** - Goal NOT reached, but collected funds delivered to the project account anyway (operator override via `project check` → `f`). Set as IPFS `funding_status`; rendered as a distinct "FUNDS RELEASED" ended state. Use for projects whose terms require handing over whatever was raised.
 - **claimed/claimable** (CLI) - P-token status
 
 ## Critical Concept: Funding Metrics

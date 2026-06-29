@@ -12,25 +12,48 @@ import { ValidationError } from "../types";
 import { handleCliError } from "../utils/errors";
 import { fetchProjectFromIPFS } from "../utils/ipfs";
 
-const confirmProjectProcessing = (
+/**
+ * What the operator chose to do with a project at the confirmation prompt.
+ * `force` is only ever returned when force-funding is available for the project.
+ */
+type ProjectAction = "process" | "force" | "skip";
+
+/**
+ * Ask the operator how to handle a project. Unlike a plain y/n confirm this
+ * exposes a third `f` (force-fund) option for refund-eligible projects whose
+ * terms require the collected funds to be handed to the initiator even though
+ * the goal was not reached. Anything other than an explicit `y`/`yes` (or `f`
+ * when offered) is treated as skip — money operations never proceed on
+ * ambiguous input or cancellation.
+ */
+const promptProjectAction = (
   projectName: string,
   projectCode: string,
   dataToUpload: ProjectDataWithResults,
-): Effect.Effect<boolean, ValidationError> =>
-  Effect.tryPromise({
+  forceAvailable: boolean,
+): Effect.Effect<ProjectAction, ValidationError> => {
+  const forceLine = forceAvailable
+    ? chalk.red(
+      `  [f] FORCE-FUND: deliver the collected funds to the project account despite the goal NOT being reached (status → force_funded).\n`,
+    )
+    : ``;
+  const forceChoice = forceAvailable ? ` / [f] force-fund` : ``;
+
+  return Effect.tryPromise({
     try: () =>
       prompts({
-        type: "confirm",
-        name: "confirmed",
+        type: "text",
+        name: "choice",
         message: chalk.yellow(
           `\nProcess project ${projectName} (${projectCode})?\n`
             + `  Funded: ${dataToUpload.funded_amount ?? "0"} MTLCrowd\n`
             + `  Supporters: ${dataToUpload.supporters_count ?? 0}\n`
             + `  Remaining: ${dataToUpload.remaining_amount ?? "0"} MTLCrowd\n`
             + `  Status: ${dataToUpload.funding_status ?? "unknown"}\n`
-            + `This data will be uploaded to IPFS and added to the transaction.`,
+            + `This data will be uploaded to IPFS and added to the transaction.\n`
+            + `${forceLine}Choose: [y] proceed${forceChoice} / [n] skip`,
         ),
-        initial: true,
+        initial: "y",
       }),
     catch: (error) =>
       new ValidationError({
@@ -38,8 +61,17 @@ const confirmProjectProcessing = (
         message: `Failed to get confirmation: ${error}`,
       }),
   }).pipe(
-    Effect.map((response) => (response as { confirmed?: boolean }).confirmed === true),
+    Effect.map((response): ProjectAction => {
+      const raw = (response as { choice?: string }).choice;
+      // Cancellation (Ctrl+C) yields no value — skip.
+      if (raw === undefined) return "skip";
+      const choice = raw.trim().toLowerCase();
+      if (forceAvailable && (choice === "f" || choice === "force")) return "force";
+      if (choice === "y" || choice === "yes") return "process";
+      return "skip";
+    }),
   );
+};
 
 const waitForUserToSubmit = (): Effect.Effect<void, ValidationError> =>
   pipe(
@@ -153,29 +185,59 @@ const processProject = (
     // Remaining amount comes from the active offer that the check service
     // already fetched — no extra Horizon request needed.
     const remainingAmount = result.activeOffer?.amount ?? "0";
-    const fundingStatus: "completed" | "canceled" = parseFloat(remainingAmount) === 0
+    const defaultFundingStatus: "completed" | "canceled" = parseFloat(remainingAmount) === 0
       ? "completed"
       : "canceled";
 
-    const dataWithResults: ProjectDataWithResults = {
+    // Force-funding is offered only for refund-eligible projects that actually
+    // have collected funds to deliver (operations precomputed by the check
+    // service).
+    const forceAvailable = result.action === "refund" && result.forceFundOperations !== undefined;
+
+    const buildData = (
+      fundingStatus: "completed" | "canceled" | "force_funded",
+    ): ProjectDataWithResults => ({
       ...currentData,
       ...(fundedAmount !== "0" ? { funded_amount: fundedAmount } : {}),
       ...(supportersCount > 0 ? { supporters_count: supportersCount } : {}),
       ...(remainingAmount !== "0" ? { remaining_amount: remainingAmount } : {}),
       ...(supportersData.length > 0 ? { supporters: supportersData } : {}),
       funding_status: fundingStatus,
-    };
+    });
 
     yield* Effect.logInfo(chalk.cyan(`\n📊 Funding results:`));
     yield* Effect.logInfo(chalk.white(`  Funded amount: ${fundedAmount} MTLCrowd`));
     yield* Effect.logInfo(chalk.white(`  Supporters: ${supportersCount}`));
     yield* Effect.logInfo(chalk.white(`  Remaining: ${remainingAmount} MTLCrowd`));
-    yield* Effect.logInfo(chalk.white(`  Status: ${fundingStatus}`));
+    yield* Effect.logInfo(chalk.white(`  Status: ${defaultFundingStatus}`));
 
-    const confirmed = yield* confirmProjectProcessing(result.name, result.code, dataWithResults);
-    if (!confirmed) {
+    const action = yield* promptProjectAction(
+      result.name,
+      result.code,
+      buildData(defaultFundingStatus),
+      forceAvailable,
+    );
+    if (action === "skip") {
       yield* Effect.logInfo(chalk.yellow(`\n⏭️  Skipped ${result.code}`));
       return;
+    }
+
+    const isForce = action === "force";
+    // `forceFundOperations` is guaranteed present whenever `isForce` is true
+    // (force is only returned when forceAvailable), but fall back defensively.
+    const operations = isForce
+      ? (result.forceFundOperations ?? result.operations)
+      : result.operations;
+    const fundingStatus = isForce ? "force_funded" as const : defaultFundingStatus;
+    const dataWithResults = buildData(fundingStatus);
+
+    if (isForce) {
+      yield* Effect.logInfo(
+        chalk.red(
+          `\n⚡ FORCE-FUNDING ${result.code}: delivering ${fundedAmount} MTLCrowd to the `
+            + `project account despite the goal not being reached.`,
+        ),
+      );
     }
 
     yield* Effect.logInfo(chalk.blue(`\n📦 Uploading to IPFS...`));
@@ -210,16 +272,22 @@ const processProject = (
       name: `ipfshash-P${result.code}`,
       value: newCid,
     }));
-    for (const op of result.operations) {
+    for (const op of operations) {
       txBuilder.addOperation(op);
     }
 
     const finalXDR = txBuilder.setTimeout(TimeoutInfinite).build().toXDR();
 
+    const opsLabel = isForce
+      ? "force-fund"
+      : result.action === "fund_project"
+      ? "funding"
+      : "refund";
+
     yield* Effect.logInfo(chalk.green(`\n✅ Combined transaction created`));
     yield* Effect.logInfo(
       chalk.cyan(
-        `  - NFT metadata update + ${result.action === "fund_project" ? "funding" : "refund"} operations`,
+        `  - NFT metadata update + ${opsLabel} operations`,
       ),
     );
     yield* Effect.logInfo(chalk.cyan(`\nTransaction XDR:`));

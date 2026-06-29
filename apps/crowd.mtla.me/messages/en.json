@@ -52,7 +52,8 @@
     "target": "TARGET",
     "supporters": "ALREADY HELPED",
     "viewProject": "RESULTS",
-    "fundingActive": "NOW RAISING"
+    "fundingActive": "NOW RAISING",
+    "fundsReleased": "FUNDS RELEASED"
   },
   "projectPage": {
     "backToProjects": "Back to Projects",
@@ -122,7 +123,9 @@
       "successRate": "SUCCESS RATE:",
       "totalSupporters": "TOTAL HELPED:",
       "completedMessage": "This project has reached its goal or deadline. No further contributions are accepted.",
-      "canceledMessage": "This project did not reach its funding goal. All funds have been returned to donors."
+      "canceledMessage": "This project did not reach its funding goal. All funds have been returned to donors.",
+      "forceFunded": "FUNDS RELEASED",
+      "forceFundedMessage": "This project did not reach its funding goal, but per its terms the collected funds were released to the initiator."
     },
     "support": {
       "title": "SUPPORT PROJECT",

@@ -36,6 +36,14 @@ export interface ProjectCheckResult {
    * together with the IPFS-update `manageData` operation.
    */
   readonly operations: readonly xdr.Operation[];
+  /**
+   * Alternative operations that deliver the collected funds to the project
+   * account even though the goal was NOT reached (the "force fund" path).
+   * Only present for `refund` results that actually have funds on chain — the
+   * CLI offers this as an explicit override when a project's terms require the
+   * raised amount to be handed over regardless of whether the goal was met.
+   */
+  readonly forceFundOperations?: readonly xdr.Operation[];
   /** Active sell offer for this C-token on the issuer account, if any. */
   readonly activeOffer?: Horizon.ServerApi.OfferRecord;
   readonly error?: string;
@@ -520,7 +528,25 @@ const checkSingleProject = (
       };
     }
 
-    yield* Effect.logInfo(`  ⏰ expired, building refund operations`);
+    yield* Effect.logInfo(`  ⏰ expired, building refund operations (+ force-fund alternative)`);
+
+    // Build the force-fund alternative as well: some projects must hand the
+    // raised amount to the initiator even when the goal was not reached. The
+    // CLI surfaces this as an explicit override; it is never auto-applied.
+    const hasTrustline = yield* checkProjectTrustline(config, project.project_account_id).pipe(
+      Effect.catchAll(() => Effect.succeed(false)),
+    );
+    const forceFundOperations = buildFundingOperations(
+      config,
+      project.code,
+      project.project_account_id,
+      claimableBalances,
+      tokenHolders,
+      trustlineAccounts,
+      hasTrustline,
+      projectOfferList,
+    );
+
     return {
       code: project.code,
       name: project.name,
@@ -542,6 +568,7 @@ const checkSingleProject = (
         trustlineAccounts,
         projectOfferList,
       ),
+      forceFundOperations,
       ...(activeOffer !== undefined ? { activeOffer } : {}),
     };
   });
