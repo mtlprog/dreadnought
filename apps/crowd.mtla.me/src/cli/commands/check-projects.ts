@@ -3,7 +3,7 @@ import type { ProjectCheckResult } from "@/lib/stellar/check-service";
 import { getStellarConfig, type StellarConfig } from "@/lib/stellar/config";
 import type { ProjectDataWithResults } from "@/lib/stellar/types";
 import { collectSupportersData } from "@/lib/stellar/utils";
-import { BASE_FEE, Operation, TimeoutInfinite, TransactionBuilder } from "@stellar/stellar-sdk";
+import { BASE_FEE, Operation, TimeoutInfinite, TransactionBuilder, type xdr } from "@stellar/stellar-sdk";
 import chalk from "chalk";
 import { Effect, pipe } from "effect";
 import prompts from "prompts";
@@ -14,24 +14,31 @@ import { fetchProjectFromIPFS } from "../utils/ipfs";
 
 /**
  * What the operator chose to do with a project at the confirmation prompt.
- * `force` is only ever returned when force-funding is available for the project.
+ * The `force` variant carries its own operations so the consumer can never
+ * accidentally pair a force-fund decision with the wrong (refund) operations.
  */
-type ProjectAction = "process" | "force" | "skip";
+type ProjectAction =
+  | { readonly _tag: "process" }
+  | { readonly _tag: "force"; readonly operations: readonly xdr.Operation[] }
+  | { readonly _tag: "skip" };
 
 /**
  * Ask the operator how to handle a project. Unlike a plain y/n confirm this
  * exposes a third `f` (force-fund) option for refund-eligible projects whose
- * terms require the collected funds to be handed to the initiator even though
- * the goal was not reached. Anything other than an explicit `y`/`yes` (or `f`
- * when offered) is treated as skip — money operations never proceed on
- * ambiguous input or cancellation.
+ * terms require the collected funds to be delivered to the project account even
+ * though the goal was not reached. The `f` option is shown only when
+ * `forceFundOperations` are available, and choosing it returns those exact
+ * operations. Anything other than an explicit `y`/`yes` (or `f` when offered)
+ * is treated as skip — money operations never proceed on ambiguous input or
+ * cancellation.
  */
 const promptProjectAction = (
   projectName: string,
   projectCode: string,
   dataToUpload: ProjectDataWithResults,
-  forceAvailable: boolean,
+  forceFundOperations: readonly xdr.Operation[] | undefined,
 ): Effect.Effect<ProjectAction, ValidationError> => {
+  const forceAvailable = forceFundOperations !== undefined;
   const forceLine = forceAvailable
     ? chalk.red(
       `  [f] FORCE-FUND: deliver the collected funds to the project account despite the goal NOT being reached (status → force_funded).\n`,
@@ -64,11 +71,13 @@ const promptProjectAction = (
     Effect.map((response): ProjectAction => {
       const raw = (response as { choice?: string }).choice;
       // Cancellation (Ctrl+C) yields no value — skip.
-      if (raw === undefined) return "skip";
+      if (raw === undefined) return { _tag: "skip" };
       const choice = raw.trim().toLowerCase();
-      if (forceAvailable && (choice === "f" || choice === "force")) return "force";
-      if (choice === "y" || choice === "yes") return "process";
-      return "skip";
+      if (forceFundOperations !== undefined && (choice === "f" || choice === "force")) {
+        return { _tag: "force", operations: forceFundOperations };
+      }
+      if (choice === "y" || choice === "yes") return { _tag: "process" };
+      return { _tag: "skip" };
     }),
   );
 };
@@ -189,11 +198,6 @@ const processProject = (
       ? "completed"
       : "canceled";
 
-    // Force-funding is offered only for refund-eligible projects that actually
-    // have collected funds to deliver (operations precomputed by the check
-    // service).
-    const forceAvailable = result.action === "refund" && result.forceFundOperations !== undefined;
-
     const buildData = (
       fundingStatus: "completed" | "canceled" | "force_funded",
     ): ProjectDataWithResults => ({
@@ -215,19 +219,17 @@ const processProject = (
       result.name,
       result.code,
       buildData(defaultFundingStatus),
-      forceAvailable,
+      result.forceFundOperations,
     );
-    if (action === "skip") {
+    if (action._tag === "skip") {
       yield* Effect.logInfo(chalk.yellow(`\n⏭️  Skipped ${result.code}`));
       return;
     }
 
-    const isForce = action === "force";
-    // `forceFundOperations` is guaranteed present whenever `isForce` is true
-    // (force is only returned when forceAvailable), but fall back defensively.
-    const operations = isForce
-      ? (result.forceFundOperations ?? result.operations)
-      : result.operations;
+    // Operations come straight from the chosen action, so a force decision can
+    // never be paired with the refund operations (or vice versa).
+    const isForce = action._tag === "force";
+    const operations = isForce ? action.operations : result.operations;
     const fundingStatus = isForce ? "force_funded" as const : defaultFundingStatus;
     const dataWithResults = buildData(fundingStatus);
 

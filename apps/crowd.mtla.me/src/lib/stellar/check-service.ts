@@ -2,6 +2,7 @@ import { Asset, Claimant, type Horizon, Operation, type xdr } from "@stellar/ste
 import { Context, Effect, Layer, pipe } from "effect";
 import { getStellarConfig, type StellarConfig } from "./config";
 import { StellarError, type StellarServiceError } from "./errors";
+import { retryTransient } from "./retry";
 import type { ProjectData } from "./types";
 import { fetchProjectDataFromIPFS, isProjectExpired } from "./utils";
 
@@ -39,9 +40,11 @@ export interface ProjectCheckResult {
   /**
    * Alternative operations that deliver the collected funds to the project
    * account even though the goal was NOT reached (the "force fund" path).
-   * Only present for `refund` results that actually have funds on chain — the
-   * CLI offers this as an explicit override when a project's terms require the
-   * raised amount to be handed over regardless of whether the goal was met.
+   * Present only on the expired-but-goal-not-reached refund path, which is
+   * reached solely when funds exist on chain — never on the stale-offer-cancel
+   * refund path. The CLI offers this as an explicit override when a project's
+   * terms require the raised amount to be delivered to the project account
+   * regardless of whether the goal was met.
    */
   readonly forceFundOperations?: readonly xdr.Operation[];
   /** Active sell offer for this C-token on the issuer account, if any. */
@@ -172,20 +175,22 @@ const checkProjectTrustline = (
   config: StellarConfig,
   projectAccountId: string,
 ): Effect.Effect<boolean, StellarError> =>
-  Effect.tryPromise({
-    try: async () => {
-      const account = await config.server.loadAccount(projectAccountId);
-      return account.balances.some((balance) =>
-        balance.asset_type !== "native"
-        && balance.asset_type !== "liquidity_pool_shares"
-        && "asset_code" in balance
-        && "asset_issuer" in balance
-        && balance.asset_code === config.mtlCrowdAsset.code
-        && balance.asset_issuer === config.mtlCrowdAsset.issuer
-      );
-    },
-    catch: (error) => new StellarError({ cause: error, operation: "check_trustline" }),
-  });
+  retryTransient(
+    Effect.tryPromise({
+      try: async () => {
+        const account = await config.server.loadAccount(projectAccountId);
+        return account.balances.some((balance) =>
+          balance.asset_type !== "native"
+          && balance.asset_type !== "liquidity_pool_shares"
+          && "asset_code" in balance
+          && "asset_issuer" in balance
+          && balance.asset_code === config.mtlCrowdAsset.code
+          && balance.asset_issuer === config.mtlCrowdAsset.issuer
+        );
+      },
+      catch: (error) => new StellarError({ cause: error, operation: "check_trustline" }),
+    }),
+  );
 
 /**
  * Build the list of operations that revoke authorization on every C-token
@@ -530,9 +535,9 @@ const checkSingleProject = (
 
     yield* Effect.logInfo(`  ⏰ expired, building refund operations (+ force-fund alternative)`);
 
-    // Build the force-fund alternative as well: some projects must hand the
-    // raised amount to the initiator even when the goal was not reached. The
-    // CLI surfaces this as an explicit override; it is never auto-applied.
+    // Build the force-fund alternative as well: some projects must deliver the
+    // raised amount to the project account even when the goal was not reached.
+    // The CLI surfaces this as an explicit override; it is never auto-applied.
     const hasTrustline = yield* checkProjectTrustline(config, project.project_account_id).pipe(
       Effect.catchAll(() => Effect.succeed(false)),
     );
