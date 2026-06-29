@@ -53,7 +53,8 @@ export function ProjectCard({
 
   const isCompleted = project.status === "completed";
   const isCanceled = project.status === "canceled";
-  const isEnded = isCompleted || isCanceled;
+  const isForceFunded = project.status === "force_funded";
+  const isEnded = isCompleted || isCanceled || isForceFunded;
 
   // If project is completed (successful) and current_amount is 0, it means it was fully funded
   // (funds were distributed and tokens were clawed back)
@@ -66,12 +67,16 @@ export function ProjectCard({
 
   const statusColor = isCanceled
     ? "text-destructive"
+    : isForceFunded
+    ? "text-accent"
     : isCompleted
     ? "text-secondary"
     : "text-primary";
 
   const statusText = isCanceled
     ? t("projects.fundingFailed")
+    : isForceFunded
+    ? t("projects.fundsReleased")
     : isCompleted
     ? t("projects.fundingEnded")
     : t("projects.active");

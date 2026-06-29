@@ -40,7 +40,7 @@ export function ProjectsSection() {
   }, []);
 
   const activeProjects = projects.filter(p => p.status === "active");
-  const completedProjects = projects.filter(p => p.status === "completed");
+  const completedProjects = projects.filter(p => p.status === "completed" || p.status === "force_funded");
   const canceledProjects = projects.filter(p => p.status === "canceled");
 
   return (

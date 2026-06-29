@@ -274,7 +274,7 @@ export const StellarServiceLive = Layer.succeed(
                   const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
 
                   // Determine status based on funding_status from IPFS data
-                  let status: "active" | "completed" | "canceled" | "expired";
+                  let status: "active" | "completed" | "canceled" | "expired" | "force_funded";
                   if ("funding_status" in projectData && projectData.funding_status !== undefined) {
                     // Use funding_status from IPFS if available
                     status = projectData.funding_status;
@@ -322,7 +322,7 @@ export const StellarServiceLive = Layer.succeed(
                           ? (projectData.remaining_amount as string)
                           : undefined,
                         funding_status: "funding_status" in projectData
-                          ? (projectData.funding_status as "completed" | "canceled")
+                          ? (projectData.funding_status as "completed" | "canceled" | "force_funded")
                           : undefined,
                         ...(contactName !== undefined ? { contact_name: contactName } : {}),
                         ...(projectName !== undefined ? { project_name: projectName } : {}),
@@ -401,7 +401,7 @@ export const StellarServiceLive = Layer.succeed(
                       const isFullyFunded = parseFloat(metrics.amount) >= parseFloat(projectData.target_amount);
 
                       // Determine status based on funding_status from IPFS data
-                      let status: "active" | "completed" | "canceled" | "expired";
+                      let status: "active" | "completed" | "canceled" | "expired" | "force_funded";
                       if ("funding_status" in projectData && projectData.funding_status !== undefined) {
                         // Use funding_status from IPFS if available
                         status = projectData.funding_status;
@@ -434,7 +434,7 @@ export const StellarServiceLive = Layer.succeed(
                           ? (projectData.remaining_amount as string)
                           : undefined,
                         funding_status: "funding_status" in projectData
-                          ? (projectData.funding_status as "completed" | "canceled")
+                          ? (projectData.funding_status as "completed" | "canceled" | "force_funded")
                           : undefined,
                         ...(createdAt !== undefined ? { created_at: createdAt } : {}),
                       };

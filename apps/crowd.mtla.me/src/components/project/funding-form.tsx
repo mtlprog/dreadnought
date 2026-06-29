@@ -169,7 +169,8 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
   const totalAvailable = mtlCrowdBalanceValue + eurMtlBalanceValue;
   const isProjectCompleted = project.status === "completed";
   const isProjectCanceled = project.status === "canceled";
-  const isProjectEnded = isProjectCompleted || isProjectCanceled;
+  const isProjectForceFunded = project.status === "force_funded";
+  const isProjectEnded = isProjectCompleted || isProjectCanceled || isProjectForceFunded;
 
   // Calculate spending for current amount
   const currentSpending = balance !== null
@@ -179,23 +180,44 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
   if (isProjectEnded) {
     const statusText = isProjectCanceled
       ? t("project.status.canceled")
+      : isProjectForceFunded
+      ? t("project.status.forceFunded")
       : t("project.status.completed");
     const statusMessage = isProjectCanceled
       ? t("project.status.canceledMessage")
+      : isProjectForceFunded
+      ? t("project.status.forceFundedMessage")
       : t("project.status.completedMessage");
 
+    // Static class strings per status (Tailwind cannot interpolate class names).
+    const borderClass = isProjectCanceled
+      ? "border-destructive"
+      : isProjectForceFunded
+      ? "border-accent"
+      : "border-secondary";
+    const textClass = isProjectCanceled
+      ? "text-destructive"
+      : isProjectForceFunded
+      ? "text-accent"
+      : "text-secondary";
+    const bgClass = isProjectCanceled
+      ? "bg-destructive"
+      : isProjectForceFunded
+      ? "bg-accent"
+      : "bg-secondary";
+
     return (
-      <div className={`border-2 bg-background p-6 ${isProjectCanceled ? "border-destructive" : "border-secondary"}`}>
+      <div className={`border-2 bg-background p-6 ${borderClass}`}>
         <h2
-          className={`text-2xl font-bold uppercase mb-6 ${isProjectCanceled ? "text-destructive" : "text-secondary"}`}
+          className={`text-2xl font-bold uppercase mb-6 ${textClass}`}
         >
           {t("project.status.title")}
         </h2>
         <div className="space-y-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className={`w-6 h-6 ${isProjectCanceled ? "bg-destructive" : "bg-secondary"}`} />
+            <div className={`w-6 h-6 ${bgClass}`} />
             <span
-              className={`text-xl font-bold uppercase ${isProjectCanceled ? "text-destructive" : "text-secondary"}`}
+              className={`text-xl font-bold uppercase ${textClass}`}
             >
               {statusText}
             </span>
@@ -215,7 +237,7 @@ export function FundingForm({ project, onSubmit, isSubmitting }: FundingFormProp
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t("project.status.successRate")}</span>
-              <span className={isProjectCanceled ? "text-destructive" : "text-secondary"}>
+              <span className={textClass}>
                 {Math.round((currentProjectAmount / targetAmount) * 100)}%
               </span>
             </div>

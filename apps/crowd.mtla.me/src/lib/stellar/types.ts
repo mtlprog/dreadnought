@@ -56,7 +56,7 @@ export const ProjectDataWithResultsSchema = S.Struct({
   funded_amount: S.optional(S.String),
   supporters_count: S.optional(S.Number),
   remaining_amount: S.optional(S.String),
-  funding_status: S.optional(S.Literal("completed", "canceled")),
+  funding_status: S.optional(S.Literal("completed", "canceled", "force_funded")),
   supporters: S.optional(S.Array(SupporterContributionSchema)),
 });
 export type ProjectDataWithResults = S.Schema.Type<typeof ProjectDataWithResultsSchema>;
@@ -66,7 +66,7 @@ export interface ProjectInfo extends Omit<ProjectDataWithResults, "supporters"> 
   readonly current_amount: string;
   readonly supporters_count: number;
   readonly ipfsUrl: string;
-  readonly status: "active" | "completed" | "canceled" | "expired";
+  readonly status: "active" | "completed" | "canceled" | "expired" | "force_funded";
   readonly supporters?: readonly SupporterContributionExact[];
   readonly contact_name?: string;
   readonly project_name?: string;
